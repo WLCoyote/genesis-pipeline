@@ -1,0 +1,16 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/execute-sequences",
+      "schedule": "0 16,18,20,22,0,2,4 * * *"
+    },
+    {
+      "path": "/api/cron/poll-hcp-status",
+      "schedule": "0 16,22,4 * * *"
+    },
+    {
+      "path": "/api/cron/auto-decline",
+      "schedule": "0 17 * * *"
+    }
+  ]
+}
