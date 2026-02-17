@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { createServiceClient } from "@/lib/supabase/server";
 
 export async function POST(
   request: NextRequest,
@@ -138,12 +137,7 @@ export async function POST(
   if (lead.lead_source) estimatePayload.lead_source = lead.lead_source;
   if (hcpAddressId) estimatePayload.address_id = hcpAddressId;
 
-  // If lead has an assigned comfort pro, look up their HCP employee ID
-  // For now we pass assigned_employee_ids if we have the user
-  // (HCP employee mapping would need to be configured — we skip this for now)
-
   let hcpEstimateId: string;
-  let hcpEstimateNumber: string;
 
   try {
     const estRes = await fetch(`${hcpBase}/estimates`, {
@@ -167,7 +161,6 @@ export async function POST(
 
     const estData = await estRes.json();
     hcpEstimateId = estData.id;
-    hcpEstimateNumber = estData.estimate_number?.toString() || `HCP-${hcpEstimateId.slice(0, 8)}`;
   } catch (err) {
     console.error("HCP create estimate exception:", err);
     return NextResponse.json(
@@ -176,101 +169,20 @@ export async function POST(
     );
   }
 
-  // Step 3: Create customer + estimate in Genesis Pipeline DB
-  // Use service client to bypass RLS for cross-table writes
-  const serviceClient = createServiceClient();
-
-  // Create/upsert local customer
-  const { data: localCustomer, error: custDbErr } = await serviceClient
-    .from("customers")
-    .insert({
-      hcp_customer_id: hcpCustomerId,
-      name: `${lead.first_name} ${lead.last_name}`.trim(),
-      email: lead.email,
-      phone: lead.phone,
-      address: [lead.address, lead.city, lead.state, lead.zip]
-        .filter(Boolean)
-        .join(", ") || null,
-      lead_source: lead.lead_source,
-    })
-    .select("id")
-    .single();
-
-  if (custDbErr || !localCustomer) {
-    console.error("Local customer creation error:", custDbErr);
-    return NextResponse.json(
-      { error: "Lead moved to HCP but failed to save locally" },
-      { status: 500 }
-    );
-  }
-
-  // Get default sequence + auto_decline_days
-  const { data: seq } = await serviceClient
-    .from("follow_up_sequences")
-    .select("id")
-    .eq("is_default", true)
-    .limit(1)
-    .single();
-
-  const { data: setting } = await serviceClient
-    .from("settings")
-    .select("value")
-    .eq("key", "auto_decline_days")
-    .single();
-
-  const autoDeclineDays = (setting?.value as number) || 60;
-  const autoDeclineDate = new Date();
-  autoDeclineDate.setDate(autoDeclineDate.getDate() + autoDeclineDays);
-
-  // Create local estimate
-  const { data: localEstimate, error: estDbErr } = await serviceClient
-    .from("estimates")
-    .insert({
-      estimate_number: hcpEstimateNumber,
-      hcp_estimate_id: hcpEstimateId,
-      customer_id: localCustomer.id,
-      assigned_to: lead.assigned_to,
-      status: "sent",
-      sent_date: new Date().toISOString().split("T")[0],
-      sequence_id: seq?.id || null,
-      sequence_step_index: 0,
-      auto_decline_date: autoDeclineDate.toISOString().split("T")[0],
-    })
-    .select("id")
-    .single();
-
-  if (estDbErr || !localEstimate) {
-    console.error("Local estimate creation error:", estDbErr);
-    return NextResponse.json(
-      { error: "Lead moved to HCP but estimate save failed locally" },
-      { status: 500 }
-    );
-  }
-
-  // Step 4: Update lead status
+  // Step 3: Update lead status (NO local customer/estimate creation)
+  // The estimate will enter the pipeline when the HCP polling cron
+  // detects it has been sent to the customer (approval_status = "awaiting response")
   await supabase
     .from("leads")
     .update({
       status: "moved_to_hcp",
       hcp_customer_id: hcpCustomerId,
-      estimate_id: localEstimate.id,
     })
     .eq("id", id);
-
-  // Notify assigned comfort pro
-  if (lead.assigned_to) {
-    await serviceClient.from("notifications").insert({
-      user_id: lead.assigned_to,
-      type: "lead_assigned",
-      estimate_id: localEstimate.id,
-      message: `New lead moved to HCP: ${lead.first_name} ${lead.last_name}`,
-    });
-  }
 
   return NextResponse.json({
     success: true,
     hcp_customer_id: hcpCustomerId,
     hcp_estimate_id: hcpEstimateId,
-    estimate_id: localEstimate.id,
   });
 }

@@ -16,7 +16,7 @@ export default function MoveToHcpButton({ leadId, customerName }: MoveToHcpButto
   const handleMove = async () => {
     if (
       !confirm(
-        `Move "${customerName}" to Housecall Pro? This will create a customer and estimate in HCP.`
+        `Move "${customerName}" to Housecall Pro? This will create a customer and estimate draft in HCP. The estimate will appear in your pipeline after it's been sent to the customer.`
       )
     ) {
       return;

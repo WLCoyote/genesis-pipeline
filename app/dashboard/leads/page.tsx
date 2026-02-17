@@ -7,6 +7,7 @@ import CreateEstimateForm from "@/app/components/CreateEstimateForm";
 import ReassignDropdown from "@/app/components/ReassignDropdown";
 import LeadCard from "@/app/components/LeadCard";
 import LeadsTabs from "@/app/components/LeadsTabs";
+import UpdateEstimatesButton from "@/app/components/UpdateEstimatesButton";
 
 export default async function LeadsPage({
   searchParams,
@@ -130,8 +131,9 @@ export default async function LeadsPage({
   // Build the estimates section
   const estimatesContent = (
     <>
-      <div className="mb-4">
+      <div className="mb-4 flex items-center justify-between flex-wrap gap-3">
         <CreateEstimateForm comfortPros={pros} />
+        <UpdateEstimatesButton />
       </div>
 
       {rows.length === 0 ? (
