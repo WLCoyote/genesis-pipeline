@@ -32,6 +32,7 @@ interface LeadCardProps {
   comfortPros: ComfortPro[];
   leadSources?: string[];
   statusStyles: Record<string, string>;
+  isAdmin?: boolean;
 }
 
 const defaultSources = ["Facebook", "Google", "Referral", "Website", "Other"];
@@ -49,11 +50,13 @@ export default function LeadCard({
   comfortPros,
   leadSources,
   statusStyles,
+  isAdmin = false,
 }: LeadCardProps) {
   const sources = leadSources && leadSources.length > 0 ? leadSources : defaultSources;
   const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState("");
 
   const [firstName, setFirstName] = useState(lead.first_name);
@@ -118,6 +121,37 @@ export default function LeadCard({
     setStatus(lead.status);
     setEditing(false);
     setError("");
+  };
+
+  const handleArchive = async () => {
+    const res = await fetch(`/api/leads/${lead.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "archived" }),
+    });
+    if (res.ok) router.refresh();
+  };
+
+  const handleUnarchive = async () => {
+    const res = await fetch(`/api/leads/${lead.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "new" }),
+    });
+    if (res.ok) router.refresh();
+  };
+
+  const handleDelete = async () => {
+    if (!confirm(`Delete lead "${lead.first_name} ${lead.last_name}"? This cannot be undone.`)) return;
+    setDeleting(true);
+    const res = await fetch(`/api/leads/${lead.id}`, { method: "DELETE" });
+    if (res.ok) {
+      router.refresh();
+    } else {
+      const data = await res.json();
+      setError(data.error || "Failed to delete");
+      setDeleting(false);
+    }
   };
 
   if (editing) {
@@ -315,7 +349,7 @@ export default function LeadCard({
             {formatDate(lead.created_at)}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <span
             className={`px-2 py-0.5 rounded-full text-xs font-medium ${
               statusStyles[lead.status] ||
@@ -330,10 +364,36 @@ export default function LeadCard({
           >
             Edit
           </button>
-          <MoveToHcpButton
-            leadId={lead.id}
-            customerName={`${lead.first_name} ${lead.last_name}`}
-          />
+          {lead.status === "archived" ? (
+            <button
+              onClick={handleUnarchive}
+              className="px-2 py-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 border border-blue-200 dark:border-blue-700 rounded transition-colors cursor-pointer"
+            >
+              Unarchive
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={handleArchive}
+                className="px-2 py-1 text-xs text-gray-500 dark:text-gray-400 hover:text-yellow-600 dark:hover:text-yellow-400 border border-gray-200 dark:border-gray-600 rounded transition-colors cursor-pointer"
+              >
+                Archive
+              </button>
+              <MoveToHcpButton
+                leadId={lead.id}
+                customerName={`${lead.first_name} ${lead.last_name}`}
+              />
+            </>
+          )}
+          {isAdmin && (
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="px-2 py-1 text-xs text-red-500 hover:text-red-700 border border-red-200 dark:border-red-800 rounded transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {deleting ? "..." : "Delete"}
+            </button>
+          )}
         </div>
       </div>
 

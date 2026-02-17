@@ -13,6 +13,7 @@ interface EstimateActionsProps {
   snoozeUntil: string | null;
   pendingEvent: FollowUpEvent | null;
   onlineEstimateUrl: string | null;
+  isAdmin?: boolean;
 }
 
 export default function EstimateActions({
@@ -22,11 +23,13 @@ export default function EstimateActions({
   snoozeUntil,
   pendingEvent,
   onlineEstimateUrl,
+  isAdmin = false,
 }: EstimateActionsProps) {
   const router = useRouter();
   const [showSnooze, setShowSnooze] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [loading, setLoading] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   const handleStatusChange = async (newStatus: "won" | "lost" | "active") => {
     const confirmMsg =
@@ -186,6 +189,28 @@ export default function EstimateActions({
         <p className="text-xs text-gray-400 dark:text-gray-500">
           Won/Lost status updates automatically when the customer approves or all options are declined in HCP. Use the buttons above for manual override only.
         </p>
+      )}
+
+      {/* Delete — admin only */}
+      {isAdmin && (
+        <div className="pt-3 border-t border-gray-200 dark:border-gray-700">
+          <button
+            onClick={async () => {
+              if (!confirm("Delete this estimate and all its follow-up data? This cannot be undone.")) return;
+              setDeleting(true);
+              const res = await fetch(`/api/estimates/${estimateId}`, { method: "DELETE" });
+              if (res.ok) {
+                router.push("/dashboard/estimates");
+              } else {
+                setDeleting(false);
+              }
+            }}
+            disabled={deleting}
+            className="text-xs text-red-500 hover:text-red-700 disabled:opacity-50 transition-colors cursor-pointer"
+          >
+            {deleting ? "Deleting..." : "Delete Estimate"}
+          </button>
+        </div>
       )}
     </div>
   );

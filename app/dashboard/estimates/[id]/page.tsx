@@ -21,6 +21,14 @@ export default async function EstimateDetailPage({
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
+  const { data: dbUser } = await supabase
+    .from("users")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  const isAdmin = dbUser?.role === "admin";
+
   // Fetch estimate with all related data
   const { data: estimate, error } = await supabase
     .from("estimates")
@@ -110,6 +118,7 @@ export default async function EstimateDetailPage({
             snoozeUntil={est.snooze_until}
             pendingEvent={pendingEvent}
             onlineEstimateUrl={est.online_estimate_url || null}
+            isAdmin={isAdmin}
           />
           <CustomerInfo customer={customer} />
           <OptionsList options={options} totalAmount={est.total_amount} />

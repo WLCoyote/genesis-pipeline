@@ -153,7 +153,7 @@ export interface Setting {
   updated_at: string;
 }
 
-export type LeadStatus = "new" | "contacted" | "qualified" | "moved_to_hcp";
+export type LeadStatus = "new" | "contacted" | "qualified" | "moved_to_hcp" | "archived";
 
 export interface Lead {
   id: string;

@@ -8,6 +8,7 @@ import ReassignDropdown from "@/app/components/ReassignDropdown";
 import LeadCard from "@/app/components/LeadCard";
 import LeadsTabs from "@/app/components/LeadsTabs";
 import UpdateEstimatesButton from "@/app/components/UpdateEstimatesButton";
+import ArchivedLeadsSection from "@/app/components/ArchivedLeadsSection";
 
 export default async function LeadsPage({
   searchParams,
@@ -53,14 +54,25 @@ export default async function LeadsPage({
     ? leadSourceSetting.value.map((s: { name: string }) => s.name)
     : [];
 
-  // Fetch active leads (not yet moved to HCP)
+  const isAdmin = role === "admin";
+
+  // Fetch active leads (not moved to HCP or archived)
   const { data: leads } = await supabase
     .from("leads")
     .select("*, users!leads_assigned_to_fkey ( name )")
-    .neq("status", "moved_to_hcp")
+    .not("status", "in", '("moved_to_hcp","archived")')
     .order("created_at", { ascending: false });
 
   const activeLeads = (leads || []) as any[];
+
+  // Fetch archived leads
+  const { data: archivedLeadsData } = await supabase
+    .from("leads")
+    .select("*, users!leads_assigned_to_fkey ( name )")
+    .eq("status", "archived")
+    .order("updated_at", { ascending: false });
+
+  const archivedLeads = (archivedLeadsData || []) as any[];
 
   // Fetch recent estimates with customer + assigned user
   const { data: estimates } = await supabase
@@ -99,6 +111,7 @@ export default async function LeadsPage({
     new: "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300",
     contacted: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300",
     qualified: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300",
+    archived: "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400",
   };
 
   // Build the leads section
@@ -121,10 +134,24 @@ export default async function LeadsPage({
               comfortPros={pros}
               leadSources={leadSources}
               statusStyles={leadStatusStyles}
+              isAdmin={isAdmin}
             />
           ))}
         </div>
       )}
+
+      <ArchivedLeadsSection count={archivedLeads.length}>
+        {archivedLeads.map((lead) => (
+          <LeadCard
+            key={lead.id}
+            lead={lead}
+            comfortPros={pros}
+            leadSources={leadSources}
+            statusStyles={leadStatusStyles}
+            isAdmin={isAdmin}
+          />
+        ))}
+      </ArchivedLeadsSection>
     </>
   );
 
