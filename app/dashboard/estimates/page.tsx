@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { UserRole } from "@/lib/types";
 import EstimateTable from "@/app/components/EstimateTable";
+import UpdateEstimatesButton from "@/app/components/UpdateEstimatesButton";
 
 export default async function EstimatesPage() {
   const supabase = await createClient();
@@ -108,13 +109,16 @@ export default async function EstimatesPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Estimates</h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          {role === "admin"
-            ? "All estimates across your team"
-            : "Your assigned estimates"}
-        </p>
+      <div className="mb-6 flex items-start justify-between flex-wrap gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Estimates</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {role === "admin"
+              ? "All estimates across your team"
+              : "Your assigned estimates"}
+          </p>
+        </div>
+        {["admin", "csr"].includes(role) && <UpdateEstimatesButton />}
       </div>
       <EstimateTable estimates={rows} role={role} />
     </div>
