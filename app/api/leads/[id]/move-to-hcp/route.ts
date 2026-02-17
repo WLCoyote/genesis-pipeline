@@ -116,15 +116,27 @@ export async function POST(
   }
 
   // Step 2: Create estimate in HCP
+  // HCP requires at least one option with a line item
   const estimatePayload: Record<string, any> = {
     customer_id: hcpCustomerId,
-    note: lead.notes || "",
-    lead_source: lead.lead_source || "",
+    options: [
+      {
+        name: "Option 1",
+        line_items: [
+          {
+            name: "Service Estimate",
+            description: lead.notes || "Estimate from lead",
+            unit_price: 0,
+            quantity: 1,
+          },
+        ],
+      },
+    ],
   };
 
-  if (hcpAddressId) {
-    estimatePayload.address_id = hcpAddressId;
-  }
+  if (lead.notes) estimatePayload.note = lead.notes;
+  if (lead.lead_source) estimatePayload.lead_source = lead.lead_source;
+  if (hcpAddressId) estimatePayload.address_id = hcpAddressId;
 
   // If lead has an assigned comfort pro, look up their HCP employee ID
   // For now we pass assigned_employee_ids if we have the user
