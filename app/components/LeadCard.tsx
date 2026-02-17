@@ -32,17 +32,23 @@ interface LeadCardProps {
   comfortPros: ComfortPro[];
   leadSources?: string[];
   statusStyles: Record<string, string>;
-  formatDate: (d: string | null) => string;
 }
 
 const defaultSources = ["Facebook", "Google", "Referral", "Website", "Other"];
+
+function formatDate(date: string | null) {
+  if (!date) return "—";
+  return new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}
 
 export default function LeadCard({
   lead,
   comfortPros,
   leadSources,
   statusStyles,
-  formatDate,
 }: LeadCardProps) {
   const sources = leadSources && leadSources.length > 0 ? leadSources : defaultSources;
   const router = useRouter();

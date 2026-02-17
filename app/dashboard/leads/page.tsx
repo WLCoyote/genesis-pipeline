@@ -120,7 +120,6 @@ export default async function LeadsPage({
               comfortPros={pros}
               leadSources={leadSources}
               statusStyles={leadStatusStyles}
-              formatDate={formatDate}
             />
           ))}
         </div>
