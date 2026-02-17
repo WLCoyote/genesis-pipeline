@@ -22,8 +22,13 @@ export default async function SettingsPage() {
   const { data: settings } = await supabase.from("settings").select("*");
 
   const settingsMap: Record<string, number | string | boolean> = {};
+  let hcpLeadSourceCount = 0;
   for (const s of settings || []) {
-    settingsMap[s.key] = s.value;
+    if (s.key === "hcp_lead_sources") {
+      hcpLeadSourceCount = Array.isArray(s.value) ? s.value.length : 0;
+    } else {
+      settingsMap[s.key] = s.value;
+    }
   }
 
   return (
@@ -35,7 +40,7 @@ export default async function SettingsPage() {
         </p>
       </div>
 
-      <SettingsForm initialSettings={settingsMap} />
+      <SettingsForm initialSettings={settingsMap} hcpLeadSourceCount={hcpLeadSourceCount} />
     </div>
   );
 }

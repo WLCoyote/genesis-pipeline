@@ -4,6 +4,7 @@ import { useState } from "react";
 
 interface SettingsFormProps {
   initialSettings: Record<string, number | string | boolean>;
+  hcpLeadSourceCount?: number;
 }
 
 const settingsConfig = [
@@ -21,11 +22,14 @@ const settingsConfig = [
   },
 ];
 
-export default function SettingsForm({ initialSettings }: SettingsFormProps) {
+export default function SettingsForm({ initialSettings, hcpLeadSourceCount }: SettingsFormProps) {
   const [values, setValues] = useState(initialSettings);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState("");
+  const [sourceCount, setSourceCount] = useState(hcpLeadSourceCount ?? 0);
 
   const handleSave = async () => {
     setSaving(true);
@@ -62,6 +66,43 @@ export default function SettingsForm({ initialSettings }: SettingsFormProps) {
           >
             {saving ? "Saving..." : "Save"}
           </button>
+        </div>
+      </div>
+
+      {/* HCP Lead Sources Sync */}
+      <div className="mb-6 pb-5 border-b border-gray-200 dark:border-gray-700">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          HCP Lead Sources
+        </label>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">
+          Pull lead source options from Housecall Pro for use in the Create Lead form.
+          {sourceCount > 0 && ` (${sourceCount} sources synced)`}
+        </p>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={async () => {
+              setSyncing(true);
+              setSyncResult("");
+              const res = await fetch("/api/admin/hcp-lead-sources", { method: "POST" });
+              const data = await res.json();
+              if (res.ok) {
+                setSourceCount(data.count);
+                setSyncResult(`Synced ${data.count} lead sources from HCP`);
+              } else {
+                setSyncResult(data.error || "Sync failed");
+              }
+              setSyncing(false);
+            }}
+            disabled={syncing}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
+          >
+            {syncing ? "Syncing..." : "Sync HCP Lead Sources"}
+          </button>
+          {syncResult && (
+            <span className={`text-sm ${syncResult.includes("Synced") ? "text-green-600 dark:text-green-400" : "text-red-600"}`}>
+              {syncResult}
+            </span>
+          )}
         </div>
       </div>
 

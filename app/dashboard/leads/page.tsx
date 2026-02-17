@@ -5,7 +5,7 @@ import StatusBadge from "@/app/components/StatusBadge";
 import CreateLeadForm from "@/app/components/CreateLeadForm";
 import CreateEstimateForm from "@/app/components/CreateEstimateForm";
 import ReassignDropdown from "@/app/components/ReassignDropdown";
-import MoveToHcpButton from "@/app/components/MoveToHcpButton";
+import LeadCard from "@/app/components/LeadCard";
 import LeadsTabs from "@/app/components/LeadsTabs";
 
 export default async function LeadsPage({
@@ -40,6 +40,17 @@ export default async function LeadsPage({
     .order("name");
 
   const pros = (comfortPros || []).map((p) => ({ id: p.id, name: p.name }));
+
+  // Fetch HCP lead sources from settings
+  const { data: leadSourceSetting } = await supabase
+    .from("settings")
+    .select("value")
+    .eq("key", "hcp_lead_sources")
+    .single();
+
+  const leadSources: string[] = Array.isArray(leadSourceSetting?.value)
+    ? leadSourceSetting.value.map((s: { name: string }) => s.name)
+    : [];
 
   // Fetch active leads (not yet moved to HCP)
   const { data: leads } = await supabase
@@ -93,7 +104,7 @@ export default async function LeadsPage({
   const leadsContent = (
     <>
       <div className="mb-4">
-        <CreateLeadForm comfortPros={pros} prefillPhone={prefillPhone} />
+        <CreateLeadForm comfortPros={pros} prefillPhone={prefillPhone} leadSources={leadSources} />
       </div>
 
       {activeLeads.length === 0 ? (
@@ -103,64 +114,14 @@ export default async function LeadsPage({
       ) : (
         <div className="space-y-3">
           {activeLeads.map((lead) => (
-            <div
+            <LeadCard
               key={lead.id}
-              className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4"
-            >
-              <div className="flex items-start justify-between mb-2">
-                <div>
-                  <div className="font-medium text-gray-900 dark:text-gray-100">
-                    {lead.first_name} {lead.last_name}
-                  </div>
-                  <div className="text-xs text-gray-400 dark:text-gray-500">
-                    {lead.lead_source ? `via ${lead.lead_source}` : "No source"}
-                    {" · "}
-                    {formatDate(lead.created_at)}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      leadStatusStyles[lead.status] || "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
-                    }`}
-                  >
-                    {lead.status}
-                  </span>
-                  <MoveToHcpButton
-                    leadId={lead.id}
-                    customerName={`${lead.first_name} ${lead.last_name}`}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
-                <div className="text-gray-600 dark:text-gray-400">
-                  {lead.email || "No email"}
-                </div>
-                <div className="text-gray-600 dark:text-gray-400">
-                  {lead.phone || "No phone"}
-                </div>
-                <div className="text-gray-600 dark:text-gray-400">
-                  {lead.users?.name
-                    ? `Assigned: ${lead.users.name}`
-                    : "Unassigned"}
-                </div>
-              </div>
-
-              {lead.address && (
-                <div className="text-xs text-gray-400 dark:text-gray-500 mt-1">
-                  {[lead.address, lead.city, lead.state, lead.zip]
-                    .filter(Boolean)
-                    .join(", ")}
-                </div>
-              )}
-
-              {lead.notes && (
-                <div className="text-xs text-gray-500 dark:text-gray-400 mt-1 italic">
-                  {lead.notes}
-                </div>
-              )}
-            </div>
+              lead={lead}
+              comfortPros={pros}
+              leadSources={leadSources}
+              statusStyles={leadStatusStyles}
+              formatDate={formatDate}
+            />
           ))}
         </div>
       )}

@@ -153,8 +153,21 @@ export default function SequenceEditor({
                 onChange={(e) => updateStep(index, "template", e.target.value)}
                 rows={2}
                 className="w-full px-2 py-1.5 border border-gray-300 dark:border-gray-600 rounded text-sm dark:bg-gray-700 dark:text-gray-100"
-                placeholder="Message template... Use {{customer_name}}, {{comfort_pro_name}}"
+                placeholder="Message template..."
               />
+              <div className="flex flex-wrap gap-1.5 mt-1.5">
+                <span className="text-xs text-gray-400 dark:text-gray-500 mr-0.5 leading-5">Insert:</span>
+                {["{{customer_name}}", "{{customer_email}}", "{{comfort_pro_name}}", "{{estimate_link}}"].map((tag) => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => updateStep(index, "template", step.template + tag)}
+                    className="px-1.5 py-0.5 text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/50 cursor-pointer transition-colors"
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <button

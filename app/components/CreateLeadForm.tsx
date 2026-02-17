@@ -11,9 +11,13 @@ interface ComfortPro {
 interface CreateLeadFormProps {
   comfortPros: ComfortPro[];
   prefillPhone?: string | null;
+  leadSources?: string[];
 }
 
-export default function CreateLeadForm({ comfortPros, prefillPhone }: CreateLeadFormProps) {
+const defaultSources = ["Facebook", "Google", "Referral", "Website", "Other"];
+
+export default function CreateLeadForm({ comfortPros, prefillPhone, leadSources }: CreateLeadFormProps) {
+  const sources = leadSources && leadSources.length > 0 ? leadSources : defaultSources;
   const router = useRouter();
   const [open, setOpen] = useState(!!prefillPhone);
   const [loading, setLoading] = useState(false);
@@ -197,11 +201,11 @@ export default function CreateLeadForm({ comfortPros, prefillPhone }: CreateLead
               className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">— Select —</option>
-              <option value="facebook">Facebook</option>
-              <option value="google">Google</option>
-              <option value="referral">Referral</option>
-              <option value="website">Website</option>
-              <option value="other">Other</option>
+              {sources.map((src) => (
+                <option key={src} value={src}>
+                  {src}
+                </option>
+              ))}
             </select>
           </div>
           <div>
