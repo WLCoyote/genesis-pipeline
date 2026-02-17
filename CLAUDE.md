@@ -89,7 +89,7 @@ Update this as phases are completed:
 | Phase 1 | Database & auth | Complete |
 | Phase 2 | Backend API routes & cron jobs | Complete |
 | Phase 3 | Frontend dashboard + dark mode | Complete |
-| Phase 4 | Deployment & E2E testing | Not started |
+| Phase 4 | Deployment & E2E testing | In progress |
 | Phase 5 | Team launch | Not started |
 | v0.2 | HCP webhooks, analytics | Future |
 | Phase 2+ | Campaigns & segmentation | Future |

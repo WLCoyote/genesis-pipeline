@@ -4,13 +4,13 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 2.4 — February 15, 2026
+Version 2.5 — February 16, 2026
 
 Genesis Services — Monroe, WA
 
 CONFIDENTIAL — Internal Use Only
 
-**v2.4 Changes:** Added SMS Inbox for unmatched inbound messages. New `phone_number` and `dismissed` columns on messages table. Twilio webhook now notifies all admins/CSRs when no matching estimate exists. New `/api/inbox` route and `/dashboard/inbox` page with thread view, reply, dismiss, and convert-to-lead actions. New `unmatched_sms` notification type. Previous: v2.3 added team management. v2.2 added Flow 2, leads, estimate links, dark mode. v2.1 added Twilio Hosted SMS.
+**v2.5 Changes:** Corrected estimate pipeline entry flow. Move to HCP no longer creates a local estimate — estimates enter the pipeline only when the HCP polling cron detects they've been sent to the customer (option approval\_status = "awaiting response"). Polling cron now handles both new estimate creation and existing estimate updates, and filters out estimates older than auto\_decline\_days. Added HCP lead source sync (GET /lead\_sources stored in settings, used in lead source dropdowns). Added lead editing (PATCH /api/leads/[id]). Added clickable placeholder reference in sequence editor. Previous: v2.4 added SMS Inbox. v2.3 added team management. v2.2 added Flow 2, leads, estimate links, dark mode. v2.1 added Twilio Hosted SMS.
 
 # **1\. High-Level Overview**
 
@@ -129,7 +129,7 @@ MVP: CSV export from Housecall Pro, uploaded via the admin dashboard. The import
 
 Version 0.2: HCP webhook fires on new estimate creation. A Vercel API route receives the payload, performs the same dedup and enrollment logic, and auto-assigns the comfort pro from the HCP data. No manual import needed for new estimates.
 
-Flow 2 (Built): External leads arrive via /api/leads/inbound webhook. CSRs qualify leads and "Move to HCP" creates the customer and estimate in Housecall Pro via POST /customers and POST /estimates API calls. The estimate then enters the standard pipeline.
+Flow 2 (Built): External leads arrive via /api/leads/inbound webhook. CSRs qualify leads and "Move to HCP" creates the customer and estimate in Housecall Pro via POST /customers and POST /estimates API calls. Move to HCP does NOT create a local estimate — it only updates the lead status to "converted" and stores the hcp\_customer\_id. The estimate enters the pipeline later when the HCP polling cron detects it has been sent to the customer (option approval\_status = "awaiting response").
 
 ## **5.2 Follow-Up Sequence Execution**
 
@@ -141,9 +141,13 @@ For call task steps: the system creates a follow\_up\_event with status “sched
 
 ## **5.3 HCP Status Sync**
 
-A Vercel cron job runs 3 times daily. It calls GET /estimates on the HCP API with a date range filter (today back to the auto-decline threshold). For each returned estimate, it compares option statuses against the local database. If HCP shows an option as approved that the system has as pending, the system updates the option, marks the estimate as “won,” stops the follow-up sequence, and creates a notification.
+A Vercel cron job runs 3 times daily. It calls GET /estimates on the HCP API. The cron automatically filters out estimates older than the auto\_decline\_days setting, so it only processes recent/relevant estimates. For each returned estimate, it performs two functions:
 
-When the auto-decline threshold is reached: the system collects all pending hcp\_option\_ids for the estimate, POSTs to /estimates/options/decline with the option\_ids array, marks the estimate as “lost” locally, and notifies the comfort pro. A “declining soon” notification fires 3 days before the threshold.
+**New estimate detection:** If an estimate exists in HCP but not in the local database, and any of its options has approval\_status = "awaiting response" (meaning it was sent to the customer), the cron creates the local customer record (if needed), creates the estimate with status "active", creates estimate\_options, assigns the comfort pro from HCP's assigned\_employees, and enrolls the estimate in the default follow-up sequence. This is how estimates from both Flow 1 (created directly in HCP) and Flow 2 (created via Move to HCP) enter the pipeline — only after they've been sent to the customer.
+
+**Existing estimate updates:** For estimates already in the local database, it compares option statuses. If HCP shows an option as approved that the system has as pending, it updates the option, marks the estimate as "won," stops the follow-up sequence, and creates a notification. If HCP shows declined, it updates accordingly.
+
+Auto-decline processing is handled separately by the /api/cron/auto-decline job.
 
 ## **5.4 Inbound SMS (Twilio Webhook)**
 
@@ -159,7 +163,7 @@ Notifications are written to the notifications table in Supabase. The frontend s
 
 ## **5.7 Inbound Lead Ingestion (Flow 2)**
 
-External lead sources (Facebook Lead Ads, Google Ads, website forms) send lead data to /api/leads/inbound via POST, secured with LEADS\_WEBHOOK\_SECRET header validation. The webhook accepts flexible field names to accommodate different sources (e.g., "full\_name" or "name", "email\_address" or "email"). A new row is created in the leads table with status "new". CSRs manage leads in the Leads tab — updating status, adding notes, and qualifying leads. When ready, the CSR clicks "Move to HCP" which: 1) POSTs to the HCP API to create a customer record, 2) POSTs to create an estimate for that customer, 3) Updates the lead status to "converted" and stores the hcp\_customer\_id and converted\_estimate\_id. The new estimate then enters Flow 1's standard pipeline via the next HCP polling cycle.
+External lead sources (Facebook Lead Ads, Google Ads, website forms) send lead data to /api/leads/inbound via POST, secured with LEADS\_WEBHOOK\_SECRET as Bearer token. The webhook accepts flexible field names to accommodate different sources (e.g., "full\_name" or "name", "email\_address" or "email"). Lead source dropdown options are synced from HCP via the "Sync HCP Lead Sources" button in Settings (GET /lead\_sources), ensuring lead source values match HCP exactly. A new row is created in the leads table with status "new". CSRs manage leads in the Leads tab — updating status, adding notes, editing lead details, and qualifying leads. When ready, the CSR clicks "Move to HCP" which: 1) POSTs to the HCP API to create a customer record, 2) POSTs to create an estimate for that customer (with a default option as required by HCP). Move to HCP does NOT create a local estimate — it updates the lead status to "converted" and stores the hcp\_customer\_id. The estimate enters the pipeline later when the HCP polling cron detects it has been sent to the customer (option approval\_status = "awaiting response").
 
 ## **5.8 Estimate Link Integration**
 

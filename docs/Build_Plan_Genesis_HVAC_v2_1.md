@@ -4,7 +4,7 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 2.4 — February 15, 2026
+Version 2.5 — February 16, 2026
 
 Genesis Services — Monroe, WA
 
@@ -208,9 +208,11 @@ Then create the vercel.json cron configuration:
 
 **Step 2.6: Build HCP Status Polling Cron Job**
 
-**PROMPT CLAUDE:** *"Generate a Next.js API route at /api/cron/poll-hcp-status that: 1\) Reads auto\_decline\_days from the settings table. 2\) Calls GET on the Housecall Pro estimates API with a date range filter from today back to auto\_decline\_days ago. Use Bearer token auth. 3\) For each returned estimate, matches it to our estimates table by hcp\_estimate\_id or estimate\_number. 4\) Compares each option’s status. If HCP shows approved and ours shows pending: update our estimate\_option to approved, set parent estimate to 'won', stop the follow-up sequence, create a notification. 5\) If HCP shows declined: update accordingly. 6\) Use Supabase service role client."*
+**Build Notes (v2.5 update):** Rewritten to handle both new estimate detection and existing estimate updates. Filters out estimates older than auto\_decline\_days. New estimates enter the pipeline only when sent to the customer (option approval\_status = "awaiting response"). This is the primary ingress path for all estimates — both Flow 1 (created directly in HCP) and Flow 2 (created via Move to HCP). HCP API response includes: estimate.options[].approval\_status (values: "awaiting response", "approved", "declined", etc.) and estimate.assigned\_employees[] for comfort pro assignment.
 
-**VERIFY:** Manually approve an estimate in HCP. Run the cron endpoint. Confirm the estimate status updated in your Supabase database and a notification was created.
+**Functionality:** The cron route at /api/cron/poll-hcp-status: 1\) Reads auto\_decline\_days from settings. 2\) Calls GET /estimates on the HCP API, paginating through results, skipping estimates older than auto\_decline\_days. 3\) For each HCP estimate, checks if it exists locally by hcp\_estimate\_id or estimate\_number. 4\) **New estimates:** If not in local DB and any option has approval\_status = "awaiting response" → creates local customer (if needed), creates estimate with status "active", creates estimate\_options, assigns comfort pro from HCP assigned\_employees, enrolls in default follow-up sequence, creates notification. 5\) **Existing estimates:** Compares option approval\_statuses. If HCP shows "approved" and ours is pending → update option, mark estimate "won", stop sequence, notify. If HCP shows "declined" → update accordingly. 6\) Uses Supabase service role client.
+
+**VERIFY:** Create an estimate in HCP, send it to a customer. Run the cron endpoint. Confirm: estimate appears in the pipeline with status "active" and is enrolled in the follow-up sequence. Then approve the estimate in HCP, run again, confirm status moves to "won".
 
 **Step 2.7: Build Auto-Decline Cron Job**
 
@@ -291,10 +293,12 @@ Built the Genesis-first lead ingestion flow for leads from external sources (Fac
 - **Inbound webhook** at /api/leads/inbound — accepts POST with flexible field names, secured with LEADS\_WEBHOOK\_SECRET
 - **Leads tab** in dashboard — CSR view showing all leads with status badges (new/contacted/qualified/converted/closed)
 - **Lead management** — create leads manually, update status, add notes
-- **Move to HCP button** — creates customer + estimate in Housecall Pro via API, links lead to resulting estimate
-- **LeadsTabs, CreateLeadForm, MoveToHcpButton** components
+- **Move to HCP button** — creates customer + estimate in Housecall Pro via API (with required default option). Does NOT create a local estimate — the estimate enters the pipeline later when the HCP polling cron detects it has been sent (option approval\_status = "awaiting response")
+- **Lead editing** — inline edit form on each lead card (PATCH /api/leads/[id]) for updating contact info, status, notes, assignment
+- **HCP lead source sync** — "Sync HCP Lead Sources" button in Settings fetches lead sources from HCP API (GET /lead\_sources) and stores them. Lead source dropdowns in Create Lead and Edit Lead forms use synced HCP values
+- **LeadsTabs, CreateLeadForm, LeadCard, MoveToHcpButton** components
 
-**VERIFY:** POST a test lead to /api/leads/inbound. It appears in the Leads tab. Click "Move to HCP" — customer and estimate created in HCP. Lead status updates to converted.
+**VERIFY:** POST a test lead to /api/leads/inbound. It appears in the Leads tab. Edit the lead to update info. Click "Move to HCP" — customer and estimate created in HCP. Lead status updates to converted. Estimate does NOT appear in pipeline yet — it appears after the comfort pro sends it in HCP and the polling cron picks it up.
 
 **Step 3.9: Estimate Link Integration (Added)**
 
@@ -353,7 +357,9 @@ Added an inbox system for inbound SMS messages that don't match an active estima
 
   **PHASE 4: Deployment & End-to-End Testing (Week 5–6)**
 
-**Status:** Not started. Prerequisites (Phases 0–3) are complete.
+**Status:** In progress. Deployed to Vercel Pro. GitHub auto-deploy configured. Resend webhook configured. Non-SMS E2E tests passing. Remaining: rewrite polling cron + Move to HCP for corrected estimate flow, Twilio verification, SMS tests, optional custom domain.
+
+**Build Notes (v2.5):** Deployed to Vercel Pro (required for multi-daily cron jobs). Framework preset set to Next.js. Supabase auth redirect URLs configured for production. Resend webhook pointing to production. Vercel auto-deploys from GitHub pushes to main. During testing, discovered and fixed: HCP requires options array for estimate creation, HCP lead\_source must match predefined values (now synced via API), functions can't be serialized from server to client components in React 19.
 
 **Step 4.1: Deploy to Vercel**
 
