@@ -262,8 +262,6 @@ async function handleNewEstimate(
   const customerName =
     fullName ||
     (hcpCustomer.display_name as string) ||
-    (hcpCustomer.company_name as string) ||
-    (hcpCustomer.company as string) ||
     "Unknown";
 
   if (!hcpCustomerId) {
