@@ -1,4 +1,5 @@
 import { FollowUpEvent, EstimateStatus } from "@/lib/types";
+import ExecuteStepButton from "./ExecuteStepButton";
 
 // Only the fields the timeline needs (template is not used here)
 interface TimelineStep {
@@ -8,6 +9,7 @@ interface TimelineStep {
 }
 
 interface FollowUpTimelineProps {
+  estimateId?: string;
   events: FollowUpEvent[];
   sequenceSteps?: TimelineStep[] | null;
   sentDate?: string | null;
@@ -72,6 +74,7 @@ type UnifiedStep = {
 };
 
 export default function FollowUpTimeline({
+  estimateId,
   events,
   sequenceSteps = null,
   sentDate = null,
@@ -156,14 +159,14 @@ export default function FollowUpTimeline({
 
       <div className="space-y-1">
         {unifiedSteps.map((step) => (
-          <StepRow key={step.index} step={step} />
+          <StepRow key={step.index} step={step} estimateId={estimateId} />
         ))}
       </div>
     </div>
   );
 }
 
-function StepRow({ step }: { step: UnifiedStep }) {
+function StepRow({ step, estimateId }: { step: UnifiedStep; estimateId?: string }) {
   const isCurrent = step.displayStatus === "current";
   const isUpcoming = step.displayStatus === "upcoming";
   const isSkipped = step.displayStatus === "skipped";
@@ -215,6 +218,16 @@ function StepRow({ step }: { step: UnifiedStep }) {
 
           {/* Status badge */}
           <StatusBadge step={step} />
+
+          {/* Execute button for skipped steps */}
+          {isSkipped && estimateId && (
+            <ExecuteStepButton
+              estimateId={estimateId}
+              stepIndex={step.index}
+              channel={step.channel}
+              isCallTask={step.isCallTask}
+            />
+          )}
         </div>
 
         {/* Event content or timestamp */}

@@ -151,6 +151,7 @@ export default async function EstimateDetailPage({
         {/* Left column — main content */}
         <div className="lg:col-span-2 space-y-4">
           <FollowUpTimeline
+            estimateId={id}
             events={events}
             sequenceSteps={sequenceSteps || null}
             sentDate={est.sent_date || null}
