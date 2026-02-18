@@ -47,28 +47,11 @@ export default function EstimateTable({ estimates, role }: EstimateTableProps) {
       );
     }
 
-    // Sort: needs action first, then by sent_date ascending (oldest first)
+    // Sort: newest to oldest by sent_date
     result = [...result].sort((a, b) => {
-      if (a.has_pending_action && !b.has_pending_action) return -1;
-      if (!a.has_pending_action && b.has_pending_action) return 1;
-
-      // Active before other statuses
-      const statusOrder: Record<string, number> = {
-        active: 0,
-        snoozed: 1,
-        sent: 2,
-        dormant: 3,
-        won: 4,
-        lost: 5,
-      };
-      const aOrder = statusOrder[a.status] ?? 3;
-      const bOrder = statusOrder[b.status] ?? 3;
-      if (aOrder !== bOrder) return aOrder - bOrder;
-
-      // Oldest first within same status
       const aDate = a.sent_date ? new Date(a.sent_date).getTime() : 0;
       const bDate = b.sent_date ? new Date(b.sent_date).getTime() : 0;
-      return aDate - bDate;
+      return bDate - aDate;
     });
 
     return result;
