@@ -110,6 +110,14 @@ export async function pollHcpEstimates(
     }
   }
 
+  // Log first estimate for debugging field names (remove after verified)
+  if (allHcpEstimates.length > 0) {
+    console.log(
+      "HCP estimate sample (first):",
+      JSON.stringify(allHcpEstimates[0], null, 2)
+    );
+  }
+
   // Process each HCP estimate
   for (const hcpEstimate of allHcpEstimates) {
     try {
@@ -275,11 +283,20 @@ async function handleNewEstimate(
     (hcpEstimate.html_url as string) ||
     null;
 
-  // Calculate total amount from options
-  const totalAmount =
-    hcpOptions.reduce((sum, o) => {
-      return sum + (parseFloat(String(o.amount || o.total || "0")) || 0);
-    }, 0) || (parseFloat(String(hcpEstimate.total_amount || "0")) || null);
+  // Use HCP's estimate-level total first; fall back to highest option amount
+  // Options are alternatives (customer picks one), NOT additive
+  const hcpTotal = parseFloat(String(
+    hcpEstimate.total_amount || hcpEstimate.total || "0"
+  )) || null;
+
+  const highestOptionAmount = hcpOptions.reduce((max, o) => {
+    const amt = parseFloat(String(
+      o.total_amount || o.amount || o.total || "0"
+    )) || 0;
+    return amt > max ? amt : max;
+  }, 0) || null;
+
+  const totalAmount = hcpTotal || highestOptionAmount;
 
   // Determine sent_date
   const sentDate =
@@ -325,8 +342,8 @@ async function handleNewEstimate(
       estimate_id: newEstimate.id,
       hcp_option_id: String(opt.id),
       option_number: i + 1,
-      description: (opt.name as string) || (opt.description as string) || null,
-      amount: parseFloat(String(opt.amount || opt.total || "0")) || null,
+      description: (opt.name as string) || (opt.label as string) || (opt.description as string) || `Option ${i + 1}`,
+      amount: parseFloat(String(opt.total_amount || opt.amount || opt.total || "0")) || null,
       status:
         optStatus === "approved"
           ? "approved"
@@ -378,11 +395,15 @@ async function handleExistingEstimate(
       .eq("id", localEstimate.id);
   }
 
-  // Update total_amount if changed
-  const hcpTotal =
-    hcpOptions.reduce((sum, o) => {
-      return sum + (parseFloat(String(o.amount || o.total || "0")) || 0);
-    }, 0) || (parseFloat(String(hcpEstimate.total_amount || "0")) || null);
+  // Update total_amount if changed (use estimate total or highest option)
+  const estTotal = parseFloat(String(
+    hcpEstimate.total_amount || hcpEstimate.total || "0"
+  )) || null;
+  const highestOpt = hcpOptions.reduce((max, o) => {
+    const amt = parseFloat(String(o.total_amount || o.amount || o.total || "0")) || 0;
+    return amt > max ? amt : max;
+  }, 0) || null;
+  const hcpTotal = estTotal || highestOpt;
 
   if (hcpTotal && hcpTotal !== localEstimate.total_amount) {
     await supabase
