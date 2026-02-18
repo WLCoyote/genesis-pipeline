@@ -85,44 +85,47 @@ export async function POST(request: NextRequest) {
       console.error("Failed to store inbound message:", msgError);
     }
 
-    // Create notification for the assigned comfort pro
+    // Notify the assigned comfort pro
+    const customerName = customer?.name || fromNumber;
+    const preview = messageBody.substring(0, 80);
+    const notifiedUserIds = new Set<string>();
+
     if (assignedTo) {
-      const customerName = customer?.name || fromNumber;
-      const { error: notifError } = await supabase
-        .from("notifications")
-        .insert({
-          user_id: assignedTo,
-          type: "sms_received",
-          estimate_id: estimateId,
-          message: `New SMS from ${customerName}: "${messageBody.substring(0, 100)}"`,
-        });
+      await supabase.from("notifications").insert({
+        user_id: assignedTo,
+        type: "sms_received",
+        estimate_id: estimateId,
+        message: `New SMS from ${customerName}: "${preview}"`,
+      });
+      notifiedUserIds.add(assignedTo);
+    }
 
-      if (notifError) {
-        console.error("Failed to create notification:", notifError);
-      }
-    } else {
-      // No assigned comfort pro — notify all admins and CSRs
-      const { data: staffUsers } = await supabase
-        .from("users")
-        .select("id")
-        .in("role", ["admin", "csr"])
-        .eq("is_active", true);
+    // Always notify admins and CSRs (skip if already notified above)
+    const { data: staffUsers } = await supabase
+      .from("users")
+      .select("id")
+      .in("role", ["admin", "csr"])
+      .eq("is_active", true);
 
-      if (staffUsers && staffUsers.length > 0) {
-        const preview = messageBody.substring(0, 80);
-        const notifications = staffUsers.map((u) => ({
+    if (staffUsers && staffUsers.length > 0) {
+      const staffNotifications = staffUsers
+        .filter((u) => !notifiedUserIds.has(u.id))
+        .map((u) => ({
           user_id: u.id,
-          type: "unmatched_sms",
-          estimate_id: null,
-          message: `Unmatched SMS from ${fromNumber}: "${preview}"`,
+          type: customer ? "sms_received" : "unmatched_sms",
+          estimate_id: estimateId,
+          message: customer
+            ? `New SMS from ${customerName}: "${preview}"`
+            : `Unmatched SMS from ${fromNumber}: "${preview}"`,
         }));
 
+      if (staffNotifications.length > 0) {
         const { error: notifError } = await supabase
           .from("notifications")
-          .insert(notifications);
+          .insert(staffNotifications);
 
         if (notifError) {
-          console.error("Failed to create unmatched SMS notifications:", notifError);
+          console.error("Failed to create SMS notifications:", notifError);
         }
       }
     }
