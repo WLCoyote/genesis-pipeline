@@ -4,7 +4,7 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 2.4 — February 15, 2026
+Version 2.6 — February 17, 2026
 
 Prepared by: Wylee, Owner / Product Lead
 
@@ -29,6 +29,8 @@ The platform replaces the need for expensive tools like Mailchimp ($45–$350/mo
 **Assumptions:** Built by Wylee using AI-assisted code generation (Claude/Grok). No dedicated development team. Housecall Pro remains the system of record for job execution.
 
 ## **1.3 Version History**
+
+Version 2.6: Added manual "Update Estimates" button for on-demand HCP polling (admin/CSR). Added admin-only delete for estimates and leads with cascading cleanup. Added lead archiving with "archived" status, Archive/Unarchive buttons on lead cards, and collapsible archived leads section. SQL migration 010 adds archived to leads status check constraint (February 17, 2026).
 
 Version 2.5: Corrected estimate pipeline entry flow. Estimates now enter the pipeline only when the HCP polling cron detects they've been sent to the customer (option approval\_status = "awaiting response"), not when Move to HCP is clicked. Move to HCP creates the customer and estimate in HCP only. Polling cron handles new estimate detection and existing estimate updates, filtering out estimates older than auto\_decline\_days. Added HCP lead source sync, lead editing, and sequence editor placeholder reference (February 16, 2026).
 
@@ -114,7 +116,9 @@ Features are prioritized using MoSCoW classification. Each feature is assigned t
 | **MUST** | **Inbound Lead Management (Flow 2)** | Inbound webhook at /api/leads/inbound accepts leads from Facebook, Google, Zapier, or any source. Lead source options synced from HCP. CSR manages leads in dashboard Leads tab (create, edit, update status), moves qualified leads to HCP via API creating customer + estimate. Estimate enters pipeline only after sent in HCP (detected by polling cron). | MVP |
 | **MUST** | **SMS Inbox** | When an inbound SMS doesn't match an active estimate, admins and CSRs are notified. New Inbox page shows unmatched threads grouped by phone number. Staff can reply to gather info, convert to a lead (pre-fills lead form), or dismiss the thread. | MVP |
 | **MUST** | **Auto-Decline** | Admin-configurable threshold (default 60 days). “Declining soon” warning to comfort pro. POSTs to HCP API to decline options, keeping systems in sync. | MVP |
-| **MUST** | **HCP Estimate Polling** | Scheduled polling of HCP API to detect new sent estimates and status changes. Runs 3x daily via Vercel cron job. Creates new pipeline entries when estimates are sent to customers (approval\_status = "awaiting response"). Updates existing estimates on approval/decline. Filters out estimates older than auto\_decline\_days. | MVP |
+| **MUST** | **HCP Estimate Polling** | Scheduled polling of HCP API to detect new sent estimates and status changes. Runs 3x daily via Vercel cron job. Creates new pipeline entries when estimates are sent to customers (approval\_status = "awaiting response"). Updates existing estimates on approval/decline. Filters out estimates older than auto\_decline\_days. Manual "Update Estimates" button allows admin/CSR to trigger polling on demand. | MVP |
+| **MUST** | **Admin Delete** | Admin can delete estimates (with cascading cleanup of options, events, notifications) and leads. Confirmation required. Used for cleaning up mistakes, not routine workflow. | MVP |
+| **MUST** | **Lead Archiving** | Leads that don't convert can be archived to keep the active list clean. Archived leads appear in a collapsible section below active leads. Unarchive restores a lead to "new" status. | MVP |
 | **SHOULD** | **HCP Webhook Sync** | Real-time webhook for new estimates/customers from HCP with auto comfort pro assignment. | v0.2 |
 | **SHOULD** | **Open/Click Tracking** | Resend webhook handler for email open, click, bounce, and unsubscribe events. Creates real-time notifications for comfort pros when leads engage. | MVP |
 | **SHOULD** | **Pipeline Analytics** | Dashboard showing: estimates out, follow-up completion rate, conversion rate, per-salesman metrics, average time to close. | v0.2 |
@@ -174,7 +178,7 @@ The database is structured around the estimate pipeline as the primary workflow,
 | **estimates** | id, customer\_id, assigned\_to (user\_id), estimate\_number, hcp\_estimate\_id, status (sent/active/snoozed/won/lost/dormant), total\_amount, sent\_date, snooze\_until, snooze\_note, sequence\_step, auto\_decline\_date, online\_estimate\_url, created\_at | Parent estimate record. Tracks pipeline status and follow-up sequence position. Stores HCP customer-facing estimate URL for inclusion in follow-up templates via {{estimate\_link}}. |
 | **estimate\_options** | id, estimate\_id, hcp\_option\_id, option\_number (1,2,3), description, amount, status (pending/approved/declined) | Individual options within an estimate. HCP option ID stored for two-way API sync. |
 | **follow\_up\_sequences** | id, name, is\_default, steps (JSONB array of: day\_offset, channel, template\_content, is\_call\_task), created\_by, created\_at | Company-level sequence templates. Admin-managed. Templates support placeholders: {{customer\_name}}, {{customer\_email}}, {{comfort\_pro\_name}}, {{estimate\_link}}. |
-| **leads** | id, source, customer\_name, email, phone, address, notes, status (new/contacted/qualified/converted/closed), assigned\_to, converted\_estimate\_id, hcp\_customer\_id, created\_at, updated\_at | Inbound leads from external sources (Flow 2). CSR manages status progression. "Move to HCP" creates customer+estimate in HCP and links back via converted\_estimate\_id. |
+| **leads** | id, source, customer\_name, email, phone, address, notes, status (new/contacted/qualified/moved\_to\_hcp/archived), assigned\_to, converted\_estimate\_id, hcp\_customer\_id, created\_at, updated\_at | Inbound leads from external sources (Flow 2). CSR manages status progression. "Move to HCP" creates customer+estimate in HCP and sets status to moved\_to\_hcp. Leads can be archived when they don't convert. |
 | **follow\_up\_events** | id, estimate\_id, sequence\_step\_index, channel, status (scheduled/pending\_review/sent/opened/clicked/completed/skipped/snoozed), scheduled\_at, sent\_at, content, comfort\_pro\_edited, created\_at | Execution log for each step of each estimate’s sequence. Tracks what happened and when. |
 | **notifications** | id, user\_id, type (email\_opened/click/call\_due/lead\_assigned/estimate\_status/declining\_soon), estimate\_id, message, read, created\_at | Real-time alerts for comfort pros and admins. |
 | **campaigns** | id, name, type (email/sms), subject, content, segment\_filter (JSONB), batch\_size, status (draft/sending/sent), sent\_count, created\_by, created\_at | Phase 2: Broadcast marketing campaigns. |

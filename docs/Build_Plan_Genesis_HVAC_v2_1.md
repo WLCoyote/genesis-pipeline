@@ -4,7 +4,7 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 2.5 — February 16, 2026
+Version 2.6 — February 17, 2026
 
 Genesis Services — Monroe, WA
 
@@ -136,7 +136,7 @@ Run the generated SQL in the Supabase SQL Editor.
 
   **PHASE 2: Backend API Routes & Cron Jobs (Weeks 2–3) ✅ COMPLETE**
 
-**Build Notes:** All API routes built and tested. Next.js 16.1.6 with React 19. Middleware file is proxy.ts with exported proxy function (Next.js 16 convention, not middleware.ts). Three cron jobs configured in vercel.json: execute-sequences, poll-hcp-status, auto-decline. Additional routes built: /api/estimates/create, /api/estimates/[id]/snooze, /api/estimates/[id]/status, /api/estimates/[id]/reassign, /api/follow-up-events/[id], /api/admin/sequences, /api/admin/settings, /api/admin/invites, /api/admin/users, /api/leads, /api/leads/inbound, /api/leads/[id]/move-to-hcp, /api/inbox.
+**Build Notes:** All API routes built and tested. Next.js 16.1.6 with React 19. Middleware file is proxy.ts with exported proxy function (Next.js 16 convention, not middleware.ts). Three cron jobs configured in vercel.json: execute-sequences, poll-hcp-status, auto-decline. Additional routes built: /api/estimates/create, /api/estimates/[id]/snooze, /api/estimates/[id]/status, /api/estimates/[id]/reassign, /api/estimates/[id] (DELETE — admin only), /api/follow-up-events/[id], /api/admin/sequences, /api/admin/settings, /api/admin/invites, /api/admin/users, /api/admin/update-estimates (manual HCP polling), /api/leads, /api/leads/inbound, /api/leads/[id] (PATCH + DELETE), /api/leads/[id]/move-to-hcp, /api/inbox. Shared HCP polling logic extracted to `lib/hcp-polling.ts`.
 
 Initialize the Next.js project and build all the serverless API routes that handle external service communication and scheduled jobs.
 
@@ -238,7 +238,7 @@ After deploying to Vercel, configure the webhook URL in your Resend dashboard un
 
   **PHASE 3: Frontend Dashboard (Weeks 3–5) ✅ COMPLETE**
 
-**Build Notes:** All 7 steps completed plus additional features. Built with server components for pages and client components for interactivity. Tailwind CSS v4 with @theme inline tokens. Dark mode support across all pages and components with class-based toggle, localStorage persistence, and system preference detection on first visit. Admin team management with invite-based user provisioning (Step 3.11). SMS Inbox for unmatched inbound messages with thread view, reply, dismiss, and convert-to-lead (Step 3.12).
+**Build Notes:** All 7 steps completed plus additional features. Built with server components for pages and client components for interactivity. Tailwind CSS v4 with @theme inline tokens. Dark mode support across all pages and components with class-based toggle, localStorage persistence, and system preference detection on first visit. Admin team management with invite-based user provisioning (Step 3.11). SMS Inbox for unmatched inbound messages with thread view, reply, dismiss, and convert-to-lead (Step 3.12). Manual "Update Estimates" button for on-demand HCP polling (Step 3.13). Admin delete for estimates and leads (Step 3.14). Lead archiving with collapsible section (Step 3.15).
 
 Build the user-facing dashboard. Start with authentication, then the comfort pro's primary view, then admin features.
 
@@ -355,11 +355,46 @@ Added an inbox system for inbound SMS messages that don't match an active estima
 
 **VERIFY:** Send a text from an unknown number to the business phone. Admin/CSR should see an `unmatched_sms` notification. Click it to go to Inbox. See the message thread. Reply from inbox. Click "Convert to Lead" — goes to Leads page with phone pre-filled. Click "Dismiss" — thread disappears.
 
+**Step 3.13: Manual Update Estimates Button (Added)**
+
+Added an "Update Estimates" button so admin/CSR can trigger HCP polling on demand instead of waiting for the cron:
+
+- **Shared polling module** `lib/hcp-polling.ts` — extracted from cron route. Handles pagination, new estimate detection, existing estimate updates. Returns results summary.
+- **Admin route** POST /api/admin/update-estimates — session auth (admin + CSR), calls shared polling function.
+- **Cron route rewritten** — thin wrapper around same shared function. ~29 lines.
+- **UpdateEstimatesButton component** — loading state, result display ("Found: 3 new, 2 updated"), auto-refresh.
+- Button appears on both `/dashboard/estimates` and `/dashboard/leads` (Estimates tab).
+
+**VERIFY:** Click "Update Estimates" on the Estimates page. If estimates exist in HCP that have been sent to customers, they should appear locally.
+
+**Step 3.14: Admin Delete for Estimates and Leads (Added)**
+
+Admin-only delete functionality for cleaning up mistakes:
+
+- **DELETE /api/estimates/[id]** — clears leads.estimate\_id FK first, then deletes estimate (cascades to options, events, notifications; SET NULL on messages). Admin only.
+- **DELETE /api/leads/[id]** — simple delete. Admin only.
+- **EstimateActions component** — "Delete Estimate" link at bottom of actions panel with confirmation dialog. Redirects to estimates list after delete.
+- **LeadCard component** — red "Delete" button visible to admin only, with confirmation dialog.
+
+**VERIFY:** As admin, open an estimate detail → click "Delete Estimate" → confirm → estimate removed, redirected to list. On Leads tab, click "Delete" on a lead → confirm → lead removed.
+
+**Step 3.15: Lead Archiving (Added)**
+
+Archive leads that don't convert to keep the active list clean:
+
+- **SQL migration 010** — adds "archived" to leads status CHECK constraint.
+- **LeadCard component** — "Archive" button on active leads, "Unarchive" button on archived leads.
+- **ArchivedLeadsSection component** — collapsible section below active leads showing count, expands on click.
+- **Leads page** — separate queries for active vs archived leads. Active leads exclude both "moved\_to\_hcp" and "archived".
+- **lib/types.ts** — "archived" added to LeadStatus type.
+
+**VERIFY:** Click "Archive" on a lead → disappears from active list, appears in collapsed "Archived" section. Click "Unarchive" → returns to active list.
+
   **PHASE 4: Deployment & End-to-End Testing (Week 5–6)**
 
-**Status:** In progress. Deployed to Vercel Pro. GitHub auto-deploy configured. Resend webhook configured. Non-SMS E2E tests passing. Remaining: rewrite polling cron + Move to HCP for corrected estimate flow, Twilio verification, SMS tests, optional custom domain.
+**Status:** In progress. Deployed to Vercel Pro. GitHub auto-deploy configured. Resend webhook configured. Non-SMS E2E tests passing. HCP polling cron and Move to HCP rewritten (v2.5 flow correction complete). Manual Update Estimates button, admin delete, and lead archiving added. Remaining: Twilio verification, SMS tests, optional custom domain.
 
-**Build Notes (v2.5):** Deployed to Vercel Pro (required for multi-daily cron jobs). Framework preset set to Next.js. Supabase auth redirect URLs configured for production. Resend webhook pointing to production. Vercel auto-deploys from GitHub pushes to main. During testing, discovered and fixed: HCP requires options array for estimate creation, HCP lead\_source must match predefined values (now synced via API), functions can't be serialized from server to client components in React 19.
+**Build Notes (v2.6):** Deployed to Vercel Pro (required for multi-daily cron jobs). Framework preset set to Next.js. Supabase auth redirect URLs configured for production. Resend webhook pointing to production. Vercel auto-deploys from GitHub pushes to main. During testing, discovered and fixed: HCP requires options array for estimate creation, HCP lead\_source must match predefined values (now synced via API), functions can't be serialized from server to client components in React 19. HCP polling rewritten with shared `lib/hcp-polling.ts` module, cron is thin wrapper. SQL migrations 001-010 all run.
 
 **Step 4.1: Deploy to Vercel**
 

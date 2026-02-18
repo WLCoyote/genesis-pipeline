@@ -4,13 +4,13 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 2.5 — February 16, 2026
+Version 2.6 — February 17, 2026
 
 Genesis Services — Monroe, WA
 
 CONFIDENTIAL — Internal Use Only
 
-**v2.5 Changes:** Corrected estimate pipeline entry flow. Move to HCP no longer creates a local estimate — estimates enter the pipeline only when the HCP polling cron detects they've been sent to the customer (option approval\_status = "awaiting response"). Polling cron now handles both new estimate creation and existing estimate updates, and filters out estimates older than auto\_decline\_days. Added HCP lead source sync (GET /lead\_sources stored in settings, used in lead source dropdowns). Added lead editing (PATCH /api/leads/[id]). Added clickable placeholder reference in sequence editor. Previous: v2.4 added SMS Inbox. v2.3 added team management. v2.2 added Flow 2, leads, estimate links, dark mode. v2.1 added Twilio Hosted SMS.
+**v2.6 Changes:** Added manual "Update Estimates" button (POST /api/admin/update-estimates) for on-demand HCP polling by admin/CSR. Added admin-only DELETE routes for estimates (/api/estimates/[id]) and leads (/api/leads/[id]) with cascading cleanup. Added lead archiving: "archived" status on leads, Archive/Unarchive buttons, collapsible archived section in Leads tab. SQL migration 010 adds archived to leads status constraint. Previous: v2.5 corrected estimate pipeline entry flow. v2.4 added SMS Inbox. v2.3 added team management. v2.2 added Flow 2, leads, estimate links, dark mode. v2.1 added Twilio Hosted SMS.
 
 # **1\. High-Level Overview**
 
@@ -61,7 +61,7 @@ The database is structured around the estimate pipeline as the primary workflow.
 | **messages** | id, customer\_id (FK → customers) estimate\_id (FK → estimates, nullable) direction (inbound | outbound) channel (sms) body (text) twilio\_message\_sid (for tracking) phone\_number (external party's number) sent\_by (FK → users, nullable — null for inbound) dismissed (boolean, default false) created\_at | Full SMS conversation history. Stores every inbound and outbound text tied to the customer. Outbound messages sent via the pipeline app or automated sequences are logged here. Inbound messages from customers arrive via Twilio webhook and are stored here. The estimate\_id is set when the message is part of an active estimate conversation; null for general/unmatched messages. phone\_number stores the external party's phone (sender for inbound, recipient for outbound) — used to group unmatched SMS threads in the Inbox. dismissed allows soft-delete of Inbox threads. Realtime enabled for live conversation updates. |
 | **campaigns** | id, name, type (email | sms) subject, content (HTML/text) segment\_filter (JSONB) exclude\_active\_pipeline (boolean) not\_contacted\_days (int) batch\_size, batch\_interval status (draft | sending | sent) sent\_count, created\_by, created\_at | Phase 2: Broadcast marketing campaigns with audience builder and warm-up controls. |
 | **campaign\_events** | id, campaign\_id (FK → campaigns) customer\_id (FK → customers) status (sent | opened | clicked |   bounced | unsubscribed) created\_at | Phase 2: Per-recipient campaign tracking for analytics. |
-| **leads** | id, source (facebook | google | website | manual | other), customer\_name, email, phone, address, notes (text), status (new | contacted | qualified | converted | closed), assigned\_to (FK → users, nullable), converted\_estimate\_id (FK → estimates, nullable), hcp\_customer\_id, created\_at, updated\_at | Inbound leads from external sources (Flow 2). CSR manages status progression. "Move to HCP" button creates customer + estimate in Housecall Pro via API, sets status to converted, and links via converted\_estimate\_id. |
+| **leads** | id, source (facebook | google | website | manual | other), customer\_name, email, phone, address, notes (text), status (new | contacted | qualified | moved\_to\_hcp | archived), assigned\_to (FK → users, nullable), converted\_estimate\_id (FK → estimates, nullable), hcp\_customer\_id, created\_at, updated\_at | Inbound leads from external sources (Flow 2). CSR manages status progression. "Move to HCP" creates customer + estimate in HCP via API, sets status to moved\_to\_hcp. Leads can be archived when they don't convert. Admin can delete leads. |
 | **user\_invites** | id, email (unique), name, phone role (admin | comfort\_pro | csr) invited\_by (FK → users) created\_at | Pre-registered team member invites. Admin creates invites with email/name/role. When the invited person signs in with Google, the auth callback auto-creates their users row and deletes the invite. RLS: admin-only. |
 | **settings** | key (text, primary key) value (JSONB) updated\_by, updated\_at | System config: auto\_decline\_days, default\_sequence\_id, warmup\_batch\_size, etc. |
 
@@ -141,7 +141,7 @@ For call task steps: the system creates a follow\_up\_event with status “sched
 
 ## **5.3 HCP Status Sync**
 
-A Vercel cron job runs 3 times daily. It calls GET /estimates on the HCP API. The cron automatically filters out estimates older than the auto\_decline\_days setting, so it only processes recent/relevant estimates. For each returned estimate, it performs two functions:
+A Vercel cron job runs 3 times daily, and admin/CSR users can trigger polling on demand via the "Update Estimates" button (POST /api/admin/update-estimates). Both use the same shared polling logic in `lib/hcp-polling.ts`. The system calls GET /estimates on the HCP API with pagination. It automatically filters out estimates older than the auto\_decline\_days setting, so it only processes recent/relevant estimates. For each returned estimate, it performs two functions:
 
 **New estimate detection:** If an estimate exists in HCP but not in the local database, and any of its options has approval\_status = "awaiting response" (meaning it was sent to the customer), the cron creates the local customer record (if needed), creates the estimate with status "active", creates estimate\_options, assigns the comfort pro from HCP's assigned\_employees, and enrolls the estimate in the default follow-up sequence. This is how estimates from both Flow 1 (created directly in HCP) and Flow 2 (created via Move to HCP) enter the pipeline — only after they've been sent to the customer.
 
@@ -165,11 +165,17 @@ Notifications are written to the notifications table in Supabase. The frontend s
 
 External lead sources (Facebook Lead Ads, Google Ads, website forms) send lead data to /api/leads/inbound via POST, secured with LEADS\_WEBHOOK\_SECRET as Bearer token. The webhook accepts flexible field names to accommodate different sources (e.g., "full\_name" or "name", "email\_address" or "email"). Lead source dropdown options are synced from HCP via the "Sync HCP Lead Sources" button in Settings (GET /lead\_sources), ensuring lead source values match HCP exactly. A new row is created in the leads table with status "new". CSRs manage leads in the Leads tab — updating status, adding notes, editing lead details, and qualifying leads. When ready, the CSR clicks "Move to HCP" which: 1) POSTs to the HCP API to create a customer record, 2) POSTs to create an estimate for that customer (with a default option as required by HCP). Move to HCP does NOT create a local estimate — it updates the lead status to "converted" and stores the hcp\_customer\_id. The estimate enters the pipeline later when the HCP polling cron detects it has been sent to the customer (option approval\_status = "awaiting response").
 
-## **5.8 Estimate Link Integration**
+## **5.8 Admin Delete & Lead Archiving**
+
+Admin users can delete estimates and leads for cleanup purposes. Estimate deletion (DELETE /api/estimates/[id]) cascades to estimate\_options, follow\_up\_events, and notifications (via ON DELETE CASCADE), sets messages.estimate\_id to null (ON DELETE SET NULL), and explicitly clears leads.estimate\_id before deleting. Lead deletion (DELETE /api/leads/[id]) is a simple delete. Both require admin role.
+
+Leads that don't convert can be archived (status set to "archived") to keep the active list clean. Archived leads appear in a collapsible section below active leads in the Leads tab. Unarchiving sets status back to "new".
+
+## **5.9 Estimate Link Integration**
 
 When an estimate is synced from HCP (via polling or Move to HCP), the system stores the customer-facing estimate URL in online\_estimate\_url. The URL format is https://client.housecallpro.com/estimates/{hash}. During follow-up sequence execution, the {{estimate\_link}} placeholder in templates is replaced with this URL. In email templates, the link is rendered as a styled HTML button ("View Your Estimate"). In SMS templates, the URL appears on its own line since SMS cannot render hyperlinks.
 
-## **5.9 Campaign Broadcasting (Phase 2\)**
+## **5.10 Campaign Broadcasting (Phase 2\)**
 
 The admin creates a campaign with content, selects audience via tag/segment filters, sets a “not contacted in X days” threshold, and optionally excludes customers in active pipeline sequences (do-not-disturb). The system calculates eligible recipients and presents the count. The admin sets a batch size for warm-up pacing. A cron job sends batches at the configured interval until the campaign is complete. Resend webhooks log per-recipient events for analytics.
 
