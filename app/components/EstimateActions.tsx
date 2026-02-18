@@ -22,6 +22,8 @@ interface EstimateActionsProps {
   onlineEstimateUrl: string | null;
   isAdmin?: boolean;
   nextDueStep?: NextDueStep | null;
+  currentStepIndex?: number;
+  totalSteps?: number;
 }
 
 export default function EstimateActions({
@@ -33,6 +35,8 @@ export default function EstimateActions({
   onlineEstimateUrl,
   isAdmin = false,
   nextDueStep = null,
+  currentStepIndex = 0,
+  totalSteps = 0,
 }: EstimateActionsProps) {
   const router = useRouter();
   const [showSnooze, setShowSnooze] = useState(false);
@@ -41,6 +45,7 @@ export default function EstimateActions({
   const [deleting, setDeleting] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState("");
+  const [skipping, setSkipping] = useState(false);
 
   const handleStatusChange = async (newStatus: "won" | "lost" | "active") => {
     const confirmMsg =
@@ -214,6 +219,35 @@ export default function EstimateActions({
               >
                 Snooze
               </button>
+              {currentStepIndex < totalSteps && (
+                <button
+                  onClick={async () => {
+                    if (
+                      !confirm(
+                        `Skip step ${currentStepIndex + 1} of ${totalSteps}? The sequence will advance to the next step.`
+                      )
+                    )
+                      return;
+                    setSkipping(true);
+                    try {
+                      const res = await fetch(
+                        `/api/estimates/${estimateId}/skip-step`,
+                        { method: "POST" }
+                      );
+                      if (res.ok) {
+                        router.refresh();
+                      }
+                    } catch {
+                      // silent
+                    }
+                    setSkipping(false);
+                  }}
+                  disabled={skipping}
+                  className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 text-sm font-medium rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
+                >
+                  {skipping ? "..." : "Skip Step"}
+                </button>
+              )}
               <button
                 onClick={() => handleStatusChange("won")}
                 disabled={loading === "won"}

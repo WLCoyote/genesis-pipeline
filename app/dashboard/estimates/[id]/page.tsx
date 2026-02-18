@@ -132,7 +132,13 @@ export default async function EstimateDetailPage({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left column — main content */}
         <div className="lg:col-span-2 space-y-4">
-          <FollowUpTimeline events={events} />
+          <FollowUpTimeline
+            events={events}
+            sequenceSteps={sequenceSteps || null}
+            sentDate={est.sent_date || null}
+            currentStepIndex={est.sequence_step_index || 0}
+            estimateStatus={est.status}
+          />
           <ConversationThread
             estimateId={id}
             customerId={est.customer_id}
@@ -152,6 +158,8 @@ export default async function EstimateDetailPage({
             onlineEstimateUrl={est.online_estimate_url || null}
             isAdmin={isAdmin}
             nextDueStep={nextDueStep}
+            currentStepIndex={est.sequence_step_index || 0}
+            totalSteps={sequenceSteps?.length || 0}
           />
           <CustomerInfo customer={customer} />
           <OptionsList options={options} totalAmount={est.total_amount} />
