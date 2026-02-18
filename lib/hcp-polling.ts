@@ -44,15 +44,13 @@ export async function pollHcpEstimates(
 
   const autoDeclineDays = (setting?.value as number) || 60;
 
-  // Date range for HCP API filter
+  // Cutoff date for filtering estimates by age (in code, not API params)
+  // HCP's scheduled_start filters are for appointment date, not creation date
   const today = new Date();
-  const startDate = new Date(today);
-  startDate.setDate(startDate.getDate() - autoDeclineDays);
+  const cutoffDate = new Date(today);
+  cutoffDate.setDate(cutoffDate.getDate() - autoDeclineDays);
 
-  const startDateStr = startDate.toISOString().split("T")[0];
-  const endDateStr = today.toISOString().split("T")[0];
-
-  console.log(`[HCP Poll] Date range: ${startDateStr} to ${endDateStr} (${autoDeclineDays} days)`);
+  console.log(`[HCP Poll] Cutoff: ${cutoffDate.toISOString().split("T")[0]} (${autoDeclineDays} days back)`);
 
   // Fetch local users for employee name matching
   const { data: users } = await supabase
@@ -98,7 +96,7 @@ export async function pollHcpEstimates(
 
   while (page <= totalPages && page <= MAX_PAGES) {
     try {
-      const fetchUrl = `${hcpBase}/estimates?scheduled_start_min=${startDateStr}&scheduled_start_max=${endDateStr}&page=${page}&page_size=200&sort_direction=desc`;
+      const fetchUrl = `${hcpBase}/estimates?page=${page}&page_size=200&sort_direction=desc`;
       console.log(`[HCP Poll] Fetching page ${page}...`);
 
       const controller = new AbortController();
@@ -133,11 +131,25 @@ export async function pollHcpEstimates(
       }
 
       // Process each estimate on this page immediately
+      let pageAllOld = true;
+
       for (const hcpEstimate of pageEstimates) {
         try {
           const hcpId = hcpEstimate.id as string;
           const hcpEstNumber = String(hcpEstimate.estimate_number || "");
           const hcpOptions = (hcpEstimate.options || []) as Record<string, unknown>[];
+
+          // Skip estimates older than cutoff (created_at from HCP)
+          const createdAt = hcpEstimate.created_at as string | undefined;
+          if (createdAt) {
+            const estDate = new Date(createdAt);
+            if (estDate < cutoffDate) {
+              continue; // too old
+            }
+            pageAllOld = false;
+          } else {
+            pageAllOld = false; // no date = process it
+          }
 
           // Instant check: do we already have this estimate locally?
           const isLocal = localByHcpId.has(hcpId) || localByEstNumber.has(hcpEstNumber);
@@ -171,6 +183,12 @@ export async function pollHcpEstimates(
           console.error(`[HCP Poll] Error processing estimate ${hcpEstimate.id}:`, err);
           results.errors++;
         }
+      }
+
+      // If every estimate on this page was older than cutoff, stop paginating
+      if (pageAllOld && pageEstimates.length > 0) {
+        console.log(`[HCP Poll] Page ${page} all older than cutoff — stopping`);
+        break;
       }
 
       page++;

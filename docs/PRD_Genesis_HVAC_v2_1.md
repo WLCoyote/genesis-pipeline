@@ -4,7 +4,7 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 2.7 — February 17, 2026
+Version 2.8 — February 18, 2026
 
 Prepared by: Wylee, Owner / Product Lead
 
@@ -29,6 +29,8 @@ The platform replaces the need for expensive tools like Mailchimp ($45–$350/mo
 **Assumptions:** Built by Wylee using AI-assisted code generation (Claude/Grok). No dedicated development team. Housecall Pro remains the system of record for job execution.
 
 ## **1.3 Version History**
+
+Version 2.8: Rewrote HCP estimate polling to use correct API filter parameters (`scheduled_start_min`/`scheduled_start_max` in YYYY-MM-DD format, `page_size=200`, `sort_direction=desc`). Previous `start_date`/`end_date` parameters were silently ignored by HCP, causing the API to return all 2,100+ estimates and timeout. Added 5-page cap and pre-fetched local estimate index for instant matching (no per-estimate DB query). Polling now completes in seconds instead of timing out. Bumped maxDuration to 300s as safety net (February 18, 2026).
 
 Version 2.7: Added "Send Now" button on estimate detail page for immediately sending due sequence steps (skips 30-min edit window). Moved-to-HCP leads now appear in the archived section with purple "Moved to HCP" badge instead of disappearing. Fixed total amount calculation for multi-option estimates (uses HCP estimate total or highest option, not sum of all options). Fixed Vercel 504 timeout on Update Estimates (maxDuration = 120s). Fixed React hydration error #418 in dark mode toggle (February 17, 2026).
 
@@ -118,7 +120,7 @@ Features are prioritized using MoSCoW classification. Each feature is assigned t
 | **MUST** | **Inbound Lead Management (Flow 2)** | Inbound webhook at /api/leads/inbound accepts leads from Facebook, Google, Zapier, or any source. Lead source options synced from HCP. CSR manages leads in dashboard Leads tab (create, edit, update status), moves qualified leads to HCP via API creating customer + estimate. Estimate enters pipeline only after sent in HCP (detected by polling cron). | MVP |
 | **MUST** | **SMS Inbox** | When an inbound SMS doesn't match an active estimate, admins and CSRs are notified. New Inbox page shows unmatched threads grouped by phone number. Staff can reply to gather info, convert to a lead (pre-fills lead form), or dismiss the thread. | MVP |
 | **MUST** | **Auto-Decline** | Admin-configurable threshold (default 60 days). “Declining soon” warning to comfort pro. POSTs to HCP API to decline options, keeping systems in sync. | MVP |
-| **MUST** | **HCP Estimate Polling** | Scheduled polling of HCP API to detect new sent estimates and status changes. Runs 3x daily via Vercel cron job. Creates new pipeline entries when estimates are sent to customers (approval\_status = "awaiting response"). Updates existing estimates on approval/decline. Filters out estimates older than auto\_decline\_days. Manual "Update Estimates" button allows admin/CSR to trigger polling on demand. | MVP |
+| **MUST** | **HCP Estimate Polling** | Scheduled polling of HCP API to detect new sent estimates and status changes. Runs 3x daily via Vercel cron job. Creates new pipeline entries when estimates are sent to customers (approval\_status = "awaiting response"). Updates existing estimates on approval/decline. Uses `scheduled_start_min`/`scheduled_start_max` API filters with auto\_decline\_days date range. Pre-fetches local estimate IDs for instant dedup matching. Max 5 pages per poll. Manual "Update Estimates" button allows admin/CSR to trigger polling on demand. | MVP |
 | **MUST** | **Admin Delete** | Admin can delete estimates (with cascading cleanup of options, events, notifications) and leads. Confirmation required. Used for cleaning up mistakes, not routine workflow. | MVP |
 | **MUST** | **Lead Archiving** | Leads that don't convert can be archived to keep the active list clean. Archived leads appear in a collapsible section below active leads. Unarchive restores a lead to "new" status. | MVP |
 | **SHOULD** | **HCP Webhook Sync** | Real-time webhook for new estimates/customers from HCP with auto comfort pro assignment. | v0.2 |

@@ -4,7 +4,7 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 2.7 — February 17, 2026
+Version 2.8 — February 17, 2026
 
 Genesis Services — Monroe, WA
 
@@ -209,6 +209,8 @@ Then create the vercel.json cron configuration:
 **Step 2.6: Build HCP Status Polling Cron Job**
 
 **Build Notes (v2.5 update):** Rewritten to handle both new estimate detection and existing estimate updates. Filters out estimates older than auto\_decline\_days. New estimates enter the pipeline only when sent to the customer (option approval\_status = "awaiting response"). This is the primary ingress path for all estimates — both Flow 1 (created directly in HCP) and Flow 2 (created via Move to HCP). HCP API response includes: estimate.options[].approval\_status (values: "awaiting response", "approved", "declined", etc.) and estimate.assigned\_employees[] for comfort pro assignment.
+
+**Build Notes (v2.8 update — HCP API parameter fix):** The HCP GET /estimates endpoint does NOT support `start_date`/`end_date` parameters — they are silently ignored, returning all 2,140+ estimates. Correct filter parameters: `scheduled_start_min` and `scheduled_start_max` (YYYY-MM-DD format). Also supports `page_size` (default ~20, we use 200), `sort_direction=desc`. Polling module (`lib/hcp-polling.ts`) rewritten with: pre-fetched local estimate index using JavaScript Sets for O(1) dedup, page-by-page processing instead of collect-all-then-process, MAX\_PAGES=5 cap to prevent runaway pagination, 30s AbortController timeout on each HCP fetch. Returns `{ new_estimates, updated, won, lost, skipped, errors, pages_fetched }`.
 
 **Functionality:** The cron route at /api/cron/poll-hcp-status: 1\) Reads auto\_decline\_days from settings. 2\) Calls GET /estimates on the HCP API, paginating through results, skipping estimates older than auto\_decline\_days. 3\) For each HCP estimate, checks if it exists locally by hcp\_estimate\_id or estimate\_number. 4\) **New estimates:** If not in local DB and any option has approval\_status = "awaiting response" → creates local customer (if needed), creates estimate with status "active", creates estimate\_options, assigns comfort pro from HCP assigned\_employees, enrolls in default follow-up sequence, creates notification. 5\) **Existing estimates:** Compares option approval\_statuses. If HCP shows "approved" and ours is pending → update option, mark estimate "won", stop sequence, notify. If HCP shows "declined" → update accordingly. 6\) Uses Supabase service role client.
 
@@ -415,7 +417,7 @@ Leads with status "moved\_to\_hcp" now appear in the archived section instead of
 
 **Status:** In progress. Deployed to Vercel Pro. GitHub auto-deploy configured. Resend webhook configured. Non-SMS E2E tests passing. HCP polling cron and Move to HCP rewritten (v2.5 flow correction complete). Manual Update Estimates button, admin delete, lead archiving, Send Now, and moved-to-HCP archived display added. Remaining: Twilio verification, SMS tests, optional custom domain.
 
-**Build Notes (v2.7):** Deployed to Vercel Pro (required for multi-daily cron jobs). Framework preset set to Next.js. Supabase auth redirect URLs configured for production. Resend webhook pointing to production. Vercel auto-deploys from GitHub pushes to main. During testing, discovered and fixed: HCP requires options array for estimate creation, HCP lead\_source must match predefined values (now synced via API), functions can't be serialized from server to client components in React 19, Vercel 504 timeout on polling routes (added maxDuration=120s), React hydration error #418 in DarkModeToggle (render placeholder until mounted), total amount calculation summing alternatives instead of using HCP total. HCP polling rewritten with shared `lib/hcp-polling.ts` module, cron is thin wrapper. SQL migrations 001-010 all run.
+**Build Notes (v2.8):** Deployed to Vercel Pro (required for multi-daily cron jobs). Framework preset set to Next.js. Supabase auth redirect URLs configured for production. Resend webhook pointing to production. Vercel auto-deploys from GitHub pushes to main. During testing, discovered and fixed: HCP requires options array for estimate creation, HCP lead\_source must match predefined values (now synced via API), functions can't be serialized from server to client components in React 19, Vercel 504 timeout on polling routes (maxDuration bumped to 300s), React hydration error #418 in DarkModeToggle (render placeholder until mounted), total amount calculation summing alternatives instead of using HCP total, HCP GET /estimates ignores `start_date`/`end_date` params (fixed to `scheduled_start_min`/`scheduled_start_max`). HCP polling rewritten with shared `lib/hcp-polling.ts` module — pre-fetched index, page-by-page processing, MAX\_PAGES=5 cap, 30s fetch timeouts. Cron is thin wrapper. SQL migrations 001-010 all run.
 
 **Step 4.1: Deploy to Vercel**
 

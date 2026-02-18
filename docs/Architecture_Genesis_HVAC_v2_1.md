@@ -4,13 +4,13 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 2.7 — February 17, 2026
+Version 2.8 — February 18, 2026
 
 Genesis Services — Monroe, WA
 
 CONFIDENTIAL — Internal Use Only
 
-**v2.7 Changes:** Added "Send Now" button (POST /api/estimates/[id]/send-next) for immediately sending due sequence steps from the estimate detail page. Moved-to-HCP leads now appear in archived section with purple badge. Fixed total amount calculation (uses HCP estimate total or highest option, not sum of alternatives). Added maxDuration=120s on polling routes for Vercel Pro. Fixed React hydration error in DarkModeToggle. Previous: v2.6 added Update Estimates button, admin delete, lead archiving. v2.5 corrected estimate pipeline entry flow. v2.4 added SMS Inbox. v2.3 added team management. v2.2 added Flow 2, leads, estimate links, dark mode. v2.1 added Twilio Hosted SMS.
+**v2.8 Changes:** Rewrote HCP polling to use correct API parameters (`scheduled_start_min`/`scheduled_start_max`, `page_size=200`, `sort_direction=desc`). Previous `start_date`/`end_date` were ignored by HCP, returning all 2,100+ estimates. Added pre-fetched local estimate index (Set-based O(1) matching), 5-page cap, page-by-page processing, and 30s per-request timeout. maxDuration bumped to 300s. Previous: v2.7 added Send Now button, moved-to-HCP archived, total amount fix, maxDuration, hydration fix. v2.6 added Update Estimates button, admin delete, lead archiving. v2.5 corrected estimate pipeline entry flow. v2.4 added SMS Inbox. v2.3 added team management. v2.2 added Flow 2, leads, estimate links, dark mode. v2.1 added Twilio Hosted SMS.
 
 # **1\. High-Level Overview**
 
@@ -143,7 +143,7 @@ For call task steps: the system creates a follow\_up\_event with status "schedul
 
 ## **5.3 HCP Status Sync**
 
-A Vercel cron job runs 3 times daily, and admin/CSR users can trigger polling on demand via the "Update Estimates" button (POST /api/admin/update-estimates). Both use the same shared polling logic in `lib/hcp-polling.ts`. The system calls GET /estimates on the HCP API with pagination. It automatically filters out estimates older than the auto\_decline\_days setting, so it only processes recent/relevant estimates. For each returned estimate, it performs two functions:
+A Vercel cron job runs 3 times daily, and admin/CSR users can trigger polling on demand via the "Update Estimates" button (POST /api/admin/update-estimates). Both use the same shared polling logic in `lib/hcp-polling.ts`. The system calls GET /estimates on the HCP API using `scheduled_start_min` and `scheduled_start_max` query parameters (YYYY-MM-DD format) set to the auto\_decline\_days date range, plus `page_size=200` and `sort_direction=desc`. This ensures only recent estimates are returned (the HCP API ignores undocumented date parameters like `start_date`/`end_date`). Polling is capped at 5 pages max. Before fetching from HCP, all local estimate IDs (`hcp_estimate_id` and `estimate_number`) are pre-loaded into memory Sets for O(1) matching — no per-estimate database query needed. Estimates are processed page-by-page (not collected then processed). For each returned estimate, it performs two functions:
 
 **New estimate detection:** If an estimate exists in HCP but not in the local database, and any of its options has approval\_status = "awaiting response" (meaning it was sent to the customer), the cron creates the local customer record (if needed), creates the estimate with status "active", creates estimate\_options, assigns the comfort pro from HCP's assigned\_employees, and enrolls the estimate in the default follow-up sequence. This is how estimates from both Flow 1 (created directly in HCP) and Flow 2 (created via Move to HCP) enter the pipeline — only after they've been sent to the customer.
 
