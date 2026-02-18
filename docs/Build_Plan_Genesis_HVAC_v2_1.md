@@ -4,7 +4,7 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 3.0 — February 18, 2026
+Version 3.1 — February 18, 2026
 
 Genesis Services — Monroe, WA
 
@@ -212,9 +212,9 @@ Then create the vercel.json cron configuration:
 
 **Build Notes (v2.8 update — HCP API parameter fix):** The HCP GET /estimates endpoint does NOT support `start_date`/`end_date` parameters — they are silently ignored, returning all 2,140+ estimates. `scheduled_start_min`/`max` filter by appointment date, not creation date — also not useful. Now fetches newest-first with no API date filters and filters by `created_at` in code. Uses `page_size=200`, `sort_direction=desc`. Polling module (`lib/hcp-polling.ts`) rewritten with: pre-fetched local estimate index using JavaScript Sets for O(1) dedup, page-by-page processing, MAX\_PAGES=5 cap, 30s AbortController timeout per fetch. Returns `{ new_estimates, updated, won, lost, skipped, errors, pages_fetched }`.
 
-**Build Notes (v2.9 update — HCP field mapping corrections):** Sent detection uses `option.status = "submitted for signoff"` (NOT `approval_status = "awaiting response"`). Also pulls in already-resolved estimates (`approval_status = "approved"/"declined"`) for initial sync — maps to won/lost locally. Customer name priority: `customer.company` > first+last name > "Unknown" (`company_name` field is the HCP account company, not the customer). HCP amounts in cents — divided by 100. Sent date from `option.updated_at` (submitted) or `estimate.schedule.scheduled_start` (resolved), with `created_at` fallback. Existing estimate updates do full refresh: customer info, amounts, options, sent_date. Estimates list sorted newest to oldest.
+**Build Notes (v2.9 update — HCP field mapping corrections):** Sent detection uses `option.status = "submitted for signoff"` (NOT `approval_status = "awaiting response"`). Also pulls in already-resolved estimates (`approval_status = "approved"/"declined"`) for initial sync — maps to won/lost locally. Customer name priority: `customer.company` > first+last name > "Unknown" (`company_name` field is the HCP account company, not the customer). HCP amounts in cents — divided by 100. Sent date from `estimate.schedule.scheduled_start` if available, else `estimate.created_at` (`option.updated_at` removed — it reflects last modification, not send date). Existing estimate updates do full refresh: customer info, amounts, options, sent_date. Estimates list sorted newest to oldest.
 
-**Functionality:** The cron route at /api/cron/poll-hcp-status: 1\) Reads auto\_decline\_days from settings. 2\) Calls GET /estimates with `page_size=200&sort_direction=desc`, filters by `created_at` age in code. 3\) For each HCP estimate, checks if it exists locally by hcp\_estimate\_id or estimate\_number. 4\) **New estimates:** If not in local DB and any option has `status = "submitted for signoff"` or `approval_status = "approved"/"declined"` → creates local customer (name from `customer.company` > first+last > Unknown), creates estimate (amounts / 100 for cents→dollars, sent\_date from `option.updated_at` or `schedule.scheduled_start`), assigns comfort pro, enrolls active estimates in sequence. 5\) **Existing estimates:** Full refresh — updates customer info, estimate amounts/URL/sent\_date, option amounts/descriptions/statuses. Detects won/lost from approval\_status changes, stops sequence, notifies. 6\) Uses Supabase service role client.
+**Functionality:** The cron route at /api/cron/poll-hcp-status: 1\) Reads auto\_decline\_days from settings. 2\) Calls GET /estimates with `page_size=200&sort_direction=desc`, filters by `created_at` age in code. 3\) For each HCP estimate, checks if it exists locally by hcp\_estimate\_id or estimate\_number. 4\) **New estimates:** If not in local DB and any option has `status = "submitted for signoff"` or `approval_status = "approved"/"declined"` → creates local customer (name from `customer.company` > first+last > Unknown), creates estimate (amounts / 100 for cents→dollars, sent\_date from `schedule.scheduled_start` or `created_at` fallback), assigns comfort pro, enrolls active estimates in sequence. 5\) **Existing estimates:** Full refresh — updates customer info, estimate amounts/URL/sent\_date, option amounts/descriptions/statuses. Detects won/lost from approval\_status changes, stops sequence, notifies. 6\) Uses Supabase service role client.
 
 **VERIFY:** Create an estimate in HCP, send it to a customer. Run the cron endpoint. Confirm: estimate appears in the pipeline with status "active" and is enrolled in the follow-up sequence. Then approve the estimate in HCP, run again, confirm status moves to "won".
 
@@ -306,16 +306,16 @@ Built the Genesis-first lead ingestion flow for leads from external sources (Fac
 
 **Step 3.9: Estimate Link Integration (Added)**
 
-Integrated HCP customer-facing estimate URLs into the follow-up pipeline:
+Integrated estimate links into the follow-up pipeline:
 
-- **online\_estimate\_url** field on estimates table stores the HCP estimate URL (format: https://client.housecallpro.com/estimates/{hash})
-- **{{estimate\_link}} placeholder** in sequence templates replaced with actual URL during execution
+- **online\_estimate\_url** field on estimates table — exists for manual entry but NOT auto-populated by HCP polling (API does not expose customer-facing URL — uses opaque hash)
+- **{{estimate\_link}} placeholder** in sequence templates replaced with `online_estimate_url` if set
 - **Email templates** use styled HTML button ("View Your Estimate") — no raw URLs
 - **SMS templates** show URL on its own line (SMS can't render hyperlinks)
-- **Estimate detail page** shows "View Estimate in HCP" link in actions panel
+- **Estimate number in detail header** is clickable, links to HCP pro view at `https://pro.housecallpro.com/app/estimates/{option_id}` using the first option's hcp\_option\_id
 - SQL script 006\_estimate\_url.sql added the column; 007\_update\_sequence\_with\_links.sql updated templates
 
-**VERIFY:** View an estimate with online\_estimate\_url set. The "View Estimate in HCP" link appears. Check follow-up event content — estimate link is properly inserted.
+**VERIFY:** View an estimate. The estimate number should be a clickable link to HCP pro view. If `online_estimate_url` is manually set, follow-up templates resolve {{estimate\_link}} correctly.
 
 **Step 3.10: Dark Mode (Added)**
 
@@ -441,13 +441,56 @@ Added ability for admin to pause all follow-ups without deleting step configurat
 
 **VERIFY:** Go to Admin > Sequences. Click "Pause Sequence" → badge changes to "Paused", yellow banner appears. Active estimates stop receiving follow-ups. Click "Resume Sequence" → follow-ups resume from where they left off.
 
+**Step 3.20: Paused State on Estimate Detail (Added)**
+
+When a sequence is paused, the estimate detail page reflects this:
+
+- **EstimateActions** — yellow "follow-ups on hold" banner replaces pending event. Send Now, Skip Step, and pending event editing are hidden.
+- **FollowUpTimeline** — all incomplete steps (pending\_review, scheduled, upcoming) display as "Paused" with muted styling.
+- **Props** — `sequenceIsActive` passed from detail page to both components via `follow_up_sequences.is_active`.
+- When sequence resumes, steps past their due date show as "Skipped" (not retroactively sent).
+
+**VERIFY:** Pause the sequence. Open an active estimate — yellow banner shows, Send Now/Skip Step hidden, timeline shows "Paused" badges. Resume — normal behavior returns.
+
+**Step 3.21: Execute Skipped Steps from Timeline (Added)**
+
+Added the ability to send skipped steps after the fact:
+
+- **API route** POST /api/estimates/[id]/execute-step — accepts `{ step_index }`, sends via Twilio (SMS) or Resend (email) or schedules call task. If a skipped event exists for that step, updates it to sent; otherwise inserts new event.
+- **ExecuteStepButton component** — small inline button on skipped timeline steps. Labels: "Send SMS", "Send EMAIL", or "Schedule Call". Confirm dialog before sending. Router refresh on success.
+- **FollowUpTimeline** — shows ExecuteStepButton on skipped steps when estimate is active and `estimateId` is provided.
+
+**VERIFY:** Open an estimate with skipped steps. Click "Send SMS" on a skipped step — message sends, timeline updates to "Sent".
+
+**Step 3.22: Option Selection Modal for Won/Lost (Added)**
+
+Mark Won/Lost now opens an inline modal with per-option checkboxes:
+
+- **OptionSelectModal component** — shows all pending options with amount and description. Checkboxes default to all selected. Smart button text: "Mark All as Won" vs "Mark 2 Selected as Won".
+- **Won flow**: selected options → approved locally (customer signs in HCP, no API call for approval). Unselected pending options → declined in HCP via POST /estimates/options/decline. Estimate → won.
+- **Lost flow**: selected options → declined in HCP. If all options now declined → estimate → lost.
+- **API route** POST /api/estimates/[id]/status — new path accepts `{ action: "won"|"lost", selected_option_ids: [...] }`. Calls `declineInHcp()` helper for HCP API. Legacy `{ status }` path preserved as fallback.
+- **Tailwind fix** — dynamic classes like `border-${color}-200` don't work in Tailwind v4. Replaced with explicit conditionals.
+
+**VERIFY:** Click "Mark Won" → modal shows options with checkboxes. Select some, click confirm → selected approved, others declined in HCP. Click "Mark Lost" → selected declined in HCP.
+
+**Step 3.23: Admin SMS Notifications for All Inbound (Added)**
+
+Updated Twilio webhook to always notify admins/CSRs on all inbound SMS, not just unmatched:
+
+- **Twilio webhook** — after notifying the assigned comfort pro (if matched), also creates notifications for all active admins and CSRs.
+- **Deduplication** — if the assigned comfort pro is also an admin, they only get one notification (tracked via `Set`).
+- **Notification types**: `sms_received` for matched messages, `unmatched_sms` for unknown numbers.
+
+**VERIFY:** Send a text from a known customer's number. Both the assigned comfort pro AND all admins/CSRs should see a notification.
+
   **PHASE 4: Deployment & End-to-End Testing (Week 5–6)**
 
-**Status:** In progress. Deployed to Vercel Pro. GitHub auto-deploy configured. Resend webhook configured. Non-SMS E2E tests passing. HCP polling cron and Move to HCP rewritten (v2.5 flow correction complete). Manual Update Estimates button, admin delete, lead archiving, Send Now, and moved-to-HCP archived display added. Remaining: Twilio verification, SMS tests, optional custom domain.
+**Status:** In progress. Deployed to Vercel Pro. GitHub auto-deploy configured. Resend webhook configured. Twilio verified and live — webhook configured at `https://genesis-pipeline.vercel.app/api/webhooks/twilio`, inbound SMS working. HCP polling cron and Move to HCP rewritten (v2.5 flow correction complete). Manual Update Estimates button, admin delete, lead archiving, Send Now, and moved-to-HCP archived display added. Remaining: full E2E test pass, optional custom domain.
 
-**Build Notes (v3.0):** SQL migrations 001-011 all run. 011 adds `is_active` to follow\_up\_sequences.
+**Build Notes (v3.1):** SQL migrations 001-011 all run. 011 adds `is_active` to follow\_up\_sequences. `NEXT_PUBLIC_SITE_URL` env var added for inbox reply feature on production.
 
-**Build Notes (v2.9):** Deployed to Vercel Pro (required for multi-daily cron jobs). Framework preset set to Next.js. Supabase auth redirect URLs configured for production. Resend webhook pointing to production. Vercel auto-deploys from GitHub pushes to main. During testing, discovered and fixed: HCP requires options array for estimate creation, HCP lead\_source must match predefined values (now synced via API), functions can't be serialized from server to client components in React 19, Vercel 504 timeout on polling routes (maxDuration bumped to 300s), React hydration error #418 in DarkModeToggle (render placeholder until mounted), total amount calculation summing alternatives instead of using HCP total, HCP GET /estimates ignores `start_date`/`end_date` and `scheduled_start` filters by appointment date not creation (now fetches newest-first with no date filter, filters by `created_at` in code). HCP sent detection uses `option.status = "submitted for signoff"` (not `approval_status`). Customer name from `customer.company` > first+last (not `company_name` which is HCP account). HCP amounts in cents (divide by 100). Sent date from `option.updated_at` or `schedule.scheduled_start`. Full refresh on existing estimates. Estimates sorted newest to oldest. HCP polling in shared `lib/hcp-polling.ts` — pre-fetched index, page-by-page, MAX\_PAGES=5, 30s timeouts. Cron is thin wrapper. SQL migrations 001-010 all run.
+**Build Notes (v2.9):** Deployed to Vercel Pro (required for multi-daily cron jobs). Framework preset set to Next.js. Supabase auth redirect URLs configured for production. Resend webhook pointing to production. Vercel auto-deploys from GitHub pushes to main. During testing, discovered and fixed: HCP requires options array for estimate creation, HCP lead\_source must match predefined values (now synced via API), functions can't be serialized from server to client components in React 19, Vercel 504 timeout on polling routes (maxDuration bumped to 300s), React hydration error #418 in DarkModeToggle (render placeholder until mounted), total amount calculation summing alternatives instead of using HCP total, HCP GET /estimates ignores `start_date`/`end_date` and `scheduled_start` filters by appointment date not creation (now fetches newest-first with no date filter, filters by `created_at` in code). HCP sent detection uses `option.status = "submitted for signoff"` (not `approval_status`). Customer name from `customer.company` > first+last (not `company_name` which is HCP account). HCP amounts in cents (divide by 100). Sent date from `schedule.scheduled_start` → `created_at` fallback (removed `option.updated_at`). Full refresh on existing estimates. Estimates sorted newest to oldest. HCP polling in shared `lib/hcp-polling.ts` — pre-fetched index, page-by-page, MAX\_PAGES=5, 30s timeouts. Cron is thin wrapper. SQL migrations 001-010 all run.
 
 **Step 4.1: Deploy to Vercel**
 
