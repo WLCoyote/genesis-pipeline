@@ -260,8 +260,8 @@ async function handleNewEstimate(
     .filter(Boolean)
     .join(" ");
   const customerName =
+    (hcpCustomer.company as string) ||
     fullName ||
-    (hcpCustomer.display_name as string) ||
     "Unknown";
 
   if (!hcpCustomerId) {
@@ -426,19 +426,17 @@ async function handleExistingEstimate(
   },
   results: PollResult
 ) {
-  // Update customer name if currently "Unknown"
+  // --- Always refresh customer info from HCP ---
   const hcpCustomer = (hcpEstimate.customer || {}) as Record<string, unknown>;
   const fullName = [hcpCustomer.first_name, hcpCustomer.last_name]
     .filter(Boolean)
     .join(" ");
   const customerName =
-    fullName ||
-    (hcpCustomer.display_name as string) ||
-    (hcpCustomer.company_name as string) ||
     (hcpCustomer.company as string) ||
-    null;
+    fullName ||
+    "Unknown";
 
-  if (customerName && localEstimate.customer_id) {
+  if (localEstimate.customer_id) {
     await supabase
       .from("customers")
       .update({
@@ -449,127 +447,136 @@ async function handleExistingEstimate(
       .eq("id", localEstimate.customer_id);
   }
 
-  // Update estimate URL if missing
+  // --- Always refresh estimate fields from HCP ---
   const estimateUrl =
     (hcpEstimate.online_estimate_url as string) ||
     (hcpEstimate.customer_url as string) ||
     (hcpEstimate.html_url as string) ||
     null;
 
-  if (estimateUrl && !localEstimate.online_estimate_url) {
-    await supabase
-      .from("estimates")
-      .update({ online_estimate_url: estimateUrl })
-      .eq("id", localEstimate.id);
-  }
-
-  // Update total_amount if changed (highest option — HCP sends cents)
   const highestOpt = hcpOptions.reduce((max, o) => {
     const amt = (parseFloat(String(o.total_amount || "0")) || 0) / 100;
     return amt > max ? amt : max;
   }, 0) || null;
 
-  if (highestOpt && highestOpt !== localEstimate.total_amount) {
+  const estimateUpdates: Record<string, unknown> = {};
+  if (estimateUrl) estimateUpdates.online_estimate_url = estimateUrl;
+  if (highestOpt) estimateUpdates.total_amount = highestOpt;
+
+  if (Object.keys(estimateUpdates).length > 0) {
     await supabase
       .from("estimates")
-      .update({ total_amount: highestOpt })
+      .update(estimateUpdates)
       .eq("id", localEstimate.id);
   }
 
-  // Skip already-resolved estimates
-  if (localEstimate.status === "won" || localEstimate.status === "lost") {
-    return;
-  }
-
-  // Get local options
+  // --- Always refresh option amounts and statuses ---
   const { data: localOptions } = await supabase
     .from("estimate_options")
-    .select("id, hcp_option_id, status")
+    .select("id, hcp_option_id, status, amount")
     .eq("estimate_id", localEstimate.id);
 
-  if (!localOptions || localOptions.length === 0) return;
-
-  // Compare HCP option statuses against ours
   let anyApproved = false;
   let allDeclined = true;
-  let changed = false;
+  let statusChanged = false;
 
-  for (const localOption of localOptions) {
-    const hcpOption = hcpOptions.find(
-      (o) => String(o.id) === String(localOption.hcp_option_id)
+  for (const hcpOpt of hcpOptions) {
+    const hcpOptId = String(hcpOpt.id);
+    const hcpApproval = String(hcpOpt.approval_status || "").toLowerCase();
+    const hcpAmount = (parseFloat(String(hcpOpt.total_amount || "0")) || 0) / 100;
+    const hcpName = (hcpOpt.name as string) || null;
+
+    const localOpt = (localOptions || []).find(
+      (lo) => String(lo.hcp_option_id) === hcpOptId
     );
 
-    if (!hcpOption) {
-      allDeclined = false;
-      continue;
-    }
+    if (localOpt) {
+      // Update existing option: amount, description, status
+      const optUpdates: Record<string, unknown> = {};
+      if (hcpAmount && hcpAmount !== localOpt.amount) optUpdates.amount = hcpAmount;
+      if (hcpApproval === "approved" && localOpt.status !== "approved") {
+        optUpdates.status = "approved";
+        anyApproved = true;
+        statusChanged = true;
+      } else if (hcpApproval === "declined" && localOpt.status !== "declined") {
+        optUpdates.status = "declined";
+        statusChanged = true;
+      } else if (localOpt.status !== "declined") {
+        allDeclined = false;
+      }
+      if (hcpName) optUpdates.description = hcpName;
 
-    const hcpStatus = String(hcpOption.approval_status || "").toLowerCase();
-
-    if (hcpStatus === "approved" && localOption.status === "pending") {
-      await supabase
-        .from("estimate_options")
-        .update({ status: "approved" })
-        .eq("id", localOption.id);
-      anyApproved = true;
-      changed = true;
-    } else if (hcpStatus === "declined" && localOption.status === "pending") {
-      await supabase
-        .from("estimate_options")
-        .update({ status: "declined" })
-        .eq("id", localOption.id);
-      changed = true;
-    } else if (localOption.status !== "declined") {
+      if (Object.keys(optUpdates).length > 0) {
+        await supabase
+          .from("estimate_options")
+          .update(optUpdates)
+          .eq("id", localOpt.id);
+      }
+    } else {
+      // New option added in HCP — create locally
       allDeclined = false;
+      await supabase.from("estimate_options").insert({
+        estimate_id: localEstimate.id,
+        hcp_option_id: hcpOptId,
+        option_number: hcpOptions.indexOf(hcpOpt) + 1,
+        description: hcpName || `Option`,
+        amount: hcpAmount || null,
+        status:
+          hcpApproval === "approved"
+            ? "approved"
+            : hcpApproval === "declined"
+              ? "declined"
+              : "pending",
+      });
+      if (hcpApproval === "approved") anyApproved = true;
     }
   }
 
-  if (!changed) return;
+  // --- Update estimate status if options changed (won/lost) ---
+  if (statusChanged && localEstimate.status !== "won" && localEstimate.status !== "lost") {
+    if (anyApproved) {
+      await supabase
+        .from("estimates")
+        .update({ status: "won" })
+        .eq("id", localEstimate.id);
 
-  if (anyApproved) {
-    await supabase
-      .from("estimates")
-      .update({ status: "won" })
-      .eq("id", localEstimate.id);
+      await supabase
+        .from("follow_up_events")
+        .update({ status: "skipped" })
+        .eq("estimate_id", localEstimate.id)
+        .in("status", ["scheduled", "pending_review", "snoozed"]);
 
-    await supabase
-      .from("follow_up_events")
-      .update({ status: "skipped" })
-      .eq("estimate_id", localEstimate.id)
-      .in("status", ["scheduled", "pending_review", "snoozed"]);
+      if (localEstimate.assigned_to) {
+        await supabase.from("notifications").insert({
+          user_id: localEstimate.assigned_to,
+          type: "estimate_approved",
+          estimate_id: localEstimate.id,
+          message: "Estimate approved by customer in Housecall Pro!",
+        });
+      }
+      results.won++;
+    } else if (allDeclined && (localOptions || []).length > 0) {
+      await supabase
+        .from("estimates")
+        .update({ status: "lost" })
+        .eq("id", localEstimate.id);
 
-    if (localEstimate.assigned_to) {
-      await supabase.from("notifications").insert({
-        user_id: localEstimate.assigned_to,
-        type: "estimate_approved",
-        estimate_id: localEstimate.id,
-        message: "Estimate approved by customer in Housecall Pro!",
-      });
+      await supabase
+        .from("follow_up_events")
+        .update({ status: "skipped" })
+        .eq("estimate_id", localEstimate.id)
+        .in("status", ["scheduled", "pending_review", "snoozed"]);
+
+      if (localEstimate.assigned_to) {
+        await supabase.from("notifications").insert({
+          user_id: localEstimate.assigned_to,
+          type: "estimate_declined",
+          estimate_id: localEstimate.id,
+          message: "All estimate options declined in Housecall Pro.",
+        });
+      }
+      results.lost++;
     }
-
-    results.won++;
-  } else if (allDeclined) {
-    await supabase
-      .from("estimates")
-      .update({ status: "lost" })
-      .eq("id", localEstimate.id);
-
-    await supabase
-      .from("follow_up_events")
-      .update({ status: "skipped" })
-      .eq("estimate_id", localEstimate.id)
-      .in("status", ["scheduled", "pending_review", "snoozed"]);
-
-    if (localEstimate.assigned_to) {
-      await supabase.from("notifications").insert({
-        user_id: localEstimate.assigned_to,
-        type: "estimate_declined",
-        estimate_id: localEstimate.id,
-        message: "All estimate options declined in Housecall Pro.",
-      });
-    }
-
-    results.lost++;
   }
 
   results.updated++;
