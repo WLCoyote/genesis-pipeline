@@ -343,10 +343,34 @@ async function handleNewEstimate(
     return amt > max ? amt : max;
   }, 0) || null;
 
-  // Determine sent_date from HCP created_at
-  const sentDate =
-    (hcpEstimate.created_at as string)?.split("T")[0] ||
-    new Date().toISOString().split("T")[0];
+  // Determine sent_date based on option status:
+  // "submitted for signoff" → option.updated_at (when it was sent)
+  // approved/declined → estimate.schedule.scheduled_start (original send date)
+  let sentDate: string | null = null;
+
+  const submittedOpt = hcpOptions.find(
+    (o) => String(o.status || "").toLowerCase() === "submitted for signoff"
+  );
+  if (submittedOpt && submittedOpt.updated_at) {
+    sentDate = (submittedOpt.updated_at as string).split("T")[0];
+  } else {
+    // Approved/declined — use scheduled_start from estimate
+    const schedule = (hcpEstimate.schedule || {}) as Record<string, unknown>;
+    const scheduledStart =
+      (schedule.scheduled_start as string) ||
+      (hcpEstimate.scheduled_start as string) ||
+      null;
+    if (scheduledStart) {
+      sentDate = scheduledStart.split("T")[0];
+    }
+  }
+
+  // Final fallback to estimate created_at
+  if (!sentDate) {
+    sentDate =
+      (hcpEstimate.created_at as string)?.split("T")[0] ||
+      new Date().toISOString().split("T")[0];
+  }
 
   // Create local estimate (upsert on estimate_number for dedup safety)
   const { data: newEstimate, error: estErr } = await supabase
@@ -459,9 +483,28 @@ async function handleExistingEstimate(
     return amt > max ? amt : max;
   }, 0) || null;
 
+  // Recalculate sent_date using same logic as new estimates
+  let sentDate: string | null = null;
+  const submittedOpt = hcpOptions.find(
+    (o) => String(o.status || "").toLowerCase() === "submitted for signoff"
+  );
+  if (submittedOpt && submittedOpt.updated_at) {
+    sentDate = (submittedOpt.updated_at as string).split("T")[0];
+  } else {
+    const schedule = (hcpEstimate.schedule || {}) as Record<string, unknown>;
+    const scheduledStart =
+      (schedule.scheduled_start as string) ||
+      (hcpEstimate.scheduled_start as string) ||
+      null;
+    if (scheduledStart) {
+      sentDate = scheduledStart.split("T")[0];
+    }
+  }
+
   const estimateUpdates: Record<string, unknown> = {};
   if (estimateUrl) estimateUpdates.online_estimate_url = estimateUrl;
   if (highestOpt) estimateUpdates.total_amount = highestOpt;
+  if (sentDate) estimateUpdates.sent_date = sentDate;
 
   if (Object.keys(estimateUpdates).length > 0) {
     await supabase
