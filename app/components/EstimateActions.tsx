@@ -6,6 +6,13 @@ import { EstimateStatus, FollowUpEvent } from "@/lib/types";
 import SnoozeForm from "./SnoozeForm";
 import EditMessageForm from "./EditMessageForm";
 
+interface NextDueStep {
+  day_offset: number;
+  channel: string;
+  step_index: number;
+  is_call_task: boolean;
+}
+
 interface EstimateActionsProps {
   estimateId: string;
   status: EstimateStatus;
@@ -14,6 +21,7 @@ interface EstimateActionsProps {
   pendingEvent: FollowUpEvent | null;
   onlineEstimateUrl: string | null;
   isAdmin?: boolean;
+  nextDueStep?: NextDueStep | null;
 }
 
 export default function EstimateActions({
@@ -24,12 +32,15 @@ export default function EstimateActions({
   pendingEvent,
   onlineEstimateUrl,
   isAdmin = false,
+  nextDueStep = null,
 }: EstimateActionsProps) {
   const router = useRouter();
   const [showSnooze, setShowSnooze] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const [loading, setLoading] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [sendResult, setSendResult] = useState("");
 
   const handleStatusChange = async (newStatus: "won" | "lost" | "active") => {
     const confirmMsg =
@@ -137,6 +148,54 @@ export default function EstimateActions({
           event={pendingEvent}
           onClose={() => setShowEdit(false)}
         />
+      )}
+
+      {/* Send Now — next due step */}
+      {nextDueStep && !pendingEvent && (
+        <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-md p-3">
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-green-800 dark:text-green-300">
+              Day {nextDueStep.day_offset} · {nextDueStep.is_call_task ? "Call task" : nextDueStep.channel.toUpperCase()} ready
+            </div>
+            <button
+              onClick={async () => {
+                setSending(true);
+                setSendResult("");
+                try {
+                  const res = await fetch(
+                    `/api/estimates/${estimateId}/send-next`,
+                    { method: "POST" }
+                  );
+                  const data = await res.json();
+                  if (res.ok) {
+                    setSendResult(
+                      data.sent === "call"
+                        ? "Call task scheduled"
+                        : data.sent === "skipped"
+                          ? `Skipped: ${data.reason}`
+                          : `${data.sent.toUpperCase()} sent`
+                    );
+                    router.refresh();
+                  } else {
+                    setSendResult(data.error || "Failed to send");
+                  }
+                } catch {
+                  setSendResult("Failed to connect");
+                }
+                setSending(false);
+              }}
+              disabled={sending}
+              className="px-3 py-1 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors cursor-pointer"
+            >
+              {sending ? "Sending..." : "Send Now"}
+            </button>
+          </div>
+          {sendResult && (
+            <div className={`text-sm mt-1 ${sendResult.includes("Failed") ? "text-red-600" : "text-green-700 dark:text-green-400"}`}>
+              {sendResult}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Snooze form */}

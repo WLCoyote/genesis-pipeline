@@ -29,7 +29,7 @@ export default async function EstimateDetailPage({
 
   const isAdmin = dbUser?.role === "admin";
 
-  // Fetch estimate with all related data
+  // Fetch estimate with all related data including sequence
   const { data: estimate, error } = await supabase
     .from("estimates")
     .select(
@@ -38,7 +38,8 @@ export default async function EstimateDetailPage({
       customers (*),
       users!estimates_assigned_to_fkey ( id, name, email ),
       estimate_options (*),
-      follow_up_events (*)
+      follow_up_events (*),
+      follow_up_sequences (steps)
     `
     )
     .eq("id", id)
@@ -63,6 +64,37 @@ export default async function EstimateDetailPage({
   // Find the next pending_review event (editable message)
   const pendingEvent =
     events.find((e: any) => e.status === "pending_review") || null;
+
+  // Compute next due step for "Send Now" button
+  let nextDueStep: { day_offset: number; channel: string; step_index: number; is_call_task: boolean } | null = null;
+  const sequenceSteps = (est.follow_up_sequences as any)?.steps as Array<{
+    day_offset: number; channel: string; is_call_task: boolean;
+  }> | undefined;
+
+  if (est.status === "active" && sequenceSteps && est.sent_date) {
+    const stepIndex = est.sequence_step_index || 0;
+    if (stepIndex < sequenceSteps.length) {
+      const step = sequenceSteps[stepIndex];
+      const sentDate = new Date(est.sent_date);
+      const dueDate = new Date(sentDate);
+      dueDate.setDate(dueDate.getDate() + step.day_offset);
+
+      // Step is due and no event exists for it yet
+      if (dueDate <= new Date()) {
+        const hasEvent = events.some(
+          (e: any) => e.sequence_step_index === stepIndex
+        );
+        if (!hasEvent) {
+          nextDueStep = {
+            day_offset: step.day_offset,
+            channel: step.channel,
+            step_index: stepIndex,
+            is_call_task: step.is_call_task,
+          };
+        }
+      }
+    }
+  }
 
   return (
     <div>
@@ -119,6 +151,7 @@ export default async function EstimateDetailPage({
             pendingEvent={pendingEvent}
             onlineEstimateUrl={est.online_estimate_url || null}
             isAdmin={isAdmin}
+            nextDueStep={nextDueStep}
           />
           <CustomerInfo customer={customer} />
           <OptionsList options={options} totalAmount={est.total_amount} />
