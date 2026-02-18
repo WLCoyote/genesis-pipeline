@@ -223,16 +223,35 @@ async function handleNewEstimate(
   userByName: Record<string, { id: string; name: string }>,
   results: PollResult
 ): Promise<boolean> {
-  // Only create locally if at least one option is "awaiting response" (sent to customer)
-  const hasSentOption = hcpOptions.some((o) => {
-    const status = String(o.approval_status || "").toLowerCase();
-    return status === "awaiting response";
+  // Check if estimate was sent to customer
+  // HCP uses option.status = "submitted for signoff" when sent (not approval_status)
+  // Also check approval_status for already-resolved estimates (approved/declined)
+  const sentOption = hcpOptions.find((o) => {
+    const optStatus = String(o.status || "").toLowerCase();
+    const approvalStatus = String(o.approval_status || "").toLowerCase();
+    return (
+      optStatus === "submitted for signoff" ||
+      approvalStatus === "approved" ||
+      approvalStatus === "declined"
+    );
   });
 
-  if (!hasSentOption) {
+  if (!sentOption) {
     results.skipped++;
     return false;
   }
+
+  // Determine local estimate status based on HCP option statuses
+  const anyApproved = hcpOptions.some(
+    (o) => String(o.approval_status || "").toLowerCase() === "approved"
+  );
+  const allDeclined = hcpOptions.every((o) => {
+    const s = String(o.approval_status || "").toLowerCase();
+    return s === "declined";
+  });
+  let localStatus = "active";
+  if (anyApproved) localStatus = "won";
+  else if (allDeclined && hcpOptions.length > 0) localStatus = "lost";
 
   // Extract customer data
   const hcpCustomer = (hcpEstimate.customer || {}) as Record<string, unknown>;
@@ -334,10 +353,10 @@ async function handleNewEstimate(
         hcp_estimate_id: hcpId,
         customer_id: customerId,
         assigned_to: assignedTo,
-        status: "active",
+        status: localStatus,
         total_amount: highestOptionAmount,
         sent_date: sentDate,
-        sequence_id: defaultSequenceId,
+        sequence_id: localStatus === "active" ? defaultSequenceId : null,
         sequence_step_index: 0,
         auto_decline_date: autoDeclineDate.toISOString().split("T")[0],
         online_estimate_url: estimateUrl,
