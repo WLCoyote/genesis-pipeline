@@ -4,7 +4,7 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 2.6 — February 17, 2026
+Version 2.7 — February 17, 2026
 
 Prepared by: Wylee, Owner / Product Lead
 
@@ -29,6 +29,8 @@ The platform replaces the need for expensive tools like Mailchimp ($45–$350/mo
 **Assumptions:** Built by Wylee using AI-assisted code generation (Claude/Grok). No dedicated development team. Housecall Pro remains the system of record for job execution.
 
 ## **1.3 Version History**
+
+Version 2.7: Added "Send Now" button on estimate detail page for immediately sending due sequence steps (skips 30-min edit window). Moved-to-HCP leads now appear in the archived section with purple "Moved to HCP" badge instead of disappearing. Fixed total amount calculation for multi-option estimates (uses HCP estimate total or highest option, not sum of all options). Fixed Vercel 504 timeout on Update Estimates (maxDuration = 120s). Fixed React hydration error #418 in dark mode toggle (February 17, 2026).
 
 Version 2.6: Added manual "Update Estimates" button for on-demand HCP polling (admin/CSR). Added admin-only delete for estimates and leads with cascading cleanup. Added lead archiving with "archived" status, Archive/Unarchive buttons on lead cards, and collapsible archived leads section. SQL migration 010 adds archived to leads status check constraint (February 17, 2026).
 
@@ -103,7 +105,7 @@ Features are prioritized using MoSCoW classification. Each feature is assigned t
 | Priority | Feature | Description | Phase |
 | ----- | :---- | :---- | ----- |
 | **MUST** | **Estimate Pipeline** | Import estimates from HCP (CSV initially, API later). Track status: sent, follow-up active, snoozed, won, lost, dormant. Dedup on estimate number. Support multiple options per estimate (xxx-1, xxx-2). | MVP |
-| **MUST** | **Follow-Up Sequences** | Company-defined multi-channel templates (auto email, auto SMS, call tasks). 30-minute edit window before auto-sends. Comfort pro snooze with notes. Auto-stop on approval/denial. | MVP |
+| **MUST** | **Follow-Up Sequences** | Company-defined multi-channel templates (auto email, auto SMS, call tasks). 30-minute edit window before auto-sends. "Send Now" button on estimate detail for immediately sending due steps (bypasses edit window). Comfort pro snooze with notes. Auto-stop on approval/denial. | MVP |
 | **MUST** | **Estimate Options** | Track individual options within each estimate with separate statuses. One option approved \= estimate won. All declined \= estimate lost. Store HCP option IDs for two-way sync. | MVP |
 | **MUST** | **User Roles & Auth** | Admin, comfort\_pro, CSR roles. Google Workspace SSO. Role-based views and permissions. Each comfort pro sees only their assigned leads. Admin team management with invite-based provisioning. | MVP |
 | **MUST** | **Team Management** | Admin Team page to invite new users (email, name, phone, role), edit existing user roles, and activate/deactivate team members. Invite-based provisioning: admin pre-registers users, who auto-provision on first Google sign-in. | MVP |

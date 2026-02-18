@@ -4,7 +4,7 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 2.6 — February 17, 2026
+Version 2.7 — February 17, 2026
 
 Genesis Services — Monroe, WA
 
@@ -136,7 +136,7 @@ Run the generated SQL in the Supabase SQL Editor.
 
   **PHASE 2: Backend API Routes & Cron Jobs (Weeks 2–3) ✅ COMPLETE**
 
-**Build Notes:** All API routes built and tested. Next.js 16.1.6 with React 19. Middleware file is proxy.ts with exported proxy function (Next.js 16 convention, not middleware.ts). Three cron jobs configured in vercel.json: execute-sequences, poll-hcp-status, auto-decline. Additional routes built: /api/estimates/create, /api/estimates/[id]/snooze, /api/estimates/[id]/status, /api/estimates/[id]/reassign, /api/estimates/[id] (DELETE — admin only), /api/follow-up-events/[id], /api/admin/sequences, /api/admin/settings, /api/admin/invites, /api/admin/users, /api/admin/update-estimates (manual HCP polling), /api/leads, /api/leads/inbound, /api/leads/[id] (PATCH + DELETE), /api/leads/[id]/move-to-hcp, /api/inbox. Shared HCP polling logic extracted to `lib/hcp-polling.ts`.
+**Build Notes:** All API routes built and tested. Next.js 16.1.6 with React 19. Middleware file is proxy.ts with exported proxy function (Next.js 16 convention, not middleware.ts). Three cron jobs configured in vercel.json: execute-sequences, poll-hcp-status, auto-decline. Additional routes built: /api/estimates/create, /api/estimates/[id]/snooze, /api/estimates/[id]/status, /api/estimates/[id]/reassign, /api/estimates/[id]/send-next (Send Now), /api/estimates/[id] (DELETE — admin only), /api/follow-up-events/[id], /api/admin/sequences, /api/admin/settings, /api/admin/invites, /api/admin/users, /api/admin/update-estimates (manual HCP polling), /api/leads, /api/leads/inbound, /api/leads/[id] (PATCH + DELETE), /api/leads/[id]/move-to-hcp, /api/inbox. Shared HCP polling logic extracted to `lib/hcp-polling.ts`.
 
 Initialize the Next.js project and build all the serverless API routes that handle external service communication and scheduled jobs.
 
@@ -238,7 +238,7 @@ After deploying to Vercel, configure the webhook URL in your Resend dashboard un
 
   **PHASE 3: Frontend Dashboard (Weeks 3–5) ✅ COMPLETE**
 
-**Build Notes:** All 7 steps completed plus additional features. Built with server components for pages and client components for interactivity. Tailwind CSS v4 with @theme inline tokens. Dark mode support across all pages and components with class-based toggle, localStorage persistence, and system preference detection on first visit. Admin team management with invite-based user provisioning (Step 3.11). SMS Inbox for unmatched inbound messages with thread view, reply, dismiss, and convert-to-lead (Step 3.12). Manual "Update Estimates" button for on-demand HCP polling (Step 3.13). Admin delete for estimates and leads (Step 3.14). Lead archiving with collapsible section (Step 3.15).
+**Build Notes:** All 7 steps completed plus additional features. Built with server components for pages and client components for interactivity. Tailwind CSS v4 with @theme inline tokens. Dark mode support across all pages and components with class-based toggle, localStorage persistence, and system preference detection on first visit. Admin team management with invite-based user provisioning (Step 3.11). SMS Inbox for unmatched inbound messages with thread view, reply, dismiss, and convert-to-lead (Step 3.12). Manual "Update Estimates" button for on-demand HCP polling (Step 3.13). Admin delete for estimates and leads (Step 3.14). Lead archiving with collapsible section (Step 3.15). "Send Now" button for due sequence steps (Step 3.16). Moved-to-HCP leads in archived section (Step 3.17).
 
 Build the user-facing dashboard. Start with authentication, then the comfort pro's primary view, then admin features.
 
@@ -390,11 +390,32 @@ Archive leads that don't convert to keep the active list clean:
 
 **VERIFY:** Click "Archive" on a lead → disappears from active list, appears in collapsed "Archived" section. Click "Unarchive" → returns to active list.
 
+**Step 3.16: Send Now Button for Due Sequence Steps (Added)**
+
+Added a "Send Now" button on the estimate detail page for immediately sending due sequence steps:
+
+- **API route** POST /api/estimates/[id]/send-next — validates step is due, no existing event, sends via Twilio (SMS) or Resend (email) immediately, logs to messages table, creates follow\_up\_event as "sent", advances step index. Skips gracefully if customer has no phone/email.
+- **EstimateActions component** — green "Day 0 · SMS ready" banner with "Send Now" button. Shows result after sending. Hidden if step isn't due or already scheduled.
+- **Estimate detail page** — joins follow\_up\_sequences to compute next due step, passes to EstimateActions.
+- **Workflow**: Send estimate in HCP → click "Update Estimates" → click into estimate → click "Send Now" → customer gets Day 0 text immediately.
+
+**VERIFY:** After pulling a new estimate via Update Estimates, open its detail page. The green "Send Now" banner should appear for the Day 0 step. Click it — step sends immediately, timeline updates.
+
+**Step 3.17: Moved-to-HCP Leads in Archived Section (Added)**
+
+Leads with status "moved\_to\_hcp" now appear in the archived section instead of disappearing:
+
+- **Leads page** — archived query includes both "archived" and "moved\_to\_hcp" statuses.
+- **LeadCard** — displays "Moved to HCP" as the status label (not raw "moved\_to\_hcp").
+- **Status badge** — purple style for moved\_to\_hcp, visually distinct from gray archived leads.
+
+**VERIFY:** Move a lead to HCP. It should appear in the collapsed "Archived" section with a purple "Moved to HCP" badge.
+
   **PHASE 4: Deployment & End-to-End Testing (Week 5–6)**
 
-**Status:** In progress. Deployed to Vercel Pro. GitHub auto-deploy configured. Resend webhook configured. Non-SMS E2E tests passing. HCP polling cron and Move to HCP rewritten (v2.5 flow correction complete). Manual Update Estimates button, admin delete, and lead archiving added. Remaining: Twilio verification, SMS tests, optional custom domain.
+**Status:** In progress. Deployed to Vercel Pro. GitHub auto-deploy configured. Resend webhook configured. Non-SMS E2E tests passing. HCP polling cron and Move to HCP rewritten (v2.5 flow correction complete). Manual Update Estimates button, admin delete, lead archiving, Send Now, and moved-to-HCP archived display added. Remaining: Twilio verification, SMS tests, optional custom domain.
 
-**Build Notes (v2.6):** Deployed to Vercel Pro (required for multi-daily cron jobs). Framework preset set to Next.js. Supabase auth redirect URLs configured for production. Resend webhook pointing to production. Vercel auto-deploys from GitHub pushes to main. During testing, discovered and fixed: HCP requires options array for estimate creation, HCP lead\_source must match predefined values (now synced via API), functions can't be serialized from server to client components in React 19. HCP polling rewritten with shared `lib/hcp-polling.ts` module, cron is thin wrapper. SQL migrations 001-010 all run.
+**Build Notes (v2.7):** Deployed to Vercel Pro (required for multi-daily cron jobs). Framework preset set to Next.js. Supabase auth redirect URLs configured for production. Resend webhook pointing to production. Vercel auto-deploys from GitHub pushes to main. During testing, discovered and fixed: HCP requires options array for estimate creation, HCP lead\_source must match predefined values (now synced via API), functions can't be serialized from server to client components in React 19, Vercel 504 timeout on polling routes (added maxDuration=120s), React hydration error #418 in DarkModeToggle (render placeholder until mounted), total amount calculation summing alternatives instead of using HCP total. HCP polling rewritten with shared `lib/hcp-polling.ts` module, cron is thin wrapper. SQL migrations 001-010 all run.
 
 **Step 4.1: Deploy to Vercel**
 

@@ -4,13 +4,13 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 2.6 — February 17, 2026
+Version 2.7 — February 17, 2026
 
 Genesis Services — Monroe, WA
 
 CONFIDENTIAL — Internal Use Only
 
-**v2.6 Changes:** Added manual "Update Estimates" button (POST /api/admin/update-estimates) for on-demand HCP polling by admin/CSR. Added admin-only DELETE routes for estimates (/api/estimates/[id]) and leads (/api/leads/[id]) with cascading cleanup. Added lead archiving: "archived" status on leads, Archive/Unarchive buttons, collapsible archived section in Leads tab. SQL migration 010 adds archived to leads status constraint. Previous: v2.5 corrected estimate pipeline entry flow. v2.4 added SMS Inbox. v2.3 added team management. v2.2 added Flow 2, leads, estimate links, dark mode. v2.1 added Twilio Hosted SMS.
+**v2.7 Changes:** Added "Send Now" button (POST /api/estimates/[id]/send-next) for immediately sending due sequence steps from the estimate detail page. Moved-to-HCP leads now appear in archived section with purple badge. Fixed total amount calculation (uses HCP estimate total or highest option, not sum of alternatives). Added maxDuration=120s on polling routes for Vercel Pro. Fixed React hydration error in DarkModeToggle. Previous: v2.6 added Update Estimates button, admin delete, lead archiving. v2.5 corrected estimate pipeline entry flow. v2.4 added SMS Inbox. v2.3 added team management. v2.2 added Flow 2, leads, estimate links, dark mode. v2.1 added Twilio Hosted SMS.
 
 # **1\. High-Level Overview**
 
@@ -135,9 +135,11 @@ Flow 2 (Built): External leads arrive via /api/leads/inbound webhook. CSRs quali
 
 A Vercel cron job runs multiple times daily (e.g., every 2 hours during business hours). For each active estimate, it checks: is a sequence step due (based on sent\_date \+ step day\_offset)? Is the estimate snoozed (skip if snooze\_until is in the future)? Has the estimate been won/lost/dormant (stop if so)?
 
-For auto-send steps (email/SMS): the system creates a follow\_up\_event with status “pending\_review” and a scheduled\_at 30 minutes in the future. If the comfort pro doesn’t edit or cancel within that window, a subsequent cron run picks it up and sends via Resend (email) or Twilio (SMS), updating the status to “sent.” Outbound SMS messages are also logged to the messages table for conversation tracking.
+For auto-send steps (email/SMS): the system creates a follow\_up\_event with status "pending\_review" and a scheduled\_at 30 minutes in the future. If the comfort pro doesn't edit or cancel within that window, a subsequent cron run picks it up and sends via Resend (email) or Twilio (SMS), updating the status to "sent." Outbound SMS messages are also logged to the messages table for conversation tracking.
 
-For call task steps: the system creates a follow\_up\_event with status “scheduled” and a notification for the comfort pro. The comfort pro marks it “completed” (with optional notes) or snoozes the entire sequence.
+Alternatively, the estimate detail page shows a "Send Now" button (POST /api/estimates/[id]/send-next) when a sequence step is due but hasn't been scheduled yet. This sends the step immediately — bypassing the 30-minute edit window — and is designed for the workflow where you send an estimate in HCP, click "Update Estimates" in Genesis to pull it in, then immediately send the Day 0 SMS.
+
+For call task steps: the system creates a follow\_up\_event with status "scheduled" and a notification for the comfort pro. The comfort pro marks it "completed" (with optional notes) or snoozes the entire sequence.
 
 ## **5.3 HCP Status Sync**
 
