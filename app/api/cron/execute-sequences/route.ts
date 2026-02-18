@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       online_estimate_url,
       customers (id, name, email, phone),
       users!estimates_assigned_to_fkey (name),
-      follow_up_sequences (steps)
+      follow_up_sequences (steps, is_active)
     `
     )
     .eq("status", "active")
@@ -53,6 +53,7 @@ export async function GET(request: NextRequest) {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const sequence = estimate.follow_up_sequences as any;
+      if (sequence?.is_active === false) continue; // Sequence paused
       const steps = sequence?.steps as Array<{
         day_offset: number;
         channel: string;
@@ -156,7 +157,7 @@ export async function GET(request: NextRequest) {
       id, estimate_id, sequence_step_index, channel, content,
       estimates (id, customer_id, assigned_to, status,
         customers (name, email, phone),
-        follow_up_sequences (steps))
+        follow_up_sequences (steps, is_active))
     `
     )
     .eq("status", "pending_review")
@@ -173,13 +174,15 @@ export async function GET(request: NextRequest) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const customer = estimate?.customers as any;
 
-      // Validate the step still exists in the current sequence
+      // Validate the step still exists and sequence is active
       const seqSteps = estimate?.follow_up_sequences?.steps as Array<unknown> | undefined;
+      const seqActive = estimate?.follow_up_sequences?.is_active;
       if (
         !seqSteps ||
         !Array.isArray(seqSteps) ||
         event.sequence_step_index >= seqSteps.length ||
-        estimate?.status !== "active"
+        estimate?.status !== "active" ||
+        seqActive === false
       ) {
         // Sequence was changed or estimate is no longer active — skip this event
         await supabase

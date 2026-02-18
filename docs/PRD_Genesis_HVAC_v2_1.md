@@ -4,7 +4,7 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 2.9 — February 18, 2026
+Version 3.0 — February 18, 2026
 
 Prepared by: Wylee, Owner / Product Lead
 
@@ -29,6 +29,8 @@ The platform replaces the need for expensive tools like Mailchimp ($45–$350/mo
 **Assumptions:** Built by Wylee using AI-assisted code generation (Claude/Grok). No dedicated development team. Housecall Pro remains the system of record for job execution.
 
 ## **1.3 Version History**
+
+Version 3.0: Follow-up timeline rewritten to show all sequence steps (not just events). Past-due steps without events show as "Skipped", current step is highlighted, future steps show as "Upcoming" with projected dates. Won/lost estimates show remaining steps as "Not Reached". Added Skip Step button to manually advance past a step without sending. Added Sequence Pause/Resume toggle — admin can pause all follow-ups without deleting steps, resume later. New `is_active` column on `follow_up_sequences` (SQL 011). Cron job validates sequence is active and step still exists before sending pending events — prevents sends after sequence is edited or paused. Timeline preserves full history: executed steps show the event's actual channel even when sequence settings change (February 18, 2026).
 
 Version 2.9: Major HCP polling accuracy fixes. Sent detection now uses `option.status = "submitted for signoff"` (not `approval_status = "awaiting response"` which is never set). Also pulls in already-resolved estimates (approved/declined) for initial sync. Customer name priority: `customer.company` > `first_name + last_name` > `"Unknown"`. HCP amounts are in cents — now divided by 100. Sent date derived from `option.updated_at` (for submitted estimates) or `estimate.schedule.scheduled_start` (for resolved). Existing estimates get full refresh on every poll: customer info, amounts, options, sent_date. Estimates list sorted newest to oldest. Removed HCP API date filters (`scheduled_start` filters by appointment date, not creation); now fetches newest-first and filters by `created_at` in code (February 18, 2026).
 
@@ -109,7 +111,7 @@ Features are prioritized using MoSCoW classification. Each feature is assigned t
 | Priority | Feature | Description | Phase |
 | ----- | :---- | :---- | ----- |
 | **MUST** | **Estimate Pipeline** | Import estimates from HCP (CSV initially, API later). Track status: sent, follow-up active, snoozed, won, lost, dormant. Dedup on estimate number. Support multiple options per estimate (xxx-1, xxx-2). | MVP |
-| **MUST** | **Follow-Up Sequences** | Company-defined multi-channel templates (auto email, auto SMS, call tasks). 30-minute edit window before auto-sends. "Send Now" button on estimate detail for immediately sending due steps (bypasses edit window). Comfort pro snooze with notes. Auto-stop on approval/denial. | MVP |
+| **MUST** | **Follow-Up Sequences** | Company-defined multi-channel templates (auto email, auto SMS, call tasks). 30-minute edit window before auto-sends. "Send Now" button on estimate detail for immediately sending due steps (bypasses edit window). "Skip Step" button to manually advance past a step without sending. Comfort pro snooze with notes. Auto-stop on approval/denial. Admin can pause/resume entire sequence without losing step configuration. Full sequence timeline shows all steps with status (Sent, Skipped, Current, Upcoming, Not Reached). | MVP |
 | **MUST** | **Estimate Options** | Track individual options within each estimate with separate statuses. One option approved \= estimate won. All declined \= estimate lost. Store HCP option IDs for two-way sync. | MVP |
 | **MUST** | **User Roles & Auth** | Admin, comfort\_pro, CSR roles. Google Workspace SSO. Role-based views and permissions. Each comfort pro sees only their assigned leads. Admin team management with invite-based provisioning. | MVP |
 | **MUST** | **Team Management** | Admin Team page to invite new users (email, name, phone, role), edit existing user roles, and activate/deactivate team members. Invite-based provisioning: admin pre-registers users, who auto-provision on first Google sign-in. | MVP |
@@ -169,9 +171,13 @@ The follow-up sequence is the core engine of the MVP. It defines a company-stand
 
 * If a customer approves or declines any estimate option in HCP, the sequence stops immediately.
 
-* The admin can modify the default sequence template at any time. Changes apply to new estimates only; active sequences continue with their original template.
+* The admin can modify the default sequence template at any time. Changes apply in real-time to all estimates using that sequence — future/uncompleted steps reflect the new configuration, while historical events (sent, skipped, completed) are preserved as-is.
 
-* The auto-decline threshold is admin-configurable (default 60 days). A “declining soon” warning fires to the comfort pro 3 days before auto-decline.
+* The admin can pause an entire sequence via the "Pause Sequence" button. When paused, no new follow-up events are created and any pending events are skipped by the cron job. Steps and templates are preserved — clicking "Resume Sequence" reactivates follow-ups. New `is_active` column on `follow_up_sequences` table (SQL 011).
+
+* The "Skip Step" button on the estimate detail page allows manually advancing past the current step without sending it. The step is marked as "Skipped" in the timeline and the sequence advances to the next step.
+
+* The auto-decline threshold is admin-configurable (default 60 days). A "declining soon" warning fires to the comfort pro 3 days before auto-decline.
 
 # **6\. Data Model**
 
@@ -183,7 +189,7 @@ The database is structured around the estimate pipeline as the primary workflow,
 | **customers** | id, email, phone, name, address, equipment\_type, last\_service\_date, lead\_source, tags\[\], hcp\_customer\_id, created\_at | Customer records synced from HCP. HVAC-specific fields for segmentation. |
 | **estimates** | id, customer\_id, assigned\_to (user\_id), estimate\_number, hcp\_estimate\_id, status (sent/active/snoozed/won/lost/dormant), total\_amount, sent\_date, snooze\_until, snooze\_note, sequence\_step, auto\_decline\_date, online\_estimate\_url, created\_at | Parent estimate record. Tracks pipeline status and follow-up sequence position. Stores HCP customer-facing estimate URL for inclusion in follow-up templates via {{estimate\_link}}. |
 | **estimate\_options** | id, estimate\_id, hcp\_option\_id, option\_number (1,2,3), description, amount, status (pending/approved/declined) | Individual options within an estimate. HCP option ID stored for two-way API sync. |
-| **follow\_up\_sequences** | id, name, is\_default, steps (JSONB array of: day\_offset, channel, template\_content, is\_call\_task), created\_by, created\_at | Company-level sequence templates. Admin-managed. Templates support placeholders: {{customer\_name}}, {{customer\_email}}, {{comfort\_pro\_name}}, {{estimate\_link}}. |
+| **follow\_up\_sequences** | id, name, is\_default, is\_active, steps (JSONB array of: day\_offset, channel, template\_content, is\_call\_task), created\_by, created\_at | Company-level sequence templates. Admin-managed. `is_active` controls whether follow-ups execute (pause/resume without deleting steps). Templates support placeholders: {{customer\_name}}, {{customer\_email}}, {{comfort\_pro\_name}}, {{estimate\_link}}. |
 | **leads** | id, source, customer\_name, email, phone, address, notes, status (new/contacted/qualified/moved\_to\_hcp/archived), assigned\_to, converted\_estimate\_id, hcp\_customer\_id, created\_at, updated\_at | Inbound leads from external sources (Flow 2). CSR manages status progression. "Move to HCP" creates customer+estimate in HCP and sets status to moved\_to\_hcp. Leads can be archived when they don't convert. |
 | **follow\_up\_events** | id, estimate\_id, sequence\_step\_index, channel, status (scheduled/pending\_review/sent/opened/clicked/completed/skipped/snoozed), scheduled\_at, sent\_at, content, comfort\_pro\_edited, created\_at | Execution log for each step of each estimate’s sequence. Tracks what happened and when. |
 | **notifications** | id, user\_id, type (email\_opened/click/call\_due/lead\_assigned/estimate\_status/declining\_soon), estimate\_id, message, read, created\_at | Real-time alerts for comfort pros and admins. |

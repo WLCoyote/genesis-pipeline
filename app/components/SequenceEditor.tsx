@@ -7,6 +7,7 @@ interface SequenceEditorProps {
   sequenceId: string;
   sequenceName: string;
   initialSteps: SequenceStep[];
+  initialIsActive: boolean;
 }
 
 const channelOptions: { value: FollowUpChannel; label: string }[] = [
@@ -19,8 +20,11 @@ export default function SequenceEditor({
   sequenceId,
   sequenceName,
   initialSteps,
+  initialIsActive,
 }: SequenceEditorProps) {
   const [steps, setSteps] = useState<SequenceStep[]>(initialSteps);
+  const [isActive, setIsActive] = useState(initialIsActive);
+  const [toggling, setToggling] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
@@ -44,6 +48,23 @@ export default function SequenceEditor({
   const removeStep = (index: number) => {
     setSteps((prev) => prev.filter((_, i) => i !== index));
     setSaved(false);
+  };
+
+  const handleToggleActive = async () => {
+    setToggling(true);
+    setError("");
+    const res = await fetch("/api/admin/sequences", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: sequenceId, is_active: !isActive }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      setError(data.error || "Failed to toggle sequence.");
+    } else {
+      setIsActive(!isActive);
+    }
+    setToggling(false);
   };
 
   const handleSave = async () => {
@@ -70,7 +91,18 @@ export default function SequenceEditor({
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{sequenceName}</h2>
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{sequenceName}</h2>
+          {isActive ? (
+            <span className="text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full">
+              Active
+            </span>
+          ) : (
+            <span className="text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 px-2 py-0.5 rounded-full">
+              Paused
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           {saved && (
             <span className="text-sm text-green-600 dark:text-green-400">Saved</span>
@@ -78,6 +110,17 @@ export default function SequenceEditor({
           {error && (
             <span className="text-sm text-red-600">{error}</span>
           )}
+          <button
+            onClick={handleToggleActive}
+            disabled={toggling}
+            className={`px-4 py-2 text-sm font-medium rounded-md border transition-colors disabled:opacity-50 ${
+              isActive
+                ? "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                : "border-green-300 dark:border-green-700 text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/30"
+            }`}
+          >
+            {toggling ? "..." : isActive ? "Pause Sequence" : "Resume Sequence"}
+          </button>
           <button
             onClick={handleSave}
             disabled={saving}
@@ -87,6 +130,14 @@ export default function SequenceEditor({
           </button>
         </div>
       </div>
+
+      {!isActive && (
+        <div className="mb-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-md p-3">
+          <p className="text-sm text-yellow-800 dark:text-yellow-300">
+            Sequence is paused. No new follow-ups will be sent. Your steps are saved and will resume when you reactivate.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-3">
         {steps.map((step, index) => (

@@ -42,6 +42,7 @@ export default async function SequencesPage() {
             sequenceId={seq.id}
             sequenceName={seq.name}
             initialSteps={seq.steps || []}
+            initialIsActive={seq.is_active !== false}
           />
         ))}
 

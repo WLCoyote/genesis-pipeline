@@ -4,7 +4,7 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 2.9 — February 18, 2026
+Version 3.0 — February 18, 2026
 
 Genesis Services — Monroe, WA
 
@@ -242,7 +242,7 @@ After deploying to Vercel, configure the webhook URL in your Resend dashboard un
 
   **PHASE 3: Frontend Dashboard (Weeks 3–5) ✅ COMPLETE**
 
-**Build Notes:** All 7 steps completed plus additional features. Built with server components for pages and client components for interactivity. Tailwind CSS v4 with @theme inline tokens. Dark mode support across all pages and components with class-based toggle, localStorage persistence, and system preference detection on first visit. Admin team management with invite-based user provisioning (Step 3.11). SMS Inbox for unmatched inbound messages with thread view, reply, dismiss, and convert-to-lead (Step 3.12). Manual "Update Estimates" button for on-demand HCP polling (Step 3.13). Admin delete for estimates and leads (Step 3.14). Lead archiving with collapsible section (Step 3.15). "Send Now" button for due sequence steps (Step 3.16). Moved-to-HCP leads in archived section (Step 3.17).
+**Build Notes:** All 7 steps completed plus additional features. Built with server components for pages and client components for interactivity. Tailwind CSS v4 with @theme inline tokens. Dark mode support across all pages and components with class-based toggle, localStorage persistence, and system preference detection on first visit. Admin team management with invite-based user provisioning (Step 3.11). SMS Inbox for unmatched inbound messages with thread view, reply, dismiss, and convert-to-lead (Step 3.12). Manual "Update Estimates" button for on-demand HCP polling (Step 3.13). Admin delete for estimates and leads (Step 3.14). Lead archiving with collapsible section (Step 3.15). "Send Now" button for due sequence steps (Step 3.16). Moved-to-HCP leads in archived section (Step 3.17). Full sequence timeline + skip step (Step 3.18). Sequence pause/resume toggle (Step 3.19).
 
 Build the user-facing dashboard. Start with authentication, then the comfort pro's primary view, then admin features.
 
@@ -415,9 +415,37 @@ Leads with status "moved\_to\_hcp" now appear in the archived section instead of
 
 **VERIFY:** Move a lead to HCP. It should appear in the collapsed "Archived" section with a purple "Moved to HCP" badge.
 
+**Step 3.18: Full Sequence Timeline + Skip Step (Added)**
+
+Rewrote the follow-up timeline on the estimate detail page to show all steps from the assigned sequence, not just events that have been created:
+
+- **FollowUpTimeline rewrite** — merges sequence steps with follow\_up\_events. Each step shows: step number, channel icon, "Day X" label, and a status badge. Events overlay on sequence steps for executed history; steps without events show contextual status.
+- **Status display logic**: Has event → show actual event status (Sent, Opened, Skipped, etc.). No event + past current index → "Skipped" (estimate imported late). No event + current index → "Current Step" (blue highlight). No event + future → "Upcoming" with projected due date. Won/lost/dormant → "Not Reached" (dimmed).
+- **History preservation** — executed steps show the event's actual channel (what was really sent), not the current sequence's channel. Orphaned events (from steps removed from the sequence) still display.
+- **Skip Step API** — POST /api/estimates/[id]/skip-step. Marks any pending\_review/scheduled event as skipped, or inserts a new skipped event. Advances sequence\_step\_index. Does not send anything.
+- **Skip Step button** — appears in EstimateActions next to Snooze. Outlined gray style. Confirm dialog: "Skip step X of Y?"
+- **Cron Phase 2 safety** — before sending pending\_review events, validates the step still exists in the current sequence and the estimate is still active. If sequence was shortened/cleared or estimate status changed, marks event as skipped.
+
+**VERIFY:** Open an active estimate — all sequence steps show. Click "Skip Step" → current step marked skipped, sequence advances. Import a late estimate → early steps show as "Skipped". Open a won/lost estimate → remaining steps show "Not Reached".
+
+**Step 3.19: Sequence Pause/Resume Toggle (Added)**
+
+Added ability for admin to pause all follow-ups without deleting step configuration:
+
+- **SQL migration 011** — `ALTER TABLE follow_up_sequences ADD COLUMN is_active boolean NOT NULL DEFAULT true;`
+- **SequenceEditor updated** — "Pause Sequence" / "Resume Sequence" button next to Save. Active/Paused badge next to sequence name. Yellow banner when paused: "Sequence is paused. No new follow-ups will be sent. Your steps are saved and will resume when you reactivate."
+- **API PATCH endpoint** — `/api/admin/sequences` PATCH accepts `{ id, is_active }` to toggle pause state. Admin-only.
+- **Cron Phase 1** — skips estimates whose sequence has `is_active = false`. No new events created.
+- **Cron Phase 2** — skips pending\_review events whose sequence has `is_active = false`. Marks as skipped.
+- **Types updated** — `is_active: boolean` added to `FollowUpSequence` interface.
+
+**VERIFY:** Go to Admin > Sequences. Click "Pause Sequence" → badge changes to "Paused", yellow banner appears. Active estimates stop receiving follow-ups. Click "Resume Sequence" → follow-ups resume from where they left off.
+
   **PHASE 4: Deployment & End-to-End Testing (Week 5–6)**
 
 **Status:** In progress. Deployed to Vercel Pro. GitHub auto-deploy configured. Resend webhook configured. Non-SMS E2E tests passing. HCP polling cron and Move to HCP rewritten (v2.5 flow correction complete). Manual Update Estimates button, admin delete, lead archiving, Send Now, and moved-to-HCP archived display added. Remaining: Twilio verification, SMS tests, optional custom domain.
+
+**Build Notes (v3.0):** SQL migrations 001-011 all run. 011 adds `is_active` to follow\_up\_sequences.
 
 **Build Notes (v2.9):** Deployed to Vercel Pro (required for multi-daily cron jobs). Framework preset set to Next.js. Supabase auth redirect URLs configured for production. Resend webhook pointing to production. Vercel auto-deploys from GitHub pushes to main. During testing, discovered and fixed: HCP requires options array for estimate creation, HCP lead\_source must match predefined values (now synced via API), functions can't be serialized from server to client components in React 19, Vercel 504 timeout on polling routes (maxDuration bumped to 300s), React hydration error #418 in DarkModeToggle (render placeholder until mounted), total amount calculation summing alternatives instead of using HCP total, HCP GET /estimates ignores `start_date`/`end_date` and `scheduled_start` filters by appointment date not creation (now fetches newest-first with no date filter, filters by `created_at` in code). HCP sent detection uses `option.status = "submitted for signoff"` (not `approval_status`). Customer name from `customer.company` > first+last (not `company_name` which is HCP account). HCP amounts in cents (divide by 100). Sent date from `option.updated_at` or `schedule.scheduled_start`. Full refresh on existing estimates. Estimates sorted newest to oldest. HCP polling in shared `lib/hcp-polling.ts` — pre-fetched index, page-by-page, MAX\_PAGES=5, 30s timeouts. Cron is thin wrapper. SQL migrations 001-010 all run.
 

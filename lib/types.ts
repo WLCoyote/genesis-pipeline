@@ -134,6 +134,7 @@ export interface FollowUpSequence {
   id: string;
   name: string;
   is_default: boolean;
+  is_active: boolean;
   steps: SequenceStep[];
   created_by: string | null;
   created_at: string;
