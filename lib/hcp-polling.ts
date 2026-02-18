@@ -1,10 +1,13 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
+const MAX_PAGES = 5;
+
 export interface PollResult {
   new_estimates: number;
   updated: number;
   won: number;
   lost: number;
+  skipped: number;
   errors: number;
   pages_fetched: number;
 }
@@ -18,6 +21,7 @@ export async function pollHcpEstimates(
     updated: 0,
     won: 0,
     lost: 0,
+    skipped: 0,
     errors: 0,
     pages_fetched: 0,
   };
@@ -40,7 +44,7 @@ export async function pollHcpEstimates(
 
   const autoDeclineDays = (setting?.value as number) || 60;
 
-  // Calculate date range
+  // Date range for HCP API filter
   const today = new Date();
   const startDate = new Date(today);
   startDate.setDate(startDate.getDate() - autoDeclineDays);
@@ -71,15 +75,31 @@ export async function pollHcpEstimates(
     .limit(1)
     .single();
 
-  // Paginate through HCP estimates
+  // Pre-fetch all local estimate IDs for instant matching (1 query, no per-estimate DB call)
+  const { data: localEstimatesIndex } = await supabase
+    .from("estimates")
+    .select("hcp_estimate_id, estimate_number");
+
+  const localByHcpId = new Set<string>();
+  const localByEstNumber = new Set<string>();
+  for (const e of localEstimatesIndex || []) {
+    if (e.hcp_estimate_id) localByHcpId.add(e.hcp_estimate_id);
+    if (e.estimate_number) localByEstNumber.add(e.estimate_number);
+  }
+
+  console.log(`[HCP Poll] Local index: ${localByHcpId.size} by HCP ID, ${localByEstNumber.size} by est number`);
+
+  // Debug: log first estimate for field name verification (remove after verified)
+  let loggedFirst = false;
+
+  // Paginate through HCP estimates with proper date filtering
   let page = 1;
   let totalPages = 1;
-  const allHcpEstimates: Record<string, unknown>[] = [];
 
-  while (page <= totalPages) {
+  while (page <= totalPages && page <= MAX_PAGES) {
     try {
-      const fetchUrl = `${hcpBase}/estimates?start_date=${startDateStr}&end_date=${endDateStr}&page=${page}`;
-      console.log(`[HCP Poll] Fetching page ${page}: ${fetchUrl}`);
+      const fetchUrl = `${hcpBase}/estimates?scheduled_start_min=${startDateStr}&scheduled_start_max=${endDateStr}&page=${page}&page_size=200&sort_direction=desc`;
+      console.log(`[HCP Poll] Fetching page ${page}...`);
 
       const controller = new AbortController();
       const fetchTimeout = setTimeout(() => controller.abort(), 30000);
@@ -93,30 +113,70 @@ export async function pollHcpEstimates(
       });
       clearTimeout(fetchTimeout);
 
-      console.log(`[HCP Poll] Page ${page} response: ${response.status} (${Date.now() - startTime}ms elapsed)`);
-
       if (!response.ok) {
         const errorBody = await response.text();
-        console.error("HCP API error:", response.status, errorBody);
+        console.error("[HCP Poll] API error:", response.status, errorBody);
         throw new Error(`HCP API returned ${response.status}: ${errorBody}`);
       }
 
       const data = await response.json();
       totalPages = data.total_pages || 1;
 
-      const estimates = data.estimates || data.data || [];
-      if (Array.isArray(estimates)) {
-        allHcpEstimates.push(...estimates);
-      } else {
-        allHcpEstimates.push(estimates);
+      const pageEstimates = (data.estimates || []) as Record<string, unknown>[];
+      console.log(`[HCP Poll] Page ${page}/${totalPages}: ${pageEstimates.length} estimates (${Date.now() - startTime}ms)`);
+      results.pages_fetched++;
+
+      // Debug: log first estimate structure
+      if (!loggedFirst && pageEstimates.length > 0) {
+        console.log("[HCP Poll] Sample estimate:", JSON.stringify(pageEstimates[0], null, 2));
+        loggedFirst = true;
       }
 
-      console.log(`[HCP Poll] Page ${page}/${totalPages}: ${Array.isArray(estimates) ? estimates.length : 1} estimates`);
-      results.pages_fetched++;
+      // Process each estimate on this page immediately
+      for (const hcpEstimate of pageEstimates) {
+        try {
+          const hcpId = hcpEstimate.id as string;
+          const hcpEstNumber = String(hcpEstimate.estimate_number || "");
+          const hcpOptions = (hcpEstimate.options || []) as Record<string, unknown>[];
+
+          // Instant check: do we already have this estimate locally?
+          const isLocal = localByHcpId.has(hcpId) || localByEstNumber.has(hcpEstNumber);
+
+          if (isLocal) {
+            // --- EXISTING: check for status/price updates ---
+            const { data: localEstimate } = await supabase
+              .from("estimates")
+              .select("id, status, assigned_to, customer_id, online_estimate_url, total_amount")
+              .or(`hcp_estimate_id.eq.${hcpId},estimate_number.eq.${hcpEstNumber}`)
+              .limit(1)
+              .single();
+
+            if (localEstimate) {
+              await handleExistingEstimate(supabase, hcpEstimate, hcpOptions, localEstimate, results);
+            }
+          } else {
+            // --- NEW: create if sent to customer ("awaiting response") ---
+            const created = await handleNewEstimate(
+              supabase, hcpEstimate, hcpId, hcpEstNumber, hcpOptions,
+              autoDeclineDays, defaultSequence?.id || null, userByName, results
+            );
+
+            // Add to index so we don't re-process on subsequent pages
+            if (created) {
+              localByHcpId.add(hcpId);
+              if (hcpEstNumber) localByEstNumber.add(hcpEstNumber);
+            }
+          }
+        } catch (err) {
+          console.error(`[HCP Poll] Error processing estimate ${hcpEstimate.id}:`, err);
+          results.errors++;
+        }
+      }
+
       page++;
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") {
-        console.error(`[HCP Poll] HCP API timed out on page ${page} (30s limit)`);
+        console.error("[HCP Poll] HCP API timed out (30s limit)");
         throw new Error("HCP API request timed out after 30 seconds");
       }
       console.error(`[HCP Poll] Fetch error on page ${page}:`, err);
@@ -124,70 +184,8 @@ export async function pollHcpEstimates(
     }
   }
 
-  console.log(`[HCP Poll] Fetched ${allHcpEstimates.length} total estimates in ${results.pages_fetched} pages (${Date.now() - startTime}ms)`);
-
-  // Log first estimate for debugging field names (remove after verified)
-  if (allHcpEstimates.length > 0) {
-    console.log(
-      "HCP estimate sample (first):",
-      JSON.stringify(allHcpEstimates[0], null, 2)
-    );
-  }
-
-  // Process each HCP estimate
-  for (const hcpEstimate of allHcpEstimates) {
-    try {
-      const hcpId = hcpEstimate.id as string;
-      const hcpEstNumber = String(
-        hcpEstimate.estimate_number ||
-          (hcpEstimate as Record<string, unknown>).number ||
-          ""
-      );
-      const hcpOptions = (hcpEstimate.options || []) as Record<
-        string,
-        unknown
-      >[];
-
-      // Try to find a local match
-      const { data: localEstimate } = await supabase
-        .from("estimates")
-        .select("id, status, assigned_to, customer_id, online_estimate_url, total_amount")
-        .or(
-          `hcp_estimate_id.eq.${hcpId},estimate_number.eq.${hcpEstNumber}`
-        )
-        .limit(1)
-        .single();
-
-      if (!localEstimate) {
-        // --- NEW ESTIMATE DETECTION ---
-        await handleNewEstimate(
-          supabase,
-          hcpEstimate,
-          hcpId,
-          hcpEstNumber,
-          hcpOptions,
-          autoDeclineDays,
-          defaultSequence?.id || null,
-          userByName,
-          results
-        );
-      } else {
-        // --- EXISTING ESTIMATE UPDATE ---
-        await handleExistingEstimate(
-          supabase,
-          hcpEstimate,
-          hcpOptions,
-          localEstimate,
-          results
-        );
-      }
-    } catch (err) {
-      console.error(
-        `Error processing HCP estimate ${hcpEstimate.id}:`,
-        err
-      );
-      results.errors++;
-    }
+  if (page > MAX_PAGES && totalPages > MAX_PAGES) {
+    console.log(`[HCP Poll] Stopped at page limit (${MAX_PAGES}/${totalPages} pages)`);
   }
 
   console.log(`[HCP Poll] Complete in ${Date.now() - startTime}ms:`, JSON.stringify(results));
@@ -195,6 +193,7 @@ export async function pollHcpEstimates(
 }
 
 // --- New estimate detection ---
+// Returns true if an estimate was actually created
 async function handleNewEstimate(
   supabase: SupabaseClient,
   hcpEstimate: Record<string, unknown>,
@@ -205,14 +204,17 @@ async function handleNewEstimate(
   defaultSequenceId: string | null,
   userByName: Record<string, { id: string; name: string }>,
   results: PollResult
-) {
+): Promise<boolean> {
   // Only create locally if at least one option is "awaiting response" (sent to customer)
   const hasSentOption = hcpOptions.some((o) => {
-    const status = String(o.approval_status || o.status || "").toLowerCase();
+    const status = String(o.approval_status || "").toLowerCase();
     return status === "awaiting response";
   });
 
-  if (!hasSentOption) return;
+  if (!hasSentOption) {
+    results.skipped++;
+    return false;
+  }
 
   // Extract customer data
   const hcpCustomer = (hcpEstimate.customer || {}) as Record<string, unknown>;
@@ -223,9 +225,9 @@ async function handleNewEstimate(
       .join(" ") || "Unknown";
 
   if (!hcpCustomerId) {
-    console.error(`HCP estimate ${hcpId} has no customer ID, skipping`);
+    console.error(`[HCP Poll] Estimate ${hcpId} has no customer ID, skipping`);
     results.errors++;
-    return;
+    return false;
   }
 
   // Upsert local customer
@@ -239,15 +241,12 @@ async function handleNewEstimate(
 
   if (existingCustomer) {
     customerId = existingCustomer.id;
-    // Update with latest info from HCP
     await supabase
       .from("customers")
       .update({
         name: customerName,
         ...(hcpCustomer.email ? { email: hcpCustomer.email } : {}),
-        ...(hcpCustomer.mobile_number
-          ? { phone: hcpCustomer.mobile_number }
-          : {}),
+        ...(hcpCustomer.mobile_number ? { phone: hcpCustomer.mobile_number } : {}),
       })
       .eq("id", existingCustomer.id);
   } else {
@@ -264,9 +263,9 @@ async function handleNewEstimate(
       .single();
 
     if (custErr || !newCust) {
-      console.error(`Failed to create customer for HCP estimate ${hcpId}:`, custErr);
+      console.error(`[HCP Poll] Failed to create customer for estimate ${hcpId}:`, custErr);
       results.errors++;
-      return;
+      return false;
     }
     customerId = newCust.id;
   }
@@ -277,10 +276,7 @@ async function handleNewEstimate(
 
   // Match assigned_employees to local user
   let assignedTo: string | null = null;
-  const hcpEmployees = (hcpEstimate.assigned_employees || []) as Record<
-    string,
-    unknown
-  >[];
+  const hcpEmployees = (hcpEstimate.assigned_employees || []) as Record<string, unknown>[];
   for (const emp of hcpEmployees) {
     const empName = [emp.first_name, emp.last_name]
       .filter(Boolean)
@@ -293,35 +289,25 @@ async function handleNewEstimate(
     }
   }
 
-  // Get estimate URL
+  // Estimate URL (may not be in list response — will update later if found)
   const estimateUrl =
     (hcpEstimate.online_estimate_url as string) ||
     (hcpEstimate.customer_url as string) ||
     (hcpEstimate.html_url as string) ||
     null;
 
-  // Use HCP's estimate-level total first; fall back to highest option amount
-  // Options are alternatives (customer picks one), NOT additive
-  const hcpTotal = parseFloat(String(
-    hcpEstimate.total_amount || hcpEstimate.total || "0"
-  )) || null;
-
+  // Use highest option amount (options are alternatives, not additive)
   const highestOptionAmount = hcpOptions.reduce((max, o) => {
-    const amt = parseFloat(String(
-      o.total_amount || o.amount || o.total || "0"
-    )) || 0;
+    const amt = parseFloat(String(o.total_amount || "0")) || 0;
     return amt > max ? amt : max;
   }, 0) || null;
 
-  const totalAmount = hcpTotal || highestOptionAmount;
-
-  // Determine sent_date
+  // Determine sent_date from HCP created_at
   const sentDate =
-    (hcpEstimate.sent_date as string) ||
     (hcpEstimate.created_at as string)?.split("T")[0] ||
     new Date().toISOString().split("T")[0];
 
-  // Create local estimate (upsert on estimate_number for safety)
+  // Create local estimate (upsert on estimate_number for dedup safety)
   const { data: newEstimate, error: estErr } = await supabase
     .from("estimates")
     .upsert(
@@ -331,7 +317,7 @@ async function handleNewEstimate(
         customer_id: customerId,
         assigned_to: assignedTo,
         status: "active",
-        total_amount: totalAmount,
+        total_amount: highestOptionAmount,
         sent_date: sentDate,
         sequence_id: defaultSequenceId,
         sequence_step_index: 0,
@@ -344,23 +330,22 @@ async function handleNewEstimate(
     .single();
 
   if (estErr || !newEstimate) {
-    console.error(`Failed to create estimate for HCP ${hcpId}:`, estErr);
+    console.error(`[HCP Poll] Failed to create estimate ${hcpId}:`, estErr);
     results.errors++;
-    return;
+    return false;
   }
 
   // Create estimate_options
   for (let i = 0; i < hcpOptions.length; i++) {
     const opt = hcpOptions[i];
-    const optStatus = String(opt.approval_status || opt.status || "")
-      .toLowerCase();
+    const optStatus = String(opt.approval_status || "").toLowerCase();
 
     await supabase.from("estimate_options").insert({
       estimate_id: newEstimate.id,
       hcp_option_id: String(opt.id),
       option_number: i + 1,
-      description: (opt.name as string) || (opt.label as string) || (opt.description as string) || `Option ${i + 1}`,
-      amount: parseFloat(String(opt.total_amount || opt.amount || opt.total || "0")) || null,
+      description: (opt.name as string) || `Option ${i + 1}`,
+      amount: parseFloat(String(opt.total_amount || "0")) || null,
       status:
         optStatus === "approved"
           ? "approved"
@@ -380,7 +365,9 @@ async function handleNewEstimate(
     });
   }
 
+  console.log(`[HCP Poll] Created: ${hcpEstNumber} — ${customerName}`);
   results.new_estimates++;
+  return true;
 }
 
 // --- Existing estimate update ---
@@ -412,20 +399,16 @@ async function handleExistingEstimate(
       .eq("id", localEstimate.id);
   }
 
-  // Update total_amount if changed (use estimate total or highest option)
-  const estTotal = parseFloat(String(
-    hcpEstimate.total_amount || hcpEstimate.total || "0"
-  )) || null;
+  // Update total_amount if changed (highest option)
   const highestOpt = hcpOptions.reduce((max, o) => {
-    const amt = parseFloat(String(o.total_amount || o.amount || o.total || "0")) || 0;
+    const amt = parseFloat(String(o.total_amount || "0")) || 0;
     return amt > max ? amt : max;
   }, 0) || null;
-  const hcpTotal = estTotal || highestOpt;
 
-  if (hcpTotal && hcpTotal !== localEstimate.total_amount) {
+  if (highestOpt && highestOpt !== localEstimate.total_amount) {
     await supabase
       .from("estimates")
-      .update({ total_amount: hcpTotal })
+      .update({ total_amount: highestOpt })
       .eq("id", localEstimate.id);
   }
 
@@ -457,9 +440,7 @@ async function handleExistingEstimate(
       continue;
     }
 
-    const hcpStatus = String(
-      hcpOption.approval_status || hcpOption.status || ""
-    ).toLowerCase();
+    const hcpStatus = String(hcpOption.approval_status || "").toLowerCase();
 
     if (hcpStatus === "approved" && localOption.status === "pending") {
       await supabase
@@ -482,7 +463,6 @@ async function handleExistingEstimate(
   if (!changed) return;
 
   if (anyApproved) {
-    // One option approved = estimate won, stop sequence
     await supabase
       .from("estimates")
       .update({ status: "won" })
@@ -505,7 +485,6 @@ async function handleExistingEstimate(
 
     results.won++;
   } else if (allDeclined) {
-    // All options declined = estimate lost
     await supabase
       .from("estimates")
       .update({ status: "lost" })

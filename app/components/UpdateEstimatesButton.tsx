@@ -14,7 +14,7 @@ export default function UpdateEstimatesButton() {
 
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 310000);
+      const timeout = setTimeout(() => controller.abort(), 60000);
       const res = await fetch("/api/admin/update-estimates", {
         method: "POST",
         signal: controller.signal,
@@ -38,6 +38,7 @@ export default function UpdateEstimatesButton() {
       if (data.updated > 0) parts.push(`${data.updated} updated`);
       if (data.won > 0) parts.push(`${data.won} won`);
       if (data.lost > 0) parts.push(`${data.lost} lost`);
+      if (data.skipped > 0) parts.push(`${data.skipped} not sent`);
       if (data.pages_fetched > 0) parts.push(`${data.pages_fetched} pages`);
       setResult(
         parts.length > 0 ? `Found: ${parts.join(", ")}` : "No changes detected"
