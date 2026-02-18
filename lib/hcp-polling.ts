@@ -501,6 +501,12 @@ async function handleExistingEstimate(
     }
   }
 
+  // Fallback to estimate created_at (same as handleNewEstimate)
+  if (!sentDate) {
+    sentDate =
+      (hcpEstimate.created_at as string)?.split("T")[0] || null;
+  }
+
   const estimateUpdates: Record<string, unknown> = {};
   if (estimateUrl) estimateUpdates.online_estimate_url = estimateUrl;
   if (highestOpt) estimateUpdates.total_amount = highestOpt;
