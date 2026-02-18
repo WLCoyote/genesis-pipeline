@@ -12,6 +12,7 @@ export interface PollResult {
 export async function pollHcpEstimates(
   supabase: SupabaseClient
 ): Promise<PollResult> {
+  const startTime = Date.now();
   const results: PollResult = {
     new_estimates: 0,
     updated: 0,
@@ -27,6 +28,8 @@ export async function pollHcpEstimates(
   if (!hcpBase || !hcpToken) {
     throw new Error("HCP API not configured");
   }
+
+  console.log("[HCP Poll] Starting...");
 
   // Read auto_decline_days from settings
   const { data: setting } = await supabase
@@ -44,6 +47,8 @@ export async function pollHcpEstimates(
 
   const startDateStr = startDate.toISOString().split("T")[0];
   const endDateStr = today.toISOString().split("T")[0];
+
+  console.log(`[HCP Poll] Date range: ${startDateStr} to ${endDateStr} (${autoDeclineDays} days)`);
 
   // Fetch local users for employee name matching
   const { data: users } = await supabase
@@ -73,23 +78,27 @@ export async function pollHcpEstimates(
 
   while (page <= totalPages) {
     try {
-      const response = await fetch(
-        `${hcpBase}/estimates?start_date=${startDateStr}&end_date=${endDateStr}&page=${page}`,
-        {
-          headers: {
-            Authorization: `Bearer ${hcpToken}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const fetchUrl = `${hcpBase}/estimates?start_date=${startDateStr}&end_date=${endDateStr}&page=${page}`;
+      console.log(`[HCP Poll] Fetching page ${page}: ${fetchUrl}`);
+
+      const controller = new AbortController();
+      const fetchTimeout = setTimeout(() => controller.abort(), 30000);
+
+      const response = await fetch(fetchUrl, {
+        headers: {
+          Authorization: `Bearer ${hcpToken}`,
+          "Content-Type": "application/json",
+        },
+        signal: controller.signal,
+      });
+      clearTimeout(fetchTimeout);
+
+      console.log(`[HCP Poll] Page ${page} response: ${response.status} (${Date.now() - startTime}ms elapsed)`);
 
       if (!response.ok) {
-        console.error(
-          "HCP API error:",
-          response.status,
-          await response.text()
-        );
-        throw new Error(`HCP API returned ${response.status}`);
+        const errorBody = await response.text();
+        console.error("HCP API error:", response.status, errorBody);
+        throw new Error(`HCP API returned ${response.status}: ${errorBody}`);
       }
 
       const data = await response.json();
@@ -102,13 +111,20 @@ export async function pollHcpEstimates(
         allHcpEstimates.push(estimates);
       }
 
+      console.log(`[HCP Poll] Page ${page}/${totalPages}: ${Array.isArray(estimates) ? estimates.length : 1} estimates`);
       results.pages_fetched++;
       page++;
     } catch (err) {
-      console.error(`HCP API fetch error on page ${page}:`, err);
+      if (err instanceof DOMException && err.name === "AbortError") {
+        console.error(`[HCP Poll] HCP API timed out on page ${page} (30s limit)`);
+        throw new Error("HCP API request timed out after 30 seconds");
+      }
+      console.error(`[HCP Poll] Fetch error on page ${page}:`, err);
       throw err;
     }
   }
+
+  console.log(`[HCP Poll] Fetched ${allHcpEstimates.length} total estimates in ${results.pages_fetched} pages (${Date.now() - startTime}ms)`);
 
   // Log first estimate for debugging field names (remove after verified)
   if (allHcpEstimates.length > 0) {
@@ -174,6 +190,7 @@ export async function pollHcpEstimates(
     }
   }
 
+  console.log(`[HCP Poll] Complete in ${Date.now() - startTime}ms:`, JSON.stringify(results));
   return results;
 }
 

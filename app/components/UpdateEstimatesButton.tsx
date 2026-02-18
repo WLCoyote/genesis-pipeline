@@ -14,29 +14,37 @@ export default function UpdateEstimatesButton() {
 
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 130000);
+      const timeout = setTimeout(() => controller.abort(), 310000);
       const res = await fetch("/api/admin/update-estimates", {
         method: "POST",
         signal: controller.signal,
       });
       clearTimeout(timeout);
-      const data = await res.json();
 
-      if (res.ok) {
-        const parts: string[] = [];
-        if (data.new_estimates > 0) parts.push(`${data.new_estimates} new`);
-        if (data.updated > 0) parts.push(`${data.updated} updated`);
-        if (data.won > 0) parts.push(`${data.won} won`);
-        if (data.lost > 0) parts.push(`${data.lost} lost`);
-        setResult(
-          parts.length > 0 ? `Found: ${parts.join(", ")}` : "No changes detected"
-        );
-        router.refresh();
-      } else {
-        setResult(data.error || "Update failed");
+      if (!res.ok) {
+        if (res.status === 504) {
+          setResult("Timed out — HCP has too many estimates. Try again.");
+        } else {
+          const data = await res.json().catch(() => null);
+          setResult(data?.error || `Error ${res.status}`);
+        }
+        setLoading(false);
+        return;
       }
+
+      const data = await res.json();
+      const parts: string[] = [];
+      if (data.new_estimates > 0) parts.push(`${data.new_estimates} new`);
+      if (data.updated > 0) parts.push(`${data.updated} updated`);
+      if (data.won > 0) parts.push(`${data.won} won`);
+      if (data.lost > 0) parts.push(`${data.lost} lost`);
+      if (data.pages_fetched > 0) parts.push(`${data.pages_fetched} pages`);
+      setResult(
+        parts.length > 0 ? `Found: ${parts.join(", ")}` : "No changes detected"
+      );
+      router.refresh();
     } catch {
-      setResult("Failed to connect");
+      setResult("Failed to connect — check your internet");
     }
 
     setLoading(false);

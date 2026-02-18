@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { pollHcpEstimates } from "@/lib/hcp-polling";
 
-// Allow up to 120s for HCP API pagination + processing
-export const maxDuration = 120;
+// Allow up to 300s (Vercel Pro max) for HCP API pagination + processing
+export const maxDuration = 300;
 
 export async function POST() {
   const supabase = await createClient();
