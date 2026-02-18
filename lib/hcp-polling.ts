@@ -339,8 +339,9 @@ async function handleNewEstimate(
     null;
 
   // Use highest option amount (options are alternatives, not additive)
+  // HCP sends amounts in cents — divide by 100 for dollars
   const highestOptionAmount = hcpOptions.reduce((max, o) => {
-    const amt = parseFloat(String(o.total_amount || "0")) || 0;
+    const amt = (parseFloat(String(o.total_amount || "0")) || 0) / 100;
     return amt > max ? amt : max;
   }, 0) || null;
 
@@ -387,7 +388,7 @@ async function handleNewEstimate(
       hcp_option_id: String(opt.id),
       option_number: i + 1,
       description: (opt.name as string) || `Option ${i + 1}`,
-      amount: parseFloat(String(opt.total_amount || "0")) || null,
+      amount: (parseFloat(String(opt.total_amount || "0")) || 0) / 100 || null,
       status:
         optStatus === "approved"
           ? "approved"
@@ -427,6 +428,29 @@ async function handleExistingEstimate(
   },
   results: PollResult
 ) {
+  // Update customer name if currently "Unknown"
+  const hcpCustomer = (hcpEstimate.customer || {}) as Record<string, unknown>;
+  const fullName = [hcpCustomer.first_name, hcpCustomer.last_name]
+    .filter(Boolean)
+    .join(" ");
+  const customerName =
+    fullName ||
+    (hcpCustomer.display_name as string) ||
+    (hcpCustomer.company_name as string) ||
+    (hcpCustomer.company as string) ||
+    null;
+
+  if (customerName && localEstimate.customer_id) {
+    await supabase
+      .from("customers")
+      .update({
+        name: customerName,
+        ...(hcpCustomer.email ? { email: hcpCustomer.email } : {}),
+        ...(hcpCustomer.mobile_number ? { phone: hcpCustomer.mobile_number } : {}),
+      })
+      .eq("id", localEstimate.customer_id);
+  }
+
   // Update estimate URL if missing
   const estimateUrl =
     (hcpEstimate.online_estimate_url as string) ||
@@ -441,9 +465,9 @@ async function handleExistingEstimate(
       .eq("id", localEstimate.id);
   }
 
-  // Update total_amount if changed (highest option)
+  // Update total_amount if changed (highest option — HCP sends cents)
   const highestOpt = hcpOptions.reduce((max, o) => {
-    const amt = parseFloat(String(o.total_amount || "0")) || 0;
+    const amt = (parseFloat(String(o.total_amount || "0")) || 0) / 100;
     return amt > max ? amt : max;
   }, 0) || null;
 

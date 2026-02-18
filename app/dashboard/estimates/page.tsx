@@ -40,7 +40,7 @@ export default async function EstimatesPage() {
       follow_up_events ( status, sent_at, channel )
     `
     )
-    .order("sent_date", { ascending: true });
+    .order("sent_date", { ascending: false });
 
   // RLS handles row-level filtering, but comfort_pro only sees their own
   // (enforced by RLS policy on estimates table)
