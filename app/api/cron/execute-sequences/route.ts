@@ -154,7 +154,9 @@ export async function GET(request: NextRequest) {
     .select(
       `
       id, estimate_id, sequence_step_index, channel, content,
-      estimates (id, customer_id, assigned_to, customers (name, email, phone))
+      estimates (id, customer_id, assigned_to, status,
+        customers (name, email, phone),
+        follow_up_sequences (steps))
     `
     )
     .eq("status", "pending_review")
@@ -170,6 +172,27 @@ export async function GET(request: NextRequest) {
       const estimate = event.estimates as any;
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const customer = estimate?.customers as any;
+
+      // Validate the step still exists in the current sequence
+      const seqSteps = estimate?.follow_up_sequences?.steps as Array<unknown> | undefined;
+      if (
+        !seqSteps ||
+        !Array.isArray(seqSteps) ||
+        event.sequence_step_index >= seqSteps.length ||
+        estimate?.status !== "active"
+      ) {
+        // Sequence was changed or estimate is no longer active — skip this event
+        await supabase
+          .from("follow_up_events")
+          .update({ status: "skipped" })
+          .eq("id", event.id);
+        // Advance step index so we don't get stuck
+        await supabase
+          .from("estimates")
+          .update({ sequence_step_index: event.sequence_step_index + 1 })
+          .eq("id", event.estimate_id);
+        continue;
+      }
 
       if (event.channel === "email") {
         if (!customer?.email) {

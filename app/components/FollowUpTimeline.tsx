@@ -95,6 +95,7 @@ export default function FollowUpTimeline({
   const isTerminal = estimateStatus === "won" || estimateStatus === "lost" || estimateStatus === "dormant";
   const sent = new Date(sentDate);
 
+  // Build unified steps from current sequence
   const unifiedSteps: UnifiedStep[] = sequenceSteps.map((step, i) => {
     const event = eventMap.get(i) || null;
     const projectedDate = new Date(sent);
@@ -123,6 +124,21 @@ export default function FollowUpTimeline({
       projectedDate,
     };
   });
+
+  // Append orphaned events (from steps that no longer exist in the sequence)
+  for (const [idx, event] of eventMap) {
+    if (idx >= sequenceSteps.length) {
+      unifiedSteps.push({
+        index: idx,
+        channel: event.channel,
+        dayOffset: 0,
+        isCallTask: event.channel === "call",
+        event,
+        displayStatus: "executed",
+        projectedDate: null,
+      });
+    }
+  }
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
@@ -158,6 +174,10 @@ function StepRow({ step }: { step: UnifiedStep }) {
     .join(" ");
 
   const event = step.event;
+  // For executed steps, show what actually happened (event data).
+  // For future steps, show current sequence configuration.
+  const displayChannel = event ? event.channel : step.channel;
+  const displayIsCallTask = event ? event.channel === "call" : step.isCallTask;
 
   return (
     <div className={rowClasses}>
@@ -167,7 +187,7 @@ function StepRow({ step }: { step: UnifiedStep }) {
           {step.index + 1}.
         </span>
         <span className="text-base leading-none">
-          {channelIcons[step.channel] || "📋"}
+          {channelIcons[displayChannel] || "📋"}
         </span>
       </div>
 
@@ -181,7 +201,7 @@ function StepRow({ step }: { step: UnifiedStep }) {
 
           {/* Channel */}
           <span className={`text-xs capitalize ${isDimmed ? "text-gray-400 dark:text-gray-500" : "text-gray-500 dark:text-gray-400"}`}>
-            {step.isCallTask ? "Call task" : step.channel}
+            {displayIsCallTask ? "Call task" : displayChannel}
           </span>
 
           {/* Status badge */}
