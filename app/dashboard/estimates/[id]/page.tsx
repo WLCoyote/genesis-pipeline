@@ -114,7 +114,24 @@ export default async function EstimateDetailPage({
           <StatusBadge status={est.status} />
         </div>
         <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Estimate #{est.estimate_number}
+          {(() => {
+            const firstOptionId = options.find((o: any) => o.hcp_option_id)?.hcp_option_id;
+            const hcpUrl = firstOptionId
+              ? `https://pro.housecallpro.com/app/estimates/${firstOptionId}`
+              : null;
+            return hcpUrl ? (
+              <a
+                href={hcpUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 dark:text-blue-400 hover:underline"
+              >
+                Estimate #{est.estimate_number}
+              </a>
+            ) : (
+              <>Estimate #{est.estimate_number}</>
+            );
+          })()}
           {est.total_amount !== null && (
             <span className="ml-3 font-medium text-gray-700 dark:text-gray-300">
               $
@@ -157,7 +174,6 @@ export default async function EstimateDetailPage({
             snoozeNote={est.snooze_note}
             snoozeUntil={est.snooze_until}
             pendingEvent={pendingEvent}
-            onlineEstimateUrl={est.online_estimate_url || null}
             isAdmin={isAdmin}
             nextDueStep={nextDueStep}
             currentStepIndex={est.sequence_step_index || 0}

@@ -19,7 +19,6 @@ interface EstimateActionsProps {
   snoozeNote: string | null;
   snoozeUntil: string | null;
   pendingEvent: FollowUpEvent | null;
-  onlineEstimateUrl: string | null;
   isAdmin?: boolean;
   nextDueStep?: NextDueStep | null;
   currentStepIndex?: number;
@@ -33,7 +32,6 @@ export default function EstimateActions({
   snoozeNote,
   snoozeUntil,
   pendingEvent,
-  onlineEstimateUrl,
   isAdmin = false,
   nextDueStep = null,
   currentStepIndex = 0,
@@ -81,18 +79,6 @@ export default function EstimateActions({
       <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
         Actions
       </h2>
-
-      {/* HCP estimate link */}
-      {onlineEstimateUrl && (
-        <a
-          href={onlineEstimateUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block w-full text-center px-4 py-2.5 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 text-blue-700 dark:text-blue-400 text-sm font-medium rounded-md hover:bg-blue-100 transition-colors"
-        >
-          View Estimate in HCP
-        </a>
-      )}
 
       {/* Won/Lost info */}
       {status === "won" && (
