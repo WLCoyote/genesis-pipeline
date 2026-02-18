@@ -256,10 +256,15 @@ async function handleNewEstimate(
   // Extract customer data
   const hcpCustomer = (hcpEstimate.customer || {}) as Record<string, unknown>;
   const hcpCustomerId = hcpCustomer.id as string | undefined;
+  const fullName = [hcpCustomer.first_name, hcpCustomer.last_name]
+    .filter(Boolean)
+    .join(" ");
   const customerName =
-    [hcpCustomer.first_name, hcpCustomer.last_name]
-      .filter(Boolean)
-      .join(" ") || "Unknown";
+    fullName ||
+    (hcpCustomer.display_name as string) ||
+    (hcpCustomer.company_name as string) ||
+    (hcpCustomer.company as string) ||
+    "Unknown";
 
   if (!hcpCustomerId) {
     console.error(`[HCP Poll] Estimate ${hcpId} has no customer ID, skipping`);
