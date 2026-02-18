@@ -65,11 +65,11 @@ export default async function LeadsPage({
 
   const activeLeads = (leads || []) as any[];
 
-  // Fetch archived leads
+  // Fetch archived leads (including moved to HCP)
   const { data: archivedLeadsData } = await supabase
     .from("leads")
     .select("*, users!leads_assigned_to_fkey ( name )")
-    .eq("status", "archived")
+    .in("status", ["archived", "moved_to_hcp"])
     .order("updated_at", { ascending: false });
 
   const archivedLeads = (archivedLeadsData || []) as any[];
@@ -111,6 +111,7 @@ export default async function LeadsPage({
     new: "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300",
     contacted: "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-300",
     qualified: "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300",
+    moved_to_hcp: "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300",
     archived: "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400",
   };
 

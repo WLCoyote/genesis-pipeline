@@ -356,7 +356,7 @@ export default function LeadCard({
               "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400"
             }`}
           >
-            {lead.status}
+            {lead.status === "moved_to_hcp" ? "Moved to HCP" : lead.status}
           </span>
           <button
             onClick={() => setEditing(true)}
