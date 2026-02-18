@@ -13,7 +13,13 @@ export default function UpdateEstimatesButton() {
     setResult("");
 
     try {
-      const res = await fetch("/api/admin/update-estimates", { method: "POST" });
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 130000);
+      const res = await fetch("/api/admin/update-estimates", {
+        method: "POST",
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
       const data = await res.json();
 
       if (res.ok) {
