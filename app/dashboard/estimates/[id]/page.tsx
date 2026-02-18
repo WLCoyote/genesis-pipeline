@@ -39,7 +39,7 @@ export default async function EstimateDetailPage({
       users!estimates_assigned_to_fkey ( id, name, email ),
       estimate_options (*),
       follow_up_events (*),
-      follow_up_sequences (steps)
+      follow_up_sequences (steps, is_active)
     `
     )
     .eq("id", id)
@@ -70,6 +70,7 @@ export default async function EstimateDetailPage({
   const sequenceSteps = (est.follow_up_sequences as any)?.steps as Array<{
     day_offset: number; channel: string; is_call_task: boolean;
   }> | undefined;
+  const sequenceIsActive = (est.follow_up_sequences as any)?.is_active !== false;
 
   if (est.status === "active" && sequenceSteps && est.sent_date) {
     const stepIndex = est.sequence_step_index || 0;
@@ -138,6 +139,7 @@ export default async function EstimateDetailPage({
             sentDate={est.sent_date || null}
             currentStepIndex={est.sequence_step_index || 0}
             estimateStatus={est.status}
+            sequenceIsActive={sequenceIsActive}
           />
           <ConversationThread
             estimateId={id}
@@ -160,6 +162,7 @@ export default async function EstimateDetailPage({
             nextDueStep={nextDueStep}
             currentStepIndex={est.sequence_step_index || 0}
             totalSteps={sequenceSteps?.length || 0}
+            sequenceIsActive={sequenceIsActive}
           />
           <CustomerInfo customer={customer} />
           <OptionsList options={options} totalAmount={est.total_amount} />

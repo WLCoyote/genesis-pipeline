@@ -24,6 +24,7 @@ interface EstimateActionsProps {
   nextDueStep?: NextDueStep | null;
   currentStepIndex?: number;
   totalSteps?: number;
+  sequenceIsActive?: boolean;
 }
 
 export default function EstimateActions({
@@ -37,6 +38,7 @@ export default function EstimateActions({
   nextDueStep = null,
   currentStepIndex = 0,
   totalSteps = 0,
+  sequenceIsActive = true,
 }: EstimateActionsProps) {
   const router = useRouter();
   const [showSnooze, setShowSnooze] = useState(false);
@@ -126,8 +128,20 @@ export default function EstimateActions({
         </div>
       )}
 
-      {/* Pending message edit */}
-      {pendingEvent && !showEdit && (
+      {/* Sequence paused banner */}
+      {!sequenceIsActive && !isTerminal && (
+        <div className="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded-md p-3">
+          <div className="text-sm font-medium text-yellow-800 dark:text-yellow-300">
+            ⏸️ Sequence is paused — follow-ups on hold
+          </div>
+          <p className="text-xs text-yellow-700 dark:text-yellow-400 mt-1">
+            Resume the sequence in Admin &rarr; Sequences to continue sending.
+          </p>
+        </div>
+      )}
+
+      {/* Pending message edit — hidden when paused */}
+      {sequenceIsActive && pendingEvent && !showEdit && (
         <div className="bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700 rounded-md p-3">
           <div className="flex items-center justify-between">
             <div className="text-sm text-blue-800 dark:text-blue-300">
@@ -155,8 +169,8 @@ export default function EstimateActions({
         />
       )}
 
-      {/* Send Now — next due step */}
-      {nextDueStep && !pendingEvent && (
+      {/* Send Now — next due step (hidden when paused) */}
+      {sequenceIsActive && nextDueStep && !pendingEvent && (
         <div className="bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700 rounded-md p-3">
           <div className="flex items-center justify-between">
             <div className="text-sm text-green-800 dark:text-green-300">
@@ -219,7 +233,7 @@ export default function EstimateActions({
               >
                 Snooze
               </button>
-              {currentStepIndex < totalSteps && (
+              {sequenceIsActive && currentStepIndex < totalSteps && (
                 <button
                   onClick={async () => {
                     if (

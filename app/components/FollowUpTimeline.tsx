@@ -13,6 +13,7 @@ interface FollowUpTimelineProps {
   sentDate?: string | null;
   currentStepIndex?: number;
   estimateStatus?: EstimateStatus;
+  sequenceIsActive?: boolean;
 }
 
 const channelIcons: Record<string, string> = {
@@ -66,7 +67,7 @@ type UnifiedStep = {
   dayOffset: number;
   isCallTask: boolean;
   event: FollowUpEvent | null;
-  displayStatus: "executed" | "skipped" | "current" | "upcoming" | "not_reached";
+  displayStatus: "executed" | "skipped" | "current" | "upcoming" | "not_reached" | "paused";
   projectedDate: Date | null;
 };
 
@@ -76,6 +77,7 @@ export default function FollowUpTimeline({
   sentDate = null,
   currentStepIndex = 0,
   estimateStatus = "active",
+  sequenceIsActive = true,
 }: FollowUpTimelineProps) {
   // If no sequence steps, fall back to events-only display
   if (!sequenceSteps || !sentDate) {
@@ -102,10 +104,16 @@ export default function FollowUpTimeline({
     projectedDate.setDate(projectedDate.getDate() + step.day_offset);
 
     let displayStatus: UnifiedStep["displayStatus"];
-    if (event) {
+    if (event && (!sequenceIsActive && (event.status === "pending_review" || event.status === "scheduled"))) {
+      // Event exists but hasn't sent yet and sequence is paused — show as paused
+      displayStatus = "paused";
+    } else if (event) {
       displayStatus = "executed";
     } else if (i < currentStepIndex) {
       displayStatus = "skipped";
+    } else if (!sequenceIsActive && !isTerminal) {
+      // Sequence is paused — all incomplete steps show as paused
+      displayStatus = "paused";
     } else if (i === currentStepIndex && !isTerminal) {
       displayStatus = "current";
     } else if (i > currentStepIndex && !isTerminal) {
@@ -160,7 +168,8 @@ function StepRow({ step }: { step: UnifiedStep }) {
   const isUpcoming = step.displayStatus === "upcoming";
   const isSkipped = step.displayStatus === "skipped";
   const isNotReached = step.displayStatus === "not_reached";
-  const isDimmed = isUpcoming || isNotReached;
+  const isPaused = step.displayStatus === "paused";
+  const isDimmed = isUpcoming || isNotReached || isPaused;
 
   const rowClasses = [
     "flex items-start gap-3 py-2.5 px-3 rounded-md",
@@ -254,6 +263,15 @@ function StatusBadge({ step }: { step: UnifiedStep }) {
       <span className="inline-flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 font-medium">
         <span>▶</span>
         <span>Current Step</span>
+      </span>
+    );
+  }
+
+  if (step.displayStatus === "paused") {
+    return (
+      <span className="inline-flex items-center gap-1 text-xs text-yellow-600 dark:text-yellow-400">
+        <span>⏸️</span>
+        <span>Paused</span>
       </span>
     );
   }
