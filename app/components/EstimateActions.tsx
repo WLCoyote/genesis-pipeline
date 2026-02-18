@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { EstimateStatus, FollowUpEvent } from "@/lib/types";
+import { EstimateStatus, FollowUpEvent, EstimateOption } from "@/lib/types";
 import SnoozeForm from "./SnoozeForm";
 import EditMessageForm from "./EditMessageForm";
 
@@ -24,6 +24,7 @@ interface EstimateActionsProps {
   currentStepIndex?: number;
   totalSteps?: number;
   sequenceIsActive?: boolean;
+  options?: EstimateOption[];
 }
 
 export default function EstimateActions({
@@ -37,6 +38,7 @@ export default function EstimateActions({
   currentStepIndex = 0,
   totalSteps = 0,
   sequenceIsActive = true,
+  options = [],
 }: EstimateActionsProps) {
   const router = useRouter();
   const [showSnooze, setShowSnooze] = useState(false);
@@ -46,29 +48,17 @@ export default function EstimateActions({
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState("");
   const [skipping, setSkipping] = useState(false);
+  const [showStatusModal, setShowStatusModal] = useState<"won" | "lost" | null>(null);
 
-  const handleStatusChange = async (newStatus: "won" | "lost" | "active") => {
-    const confirmMsg =
-      newStatus === "won"
-        ? "Manually mark as won? (Normally this updates automatically when the customer signs in HCP.)"
-        : newStatus === "lost"
-        ? "Manually mark as lost? This will stop all follow-ups."
-        : "Reactivate this estimate and resume follow-ups?";
-
-    if (!confirm(confirmMsg)) return;
-
-    setLoading(newStatus);
-
+  const handleReactivate = async () => {
+    if (!confirm("Reactivate this estimate and resume follow-ups?")) return;
+    setLoading("active");
     const res = await fetch(`/api/estimates/${estimateId}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: newStatus }),
+      body: JSON.stringify({ status: "active" }),
     });
-
-    if (res.ok) {
-      router.refresh();
-    }
-
+    if (res.ok) router.refresh();
     setLoading("");
   };
 
@@ -203,6 +193,20 @@ export default function EstimateActions({
         </div>
       )}
 
+      {/* Status change modal */}
+      {showStatusModal && (
+        <OptionSelectModal
+          action={showStatusModal}
+          options={options}
+          estimateId={estimateId}
+          onClose={() => setShowStatusModal(null)}
+          onSuccess={() => {
+            setShowStatusModal(null);
+            router.refresh();
+          }}
+        />
+      )}
+
       {/* Snooze form */}
       {showSnooze ? (
         <SnoozeForm
@@ -249,25 +253,23 @@ export default function EstimateActions({
                 </button>
               )}
               <button
-                onClick={() => handleStatusChange("won")}
-                disabled={loading === "won"}
-                className="px-4 py-2 border border-green-300 text-green-700 text-sm font-medium rounded-md hover:bg-green-50 disabled:opacity-50 transition-colors"
+                onClick={() => setShowStatusModal("won")}
+                className="px-4 py-2 border border-green-300 text-green-700 text-sm font-medium rounded-md hover:bg-green-50 transition-colors"
               >
-                {loading === "won" ? "..." : "Mark Won"}
+                Mark Won
               </button>
               <button
-                onClick={() => handleStatusChange("lost")}
-                disabled={loading === "lost"}
-                className="px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-md hover:bg-red-50 disabled:opacity-50 transition-colors"
+                onClick={() => setShowStatusModal("lost")}
+                className="px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-md hover:bg-red-50 transition-colors"
               >
-                {loading === "lost" ? "..." : "Mark Lost"}
+                Mark Lost
               </button>
             </>
           )}
 
           {isTerminal && (
             <button
-              onClick={() => handleStatusChange("active")}
+              onClick={handleReactivate}
               disabled={loading === "active"}
               className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
             >
@@ -305,6 +307,166 @@ export default function EstimateActions({
           </button>
         </div>
       )}
+    </div>
+  );
+}
+
+// --- Option selection modal ---
+
+function OptionSelectModal({
+  action,
+  options,
+  estimateId,
+  onClose,
+  onSuccess,
+}: {
+  action: "won" | "lost";
+  options: EstimateOption[];
+  estimateId: string;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const pendingOptions = options.filter((o) => o.status === "pending");
+  const [selected, setSelected] = useState<Set<string>>(
+    new Set(pendingOptions.map((o) => o.id))
+  );
+  const [submitting, setSubmitting] = useState(false);
+
+  const isWon = action === "won";
+  const title = isWon ? "Mark Options as Won" : "Mark Options as Lost";
+  const color = isWon ? "green" : "red";
+
+  const toggleOption = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const selectAll = () => setSelected(new Set(pendingOptions.map((o) => o.id)));
+
+  const handleSubmit = async () => {
+    if (selected.size === 0) return;
+    setSubmitting(true);
+
+    const res = await fetch(`/api/estimates/${estimateId}/status`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action,
+        selected_option_ids: Array.from(selected),
+      }),
+    });
+
+    if (res.ok) {
+      onSuccess();
+    }
+    setSubmitting(false);
+  };
+
+  return (
+    <div className="bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 rounded-lg p-4 space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+          {title}
+        </h3>
+        <button
+          onClick={onClose}
+          className="text-gray-400 hover:text-gray-600 text-sm"
+        >
+          Cancel
+        </button>
+      </div>
+
+      {isWon && (
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Selected options will be marked as won locally. Unselected pending options will be declined in HCP.
+        </p>
+      )}
+      {!isWon && (
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Selected options will be declined in HCP. If all options are declined, the estimate will be marked as lost.
+        </p>
+      )}
+
+      {/* Options with already-resolved status shown as disabled */}
+      <div className="space-y-2">
+        {options.map((opt) => {
+          const isPending = opt.status === "pending";
+          const isChecked = selected.has(opt.id);
+
+          return (
+            <label
+              key={opt.id}
+              className={`flex items-center gap-3 p-2.5 rounded-md border transition-colors ${
+                isPending
+                  ? isChecked
+                    ? isWon
+                      ? "border-green-200 bg-green-50/50 dark:border-green-700 dark:bg-green-900/20"
+                      : "border-red-200 bg-red-50/50 dark:border-red-700 dark:bg-red-900/20"
+                    : "border-gray-200 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  : "border-gray-100 dark:border-gray-800 opacity-50"
+              } ${isPending ? "cursor-pointer" : "cursor-not-allowed"}`}
+            >
+              <input
+                type="checkbox"
+                checked={isChecked}
+                onChange={() => isPending && toggleOption(opt.id)}
+                disabled={!isPending}
+                className="rounded border-gray-300 dark:border-gray-600"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  {opt.description || `Option ${opt.option_number}`}
+                </div>
+                {opt.amount !== null && (
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    ${opt.amount.toLocaleString("en-US", { minimumFractionDigits: 0 })}
+                  </div>
+                )}
+              </div>
+              {!isPending && (
+                <span className={`text-xs px-1.5 py-0.5 rounded ${
+                  opt.status === "approved"
+                    ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
+                    : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                }`}>
+                  {opt.status === "approved" ? "Won" : "Declined"}
+                </span>
+              )}
+            </label>
+          );
+        })}
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex items-center gap-2 pt-1">
+        <button
+          onClick={handleSubmit}
+          disabled={submitting || selected.size === 0}
+          className={`px-4 py-2 text-sm font-medium rounded-md disabled:opacity-50 transition-colors ${
+            isWon
+              ? "bg-green-600 text-white hover:bg-green-700"
+              : "bg-red-600 text-white hover:bg-red-700"
+          }`}
+        >
+          {submitting
+            ? "..."
+            : selected.size === pendingOptions.length
+              ? `Mark All as ${isWon ? "Won" : "Lost"}`
+              : `Mark ${selected.size} Selected as ${isWon ? "Won" : "Lost"}`}
+        </button>
+        {selected.size < pendingOptions.length && (
+          <button
+            onClick={selectAll}
+            className="px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+          >
+            Select All
+          </button>
+        )}
+      </div>
     </div>
   );
 }

@@ -180,6 +180,7 @@ export default async function EstimateDetailPage({
             currentStepIndex={est.sequence_step_index || 0}
             totalSteps={sequenceSteps?.length || 0}
             sequenceIsActive={sequenceIsActive}
+            options={options}
           />
           <CustomerInfo customer={customer} />
           <OptionsList options={options} totalAmount={est.total_amount} />
