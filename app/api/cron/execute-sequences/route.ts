@@ -240,7 +240,7 @@ export async function GET(request: NextRequest) {
         try {
           const twilioMsg = await twilioClient.messages.create({
             body: event.content || "",
-            from: process.env.TWILIO_PHONE_NUMBER,
+            messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID,
             to: customer.phone,
           });
 

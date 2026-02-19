@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     try {
       twilioMessage = await twilioClient.messages.create({
         body: message,
-        from: process.env.TWILIO_PHONE_NUMBER,
+        messagingServiceSid: process.env.TWILIO_MESSAGING_SERVICE_SID,
         to,
       });
     } catch (twilioError: unknown) {
