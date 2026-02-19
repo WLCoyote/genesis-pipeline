@@ -20,6 +20,7 @@ export default function ConversationThread({
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom when messages change
@@ -58,6 +59,7 @@ export default function ConversationThread({
     if (!reply.trim() || !customerPhone) return;
 
     setSending(true);
+    setError(null);
 
     const res = await fetch("/api/send-sms", {
       method: "POST",
@@ -72,6 +74,9 @@ export default function ConversationThread({
 
     if (res.ok) {
       setReply("");
+    } else {
+      const data = await res.json().catch(() => null);
+      setError(data?.error || data?.details || "Failed to send message");
     }
 
     setSending(false);
@@ -159,6 +164,9 @@ export default function ConversationThread({
               {sending ? "Sending..." : "Send"}
             </button>
           </form>
+          {error && (
+            <p className="text-sm text-red-600 dark:text-red-400 mt-2">{error}</p>
+          )}
         </>
       )}
     </div>
