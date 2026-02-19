@@ -76,8 +76,8 @@ export default function InboxThreads() {
     });
 
     if (!res.ok) {
-      const data = await res.json();
-      setError(data.error || "Failed to send");
+      const data = await res.json().catch(() => null);
+      setError(data?.error || "Failed to send");
     } else {
       setReplyText("");
       // Refresh threads to show the sent message

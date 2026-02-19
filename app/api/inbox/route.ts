@@ -97,20 +97,29 @@ export async function POST(request: NextRequest) {
 
   // Send via the existing send-sms route
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  const res = await fetch(`${baseUrl}/api/send-sms`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      to,
-      message: message.trim(),
-      sent_by: user.id,
-    }),
-  });
+  let res;
+  try {
+    res = await fetch(`${baseUrl}/api/send-sms`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        to,
+        message: message.trim(),
+        sent_by: user.id,
+      }),
+    });
+  } catch (fetchError) {
+    console.error("Inbox send-sms fetch error:", fetchError);
+    return NextResponse.json(
+      { error: "Failed to reach SMS service" },
+      { status: 500 }
+    );
+  }
 
   if (!res.ok) {
-    const data = await res.json();
+    const data = await res.json().catch(() => null);
     return NextResponse.json(
-      { error: data.error || "Failed to send SMS" },
+      { error: data?.error || data?.details || "Failed to send SMS" },
       { status: 500 }
     );
   }
