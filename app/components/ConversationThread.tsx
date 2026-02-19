@@ -64,7 +64,7 @@ export default function ConversationThread({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         to: customerPhone,
-        body: reply.trim(),
+        message: reply.trim(),
         customer_id: customerId,
         estimate_id: estimateId,
       }),
