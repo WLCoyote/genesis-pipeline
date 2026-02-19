@@ -1,5 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import twilio from "twilio";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+
+const twilioClient = twilio(
+  process.env.TWILIO_ACCOUNT_SID,
+  process.env.TWILIO_AUTH_TOKEN
+);
 
 // GET: Fetch unmatched SMS threads grouped by phone number
 export async function GET() {
@@ -95,33 +101,37 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  // Send via the existing send-sms route
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
-  let res;
+  // Send SMS via Twilio directly
+  let twilioMessage;
   try {
-    res = await fetch(`${baseUrl}/api/send-sms`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        to,
-        message: message.trim(),
-        sent_by: user.id,
-      }),
+    twilioMessage = await twilioClient.messages.create({
+      body: message.trim(),
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to,
     });
-  } catch (fetchError) {
-    console.error("Inbox send-sms fetch error:", fetchError);
+  } catch (twilioError: unknown) {
+    const errorMessage =
+      twilioError instanceof Error ? twilioError.message : "Unknown Twilio error";
+    console.error("Inbox Twilio error:", errorMessage);
     return NextResponse.json(
-      { error: "Failed to reach SMS service" },
+      { error: "Failed to send SMS", details: errorMessage },
       { status: 500 }
     );
   }
 
-  if (!res.ok) {
-    const data = await res.json().catch(() => null);
-    return NextResponse.json(
-      { error: data?.error || data?.details || "Failed to send SMS" },
-      { status: 500 }
-    );
+  // Log to messages table
+  const serviceClient = createServiceClient();
+  const { error: msgError } = await serviceClient.from("messages").insert({
+    direction: "outbound",
+    channel: "sms",
+    body: message.trim(),
+    twilio_message_sid: twilioMessage.sid,
+    phone_number: to,
+    sent_by: user.id,
+  });
+
+  if (msgError) {
+    console.error("Inbox message log error:", msgError);
   }
 
   return NextResponse.json({ success: true });
