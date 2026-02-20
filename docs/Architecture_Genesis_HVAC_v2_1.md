@@ -4,11 +4,13 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 3.1 — February 18, 2026
+Version 3.2 — February 20, 2026
 
 Genesis Services — Monroe, WA
 
 CONFIDENTIAL — Internal Use Only
+
+**v3.2 Changes:** Twilio Messaging Service integrated for A2P 10DLC compliance. All SMS routes use `messagingServiceSid` instead of `from` phone number. Inbox route calls Twilio directly (no self-fetch proxy). Error display on SMS send components. Privacy/Terms pages at `/privacy` and `/terms`. A2P campaign registered, pending carrier approval.
 
 **v3.1 Changes:** Paused state on estimate detail — yellow banner in actions, hidden Send Now/Skip Step/pending event, "Paused" badges on timeline. Sent date fix — removed `option.updated_at` (showed wrong dates); now `schedule.scheduled_start` → `created_at` fallback. HCP pro link — estimate number links to `https://pro.housecallpro.com/app/estimates/{option_id}`; removed customer URL button (API doesn't expose it). Execute skipped steps — POST /api/estimates/[id]/execute-step with inline button on skipped timeline steps. HCP decline on Mark Lost — calls POST /estimates/options/decline with stored option IDs. Option selection modal — Mark Won/Lost shows checkboxes per option; won = local approve + decline unselected in HCP; lost = decline selected in HCP. Admin SMS notifications — all inbound SMS notify admins/CSRs, not just unmatched. Twilio live — verified and webhook configured. **v3.0:** Full sequence timeline rewrite, Skip Step API, sequence pause/resume. Previous: v2.9 HCP polling accuracy. v2.8 HCP polling rewrite. v2.7 Send Now. v2.6 Update Estimates, admin delete, lead archiving. v2.5 pipeline entry flow. v2.4 SMS Inbox. v2.3 team management. v2.2 Flow 2, leads, estimate links, dark mode. v2.1 Twilio Hosted SMS.
 
@@ -35,7 +37,7 @@ All three engines share the same Supabase PostgreSQL database and customer conta
 | **API Layer** | Vercel API Routes | Node.js serverless functions for all external API calls. Single JavaScript runtime (no Deno/Edge Functions complexity). Handles Resend sends, Twilio sends, HCP API calls. |
 | **Scheduled Jobs** | Vercel Cron Jobs | Configured in vercel.json. Runs: sequence step execution (multiple times daily), HCP status polling (3x daily), auto-decline processing (daily). |
 | **Email Delivery** | Resend | Transactional follow-up emails and broadcast campaigns. Sends from marketing@genesishvacr.com. Webhooks for open/click/bounce tracking. Free tier: 3,000 emails/month, then $20/month for 50k. |
-| **SMS Delivery** | Twilio Hosted SMS | Two-way SMS via existing Genesis Comcast VoiceEdge number (425-261-9095) hosted on Twilio for SMS routing. Voice stays on Comcast. Outbound via REST API, inbound via webhook. 10DLC registered for compliance. Costs: $1/mo number hosting \+ ~$0.0079/outbound SMS. |
+| **SMS Delivery** | Twilio Hosted SMS | Two-way SMS via existing Genesis Comcast VoiceEdge number (425-261-9095) hosted on Twilio for SMS routing. Voice stays on Comcast. Outbound via Twilio Messaging Service (SID: MGd102dd6d19268d0e867c30f9457caf2f) using `messagingServiceSid` parameter — required for A2P 10DLC carrier delivery. Inbound via webhook. A2P campaign registered ("Engage in a discussion"), pending carrier approval. Costs: $1/mo number hosting \+ ~$0.0079/outbound SMS. |
 | **HVAC Data Sync** | Housecall Pro API | GET /estimates for status polling with date range filter. POST /estimates/options/approve and /estimates/options/decline with option\_ids array. Bearer token auth. |
 | **Styling** | Tailwind CSS v4 | Utility-first CSS with @theme inline design tokens. Dark mode via @variant dark (&:where(.dark, .dark *)). Responsive design for mobile field use. Fast iteration during build. |
 | **Charts** | Recharts | React-native charting for pipeline analytics and campaign metrics. Simpler integration than Chart.js in a React codebase. |
@@ -163,7 +165,7 @@ When a customer replies to an SMS, Twilio sends a webhook POST to /api/webhooks/
 
 ## **5.5 Outbound SMS (Manual Reply)**
 
-When a comfort pro sends a reply from the conversation thread in the app, the frontend POSTs to /api/send-sms with the message body, customer_id, and estimate_id. The API route: 1) Sends the SMS via Twilio REST API from the hosted Comcast number. 2) Logs the message to the messages table with direction "outbound" and sent_by set to the comfort pro’s user_id. 3) Returns the Twilio message SID for tracking.
+When a comfort pro sends a reply from the conversation thread in the app, the frontend POSTs to /api/send-sms with the message body, customer_id, and estimate_id. The API route: 1) Sends the SMS via Twilio Messaging Service (`messagingServiceSid` parameter, not `from` phone number) for A2P 10DLC compliance. 2) Logs the message to the messages table with direction "outbound" and sent_by set to the comfort pro's user_id. 3) Returns the Twilio message SID for tracking. The inbox reply route (/api/inbox POST) calls Twilio directly rather than proxying through /api/send-sms — Vercel serverless functions cannot reliably fetch their own API routes.
 
 ## **5.6 Notification Delivery**
 

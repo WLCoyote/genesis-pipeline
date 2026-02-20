@@ -4,7 +4,7 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 3.1 — February 18, 2026
+Version 3.2 — February 20, 2026
 
 Prepared by: Wylee, Owner / Product Lead
 
@@ -29,6 +29,8 @@ The platform replaces the need for expensive tools like Mailchimp ($45–$350/mo
 **Assumptions:** Built by Wylee using AI-assisted code generation (Claude/Grok). No dedicated development team. Housecall Pro remains the system of record for job execution.
 
 ## **1.3 Version History**
+
+Version 3.2: Twilio Messaging Service (SID: MGd102dd6d19268d0e867c30f9457caf2f) created and integrated for A2P 10DLC compliance. All 5 SMS-sending routes switched from `from: TWILIO_PHONE_NUMBER` to `messagingServiceSid: TWILIO_MESSAGING_SERVICE_SID`. A2P campaign registered (use case: "Engage in a discussion") — pending carrier approval. Privacy policy page at `/privacy` and Terms & Conditions page at `/terms` created for Twilio compliance. Inbox POST route rewritten to call Twilio directly instead of proxying through `/api/send-sms` (Vercel serverless can't self-fetch). Error display added to ConversationThread and InboxThreads components. `TWILIO_MESSAGING_SERVICE_SID` env var added to `.env.local` and Vercel (February 20, 2026).
 
 Version 3.1: Paused state on estimate detail — yellow "follow-ups on hold" banner in actions, hides pending event/Send Now/Skip Step, timeline shows "Paused" badges on incomplete steps. Sent date fix — removed `option.updated_at` (was showing today's date on old estimates); now uses `schedule.scheduled_start` → `estimate.created_at` fallback. HCP pro link — estimate number in detail header is clickable, links to `https://pro.housecallpro.com/app/estimates/{option_id}`; removed customer URL button (HCP API does not expose customer-facing URL). Execute skipped steps — "Send SMS/EMAIL" or "Schedule Call" button on skipped timeline steps via POST /api/estimates/[id]/execute-step. HCP decline on Mark Lost — status route calls POST /estimates/options/decline on HCP API with stored option IDs. Option selection modal — Mark Won/Lost opens inline panel with checkboxes per option; won = local only (customer signs in HCP), unselected declined in HCP; lost = selected declined in HCP. Admin SMS notifications — all inbound SMS now notify admins/CSRs (not just unmatched); deduplicates if assigned user is also admin. Twilio live — verified and activated, webhook configured, NEXT_PUBLIC_SITE_URL env var added (February 18, 2026).
 
@@ -212,7 +214,7 @@ The database is structured around the estimate pipeline as the primary workflow,
 | **API Layer** | Vercel API Routes | Node.js serverless functions for all external API calls. Single runtime (no Deno). |
 | **Scheduled Jobs** | Vercel Cron Jobs | Daily estimate status polling from HCP, sequence step execution, auto-decline processing. |
 | **Email** | Resend | Transactional and marketing email. Domain verification, webhook for open/click tracking. |
-| **SMS** | Twilio Hosted SMS | Two-way SMS via existing Comcast VoiceEdge number (425-261-9095) hosted on Twilio. Voice stays on Comcast. Outbound via REST API, inbound via webhook. 10DLC registered for compliance. |
+| **SMS** | Twilio Hosted SMS | Two-way SMS via existing Comcast VoiceEdge number (425-261-9095) hosted on Twilio. Voice stays on Comcast. Outbound via Twilio Messaging Service (SID: MGd102dd6d19268d0e867c30f9457caf2f) using `messagingServiceSid` parameter, inbound via webhook. A2P 10DLC campaign registered ("Engage in a discussion") — required for carrier delivery. |
 | **HVAC Data** | Housecall Pro API | GET estimates with status polling. POST to approve/decline options. Webhook for new records (v0.2). |
 | **Styling** | Tailwind CSS v4 | Utility-first CSS with @theme inline tokens. Dark mode via @variant dark with class-based toggle. Responsive design for mobile field use. |
 | **Charts** | Recharts | React-native charting library for pipeline and campaign analytics. |
@@ -271,7 +273,7 @@ All three engines share the customer database and contact history. A broadcast c
 
 * Email Deliverability: New sending domain (marketing@genesishvacr.com) needs warm-up period. Mitigation: Start with small batches, authenticate domain early, use Resend’s deliverability tools.
 
-* Twilio 10DLC Registration: Required for business SMS compliance. One-time registration process ($4–15). Mitigation: Register early in Phase 0; approval typically takes 1–7 days.
+* Twilio A2P 10DLC Registration: Required for business SMS compliance. Messaging Service created, A2P campaign registered (February 20, 2026) — pending carrier approval. Without approval, US carriers silently drop outbound SMS (error 30034). Privacy policy (`/privacy`) and Terms & Conditions (`/terms`) pages created for compliance.
 
 * HCP API Access: Housecall Pro’s API capabilities need verification (especially webhook availability for estimates). Mitigation: MVP uses CSV import; API integration is v0.2.
 

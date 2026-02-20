@@ -4,7 +4,7 @@
 
 Genesis HVAC Estimate Pipeline & Marketing Platform
 
-Version 3.1 — February 18, 2026
+Version 3.2 — February 20, 2026
 
 Genesis Services — Monroe, WA
 
@@ -486,7 +486,9 @@ Updated Twilio webhook to always notify admins/CSRs on all inbound SMS, not just
 
   **PHASE 4: Deployment & End-to-End Testing (Week 5–6)**
 
-**Status:** In progress. Deployed to Vercel Pro. GitHub auto-deploy configured. Resend webhook configured. Twilio verified and live — webhook configured at `https://genesis-pipeline.vercel.app/api/webhooks/twilio`, inbound SMS working. HCP polling cron and Move to HCP rewritten (v2.5 flow correction complete). Manual Update Estimates button, admin delete, lead archiving, Send Now, and moved-to-HCP archived display added. Remaining: full E2E test pass, optional custom domain.
+**Status:** In progress. Deployed to Vercel Pro. GitHub auto-deploy configured. Resend webhook configured. Twilio verified and live — webhook configured at `https://genesis-pipeline.vercel.app/api/webhooks/twilio`, inbound SMS working. Twilio Messaging Service created and all SMS routes updated. A2P 10DLC campaign registered — waiting on carrier approval for outbound delivery. HCP polling cron and Move to HCP rewritten (v2.5 flow correction complete). Manual Update Estimates button, admin delete, lead archiving, Send Now, and moved-to-HCP archived display added. Privacy policy and Terms & Conditions pages live. Remaining: A2P campaign approval (blocking outbound SMS), full E2E test pass, optional custom domain.
+
+**Build Notes (v3.2):** Twilio Messaging Service (MGd102dd6d19268d0e867c30f9457caf2f) created and integrated. All 5 SMS-sending routes (`send-sms`, `inbox`, `execute-sequences`, `send-next`, `execute-step`) switched from `from: TWILIO_PHONE_NUMBER` to `messagingServiceSid: TWILIO_MESSAGING_SERVICE_SID`. Inbox POST route rewritten to call Twilio directly instead of proxying through `/api/send-sms` (Vercel serverless can't self-fetch its own routes). Error display added to ConversationThread and InboxThreads components. Privacy policy at `/privacy` and Terms & Conditions at `/terms` for A2P compliance. `TWILIO_MESSAGING_SERVICE_SID` env var added to `.env.local` and Vercel. A2P campaign registered with use case "Engage in a discussion" — outbound SMS blocked by carriers (error 30034) until campaign approved.
 
 **Build Notes (v3.1):** SQL migrations 001-011 all run. 011 adds `is_active` to follow\_up\_sequences. `NEXT_PUBLIC_SITE_URL` env var added for inbox reply feature on production.
 
