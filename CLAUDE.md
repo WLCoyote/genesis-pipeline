@@ -57,6 +57,7 @@ These are the source of truth. **Read them before making decisions** — don't r
 | `docs/PRD_Genesis_HVAC_v2_1.md` | Product requirements, feature specs, follow-up sequence design, user personas, success metrics | Before building any feature — confirm what it should do |
 | `docs/Architecture_Genesis_HVAC_v2_1.md` | Tech stack, data model, RLS policies, data flows, integrations, security | Before any database, API, or integration work |
 | `docs/Build_Plan_Genesis_HVAC_v2_1.md` | Step-by-step build phases with verification checks | Before starting any new phase — follow the sequence |
+| `docs/API_Routes.md` | Complete API route map — external webhooks, cron jobs, internal dashboard routes, auth methods | Before adding/modifying API routes or integrating with external systems |
 
 ### **Keeping Docs Updated**
 

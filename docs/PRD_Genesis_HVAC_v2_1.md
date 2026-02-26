@@ -273,7 +273,7 @@ All three engines share the customer database and contact history. A broadcast c
 
 * Email Deliverability: New sending domain (marketing@genesishvacr.com) needs warm-up period. Mitigation: Start with small batches, authenticate domain early, use Resend’s deliverability tools.
 
-* Twilio A2P 10DLC Registration: Required for business SMS compliance. Messaging Service created, A2P campaign registered (February 20, 2026) — pending carrier approval. Without approval, US carriers silently drop outbound SMS (error 30034). Privacy policy (`/privacy`) and Terms & Conditions (`/terms`) pages created for compliance.
+* Twilio A2P 10DLC Registration: Required for business SMS compliance. Messaging Service created. First A2P campaign submission rejected (error 30896) — MESSAGE_FLOW field was too vague about opt-in process. Resubmitted February 25, 2026 with detailed verbal consent script + web form opt-in path, consent logging, and call recording for audit. Without approval, US carriers silently drop outbound SMS (error 30034). Privacy policy (`/privacy`) and Terms & Conditions (`/terms`) pages created for compliance.
 
 * HCP API Access: Housecall Pro’s API capabilities need verification (especially webhook availability for estimates). Mitigation: MVP uses CSV import; API integration is v0.2.
 
