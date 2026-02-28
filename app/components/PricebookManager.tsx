@@ -53,6 +53,7 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
   const router = useRouter();
   const [items, setItems] = useState(initialItems);
   const [categoryFilter, setCategoryFilter] = useState<PricebookCategory | "all">("all");
+  const [subcategoryFilter, setSubcategoryFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showInactive, setShowInactive] = useState(false);
 
@@ -89,9 +90,28 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
   const [error, setError] = useState("");
   const [syncStatus, setSyncStatus] = useState("");
 
+  // Selection state (for bulk actions)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [bulkAction, setBulkAction] = useState<"category" | "hcp" | null>(null);
+  const [bulkCategory, setBulkCategory] = useState<PricebookCategory>("equipment");
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [bulkResult, setBulkResult] = useState("");
+
   // Import state
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState("");
+
+  // Compute subcategories for the selected category
+  const subcategories = useMemo(() => {
+    if (categoryFilter === "all") return [];
+    const names = new Set<string>();
+    for (const item of items) {
+      if (item.category === categoryFilter && item.hcp_category_name) {
+        names.add(item.hcp_category_name);
+      }
+    }
+    return Array.from(names).sort();
+  }, [items, categoryFilter]);
 
   // Filter items
   const filtered = useMemo(() => {
@@ -99,6 +119,10 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
 
     if (categoryFilter !== "all") {
       result = result.filter((i) => i.category === categoryFilter);
+    }
+
+    if (subcategoryFilter !== "all") {
+      result = result.filter((i) => i.hcp_category_name === subcategoryFilter);
     }
 
     if (!showInactive) {
@@ -117,7 +141,7 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
     }
 
     return result;
-  }, [items, categoryFilter, searchQuery, showInactive]);
+  }, [items, categoryFilter, subcategoryFilter, searchQuery, showInactive]);
 
   // Margin calculation
   const calcMargin = (price: number | null, cost: number | null) => {
@@ -314,8 +338,150 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
     }
   };
 
+  // Selection helpers
+  const toggleSelect = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.size === filtered.length) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filtered.map((i) => i.id)));
+    }
+  };
+
+  const clearSelection = () => {
+    setSelectedIds(new Set());
+    setBulkAction(null);
+    setBulkResult("");
+  };
+
+  // Bulk category change
+  const handleBulkCategoryChange = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkLoading(true);
+    setBulkResult("");
+    try {
+      const res = await fetch("/api/admin/pricebook/bulk", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), category: bulkCategory }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBulkResult(`Error: ${data.error}`);
+      } else {
+        setBulkResult(`Updated ${data.updated} items to ${bulkCategory.replace("_", " ")}`);
+        setItems((prev) =>
+          prev.map((i) => (selectedIds.has(i.id) ? { ...i, category: bulkCategory } : i))
+        );
+        clearSelection();
+        router.refresh();
+      }
+    } catch {
+      setBulkResult("Bulk update failed — network error");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  // Bulk HCP sync
+  const handleBulkHcpSync = async () => {
+    // Filter to only active items with HCP material links
+    const syncableIds = Array.from(selectedIds).filter((id) => {
+      const item = items.find((i) => i.id === id);
+      return item && item.is_active && item.hcp_uuid && item.hcp_type === "material";
+    });
+
+    if (syncableIds.length === 0) {
+      setBulkResult("No active HCP materials selected to sync");
+      return;
+    }
+
+    setBulkLoading(true);
+    setBulkResult("");
+    try {
+      const res = await fetch("/api/admin/pricebook/bulk", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: syncableIds }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBulkResult(`Error: ${data.error}`);
+      } else {
+        const parts = [`Synced: ${data.synced}`];
+        if (data.skipped > 0) parts.push(`Skipped: ${data.skipped}`);
+        if (data.failed > 0) parts.push(`Failed: ${data.failed}`);
+        setBulkResult(parts.join(" | "));
+        clearSelection();
+      }
+    } catch {
+      setBulkResult("HCP sync failed — network error");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
   return (
     <div>
+      {/* Bulk action bar */}
+      {selectedIds.size > 0 && (
+        <div className="sticky top-0 z-40 mb-3 p-3 bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-800 rounded-lg flex flex-wrap items-center gap-3">
+          <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+            {selectedIds.size} selected
+          </span>
+
+          {/* Change Category */}
+          <div className="flex items-center gap-1.5">
+            <select
+              value={bulkCategory}
+              onChange={(e) => setBulkCategory(e.target.value as PricebookCategory)}
+              className="px-2 py-1 text-sm rounded border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            >
+              {CATEGORY_OPTIONS.map((c) => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+            </select>
+            <button
+              onClick={handleBulkCategoryChange}
+              disabled={bulkLoading}
+              className="px-3 py-1 text-sm font-medium rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            >
+              Change Category
+            </button>
+          </div>
+
+          {/* Update HCP */}
+          <button
+            onClick={handleBulkHcpSync}
+            disabled={bulkLoading}
+            className="px-3 py-1 text-sm font-medium rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+          >
+            {bulkLoading ? "Syncing..." : "Update HCP"}
+          </button>
+
+          <button
+            onClick={clearSelection}
+            className="px-3 py-1 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 ml-auto"
+          >
+            Clear
+          </button>
+
+          {bulkResult && (
+            <span className="w-full text-sm text-gray-600 dark:text-gray-400 mt-1">
+              {bulkResult}
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Toolbar */}
       <div className="flex flex-col gap-3 mb-4">
         <div className="flex flex-wrap items-center gap-2">
@@ -357,7 +523,10 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
           {CATEGORIES.map((cat) => (
             <button
               key={cat.value}
-              onClick={() => setCategoryFilter(cat.value)}
+              onClick={() => {
+                setCategoryFilter(cat.value);
+                setSubcategoryFilter("all");
+              }}
               className={`px-3 py-1 text-sm rounded-full transition-colors ${
                 categoryFilter === cat.value
                   ? "bg-blue-600 text-white"
@@ -367,6 +536,20 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
               {cat.label}
             </button>
           ))}
+
+          {/* Subcategory dropdown — only when a specific category is selected and subcategories exist */}
+          {categoryFilter !== "all" && subcategories.length > 0 && (
+            <select
+              value={subcategoryFilter}
+              onChange={(e) => setSubcategoryFilter(e.target.value)}
+              className="px-2 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            >
+              <option value="all">All subcategories ({subcategories.length})</option>
+              {subcategories.map((sub) => (
+                <option key={sub} value={sub}>{sub}</option>
+              ))}
+            </select>
+          )}
 
           {/* Search */}
           <input
@@ -406,6 +589,14 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-700 border-b border-gray-200 dark:border-gray-700">
+                  <th className="px-3 py-3 w-10">
+                    <input
+                      type="checkbox"
+                      checked={filtered.length > 0 && selectedIds.size === filtered.length}
+                      onChange={toggleSelectAll}
+                      className="rounded"
+                    />
+                  </th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">
                     Name
                   </th>
@@ -438,8 +629,16 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
                   return (
                     <tr
                       key={item.id}
-                      className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+                      className={`border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${!item.is_active ? "opacity-60" : ""}`}
                     >
+                      <td className="px-3 py-3 w-10">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.has(item.id)}
+                          onChange={() => toggleSelect(item.id)}
+                          className="rounded"
+                        />
+                      </td>
                       <td className="px-4 py-3">
                         <div className="font-medium text-gray-900 dark:text-gray-100">
                           {item.display_name}
@@ -534,12 +733,20 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
                   className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4"
                 >
                   <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <div className="font-medium text-gray-900 dark:text-gray-100">
-                        {item.display_name}
-                      </div>
-                      <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 capitalize">
-                        {item.category.replace("_", " ")}
+                    <div className="flex items-start gap-2">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(item.id)}
+                        onChange={() => toggleSelect(item.id)}
+                        className="rounded mt-1"
+                      />
+                      <div>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                          {item.display_name}
+                        </div>
+                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 capitalize">
+                          {item.category.replace("_", " ")}
+                        </div>
                       </div>
                     </div>
                     {hcpBadge(item)}
