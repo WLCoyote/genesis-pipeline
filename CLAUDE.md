@@ -56,6 +56,50 @@ Genesis Pipeline is the sales engine for Genesis Refrigeration & HVAC (Monroe, W
 
 ---
 
+## **Checkpoint Protocol**
+
+Context windows and Claude Code Max usage limits are finite. Auto-compact will trigger without warning and lose session context. Usage limits can cut a session short mid-task. **Always checkpoint manually before either happens.**
+
+### **When to Checkpoint**
+
+* Context usage hits ~70% (watch the indicator in the Claude Code window)
+* You're deep into a long agentic run with heavy tool use — session quota burns faster than conversation
+* Before switching to a new phase in the build plan
+* After any major architectural decision or schema change
+* Before ending a working session for the day
+
+### **Usage Limit Awareness (Claude Code Max 5x)**
+
+Claude Code Max has tiered usage limits:
+* **Per-session:** Heavy tool use and long agentic runs consume session quota faster than conversation. Watch for slowdowns or usage warnings.
+* **Weekly:** Usage resets on a weekly cycle — checkpoint at the end of each work session so the next session can pick up cleanly regardless of where the reset lands.
+* **If a limit is hit mid-task:** Stop, run the full checkpoint sequence below, then wait for reset. Never leave docs out of sync because usage ran out.
+
+### **How to Checkpoint**
+
+When you see any trigger, stop what you're doing and run this full sequence **before** continuing, compacting, or ending the session:
+
+1. **Update `docs/Build_Plan_Genesis_HVAC_v2_1.md`** — mark completed tasks, update current phase status, note what's next
+2. **Update `docs/Genesis_Pipeline_PRD_v4.0.md`** — capture any scope changes, decisions, or feature clarifications made this session
+3. **Update `docs/Genesis_Pipeline_Architecture_v4.0.md`** — document any schema changes, new routes, or structural decisions
+4. **Update `CLAUDE.md`** — update the Build Status table to reflect current state, add any new Quick Guards discovered this session
+5. **Git commit** — commit all code and doc changes with a message like `checkpoint: [brief description of session progress]`
+6. **Run `/compact`** with a focused summary — example: `/compact Focus: completed Phase 6.3 pricebook bulk actions, next is Phase 6.5 quote builder. Key decisions: using server actions not API routes for quote saves.`
+
+### **Manual Checkpoint Command**
+
+If I say **"checkpoint"**, run the full sequence above without asking for specifics. Use your knowledge of what we accomplished this session to write accurate updates.
+
+### **Compact Summary Format**
+
+When running `/compact`, always include:
+* What phase/task we just completed
+* What's next
+* Any key architectural decisions made this session
+* Any unresolved blockers
+
+---
+
 ## **Project Reference Docs**
 
 These are the source of truth. **Read them before making decisions** — don't rely on memory or assumptions about the project.
