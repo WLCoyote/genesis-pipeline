@@ -129,6 +129,30 @@ export default function PricebookManager({ initialItems, initialCategories, init
   const [newSupplierName, setNewSupplierName] = useState("");
   const [supplierSaving, setSupplierSaving] = useState(false);
 
+  // Bulk edit modal
+  const [bulkEditOpen, setBulkEditOpen] = useState(false);
+  const [bulkEditForm, setBulkEditForm] = useState({
+    category: "",
+    manufacturer: "",
+    model_number: "",
+    system_type: "",
+    efficiency_rating: "",
+    refrigerant_type: "",
+    description: "",
+    hcp_category_name: "",
+    supplier_id: "",
+    part_number: "",
+    unit_of_measure: "",
+    rebate_amount: "",
+    spec_line: "",
+    taxable: "" as "" | "true" | "false",
+    is_commissionable: "" as "" | "true" | "false",
+    is_addon: "" as "" | "true" | "false",
+    addon_default_checked: "" as "" | "true" | "false",
+    is_active: "" as "" | "true" | "false",
+  });
+  const [bulkEditSaving, setBulkEditSaving] = useState(false);
+
   // Import state
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState("");
@@ -629,6 +653,75 @@ export default function PricebookManager({ initialItems, initialCategories, init
     }
   };
 
+  // Bulk edit — apply non-empty fields to all selected items
+  const handleBulkEdit = async () => {
+    if (selectedIds.size === 0) return;
+    setBulkEditSaving(true);
+    setBulkResult("");
+
+    // Build fields object — only include non-empty values
+    const fields: Record<string, unknown> = {};
+
+    const textFields = [
+      "category", "manufacturer", "model_number", "system_type",
+      "efficiency_rating", "refrigerant_type", "description",
+      "hcp_category_name", "part_number", "unit_of_measure", "spec_line",
+    ] as const;
+
+    for (const key of textFields) {
+      if (bulkEditForm[key]) {
+        fields[key] = bulkEditForm[key];
+      }
+    }
+
+    if (bulkEditForm.supplier_id) {
+      fields.supplier_id = bulkEditForm.supplier_id;
+    }
+
+    if (bulkEditForm.rebate_amount) {
+      fields.rebate_amount = parseFloat(bulkEditForm.rebate_amount);
+    }
+
+    // Boolean fields — only include if explicitly set
+    const boolFields = ["taxable", "is_commissionable", "is_addon", "addon_default_checked", "is_active"] as const;
+    for (const key of boolFields) {
+      if (bulkEditForm[key] === "true") fields[key] = true;
+      else if (bulkEditForm[key] === "false") fields[key] = false;
+    }
+
+    if (Object.keys(fields).length === 0) {
+      setBulkResult("No fields to update — fill in at least one field");
+      setBulkEditSaving(false);
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/admin/pricebook/bulk", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), action: "edit", fields }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBulkResult(`Error: ${data.error}`);
+      } else {
+        setBulkResult(`Updated ${data.updated} items`);
+        // Update local state with returned items
+        if (data.items) {
+          const updatedMap = new Map<string, PricebookItem>(data.items.map((i: PricebookItem) => [i.id, i]));
+          setItems((prev) => prev.map((i) => updatedMap.get(i.id) ?? i));
+        }
+        setBulkEditOpen(false);
+        clearSelection();
+        router.refresh();
+      }
+    } catch {
+      setBulkResult("Bulk edit failed — network error");
+    } finally {
+      setBulkEditSaving(false);
+    }
+  };
+
   // Bulk HCP sync
   const handleBulkHcpSync = async () => {
     // Filter to only active items with HCP material links
@@ -675,6 +768,24 @@ export default function PricebookManager({ initialItems, initialCategories, init
           <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
             {selectedIds.size} selected
           </span>
+
+          {/* Bulk Edit */}
+          <button
+            onClick={() => {
+              setBulkEditForm({
+                category: "", manufacturer: "", model_number: "", system_type: "",
+                efficiency_rating: "", refrigerant_type: "", description: "",
+                hcp_category_name: "", supplier_id: "", part_number: "",
+                unit_of_measure: "", rebate_amount: "", spec_line: "",
+                taxable: "", is_commissionable: "", is_addon: "",
+                addon_default_checked: "", is_active: "",
+              });
+              setBulkEditOpen(true);
+            }}
+            className="px-3 py-1 text-sm font-medium rounded bg-purple-600 text-white hover:bg-purple-700"
+          >
+            Bulk Edit
+          </button>
 
           {/* Change Category */}
           <div className="flex items-center gap-1.5">
@@ -1746,6 +1857,233 @@ export default function PricebookManager({ initialItems, initialCategories, init
                   className="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
                 >
                   {supplierSaving ? "Adding..." : "Add Supplier"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Bulk Edit Modal */}
+      {bulkEditOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/40 dark:bg-black/60"
+            onClick={() => setBulkEditOpen(false)}
+          />
+          <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
+                Bulk Edit
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+                Editing {selectedIds.size} item{selectedIds.size !== 1 ? "s" : ""}. Only filled fields will be updated.
+              </p>
+
+              <div className="space-y-4">
+                {/* Category */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Category</label>
+                  <select
+                    value={bulkEditForm.category}
+                    onChange={(e) => setBulkEditForm({ ...bulkEditForm, category: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  >
+                    <option value="">— No change —</option>
+                    {categories.map((c) => (
+                      <option key={c.slug} value={c.slug}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Manufacturer + Model */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Manufacturer</label>
+                    <input
+                      type="text"
+                      value={bulkEditForm.manufacturer}
+                      onChange={(e) => setBulkEditForm({ ...bulkEditForm, manufacturer: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="No change"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Model Number</label>
+                    <input
+                      type="text"
+                      value={bulkEditForm.model_number}
+                      onChange={(e) => setBulkEditForm({ ...bulkEditForm, model_number: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="No change"
+                    />
+                  </div>
+                </div>
+
+                {/* System Type + Efficiency */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">System Type</label>
+                    <input
+                      type="text"
+                      value={bulkEditForm.system_type}
+                      onChange={(e) => setBulkEditForm({ ...bulkEditForm, system_type: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="No change"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Efficiency Rating</label>
+                    <input
+                      type="text"
+                      value={bulkEditForm.efficiency_rating}
+                      onChange={(e) => setBulkEditForm({ ...bulkEditForm, efficiency_rating: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="No change"
+                    />
+                  </div>
+                </div>
+
+                {/* Refrigerant + Supplier */}
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Refrigerant Type</label>
+                    <select
+                      value={bulkEditForm.refrigerant_type}
+                      onChange={(e) => setBulkEditForm({ ...bulkEditForm, refrigerant_type: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="">— No change —</option>
+                      {REFRIGERANT_OPTIONS.map((r) => (
+                        <option key={r.value} value={r.value}>{r.label}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Supplier</label>
+                    <select
+                      value={bulkEditForm.supplier_id}
+                      onChange={(e) => setBulkEditForm({ ...bulkEditForm, supplier_id: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    >
+                      <option value="">— No change —</option>
+                      {suppliers.map((s) => (
+                        <option key={s.id} value={s.id}>{s.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                {/* Subcategory */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Subcategory</label>
+                  <input
+                    type="text"
+                    value={bulkEditForm.hcp_category_name}
+                    onChange={(e) => setBulkEditForm({ ...bulkEditForm, hcp_category_name: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    placeholder="No change"
+                  />
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Description</label>
+                  <textarea
+                    value={bulkEditForm.description}
+                    onChange={(e) => setBulkEditForm({ ...bulkEditForm, description: e.target.value })}
+                    rows={2}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    placeholder="No change"
+                  />
+                </div>
+
+                {/* Spec Line */}
+                <div>
+                  <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Spec Line</label>
+                  <input
+                    type="text"
+                    value={bulkEditForm.spec_line}
+                    onChange={(e) => setBulkEditForm({ ...bulkEditForm, spec_line: e.target.value })}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    placeholder="No change"
+                  />
+                </div>
+
+                {/* Part Number + UOM + Rebate */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Part Number</label>
+                    <input
+                      type="text"
+                      value={bulkEditForm.part_number}
+                      onChange={(e) => setBulkEditForm({ ...bulkEditForm, part_number: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="No change"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Unit of Measure</label>
+                    <input
+                      type="text"
+                      value={bulkEditForm.unit_of_measure}
+                      onChange={(e) => setBulkEditForm({ ...bulkEditForm, unit_of_measure: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="No change"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Rebate ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={bulkEditForm.rebate_amount}
+                      onChange={(e) => setBulkEditForm({ ...bulkEditForm, rebate_amount: e.target.value })}
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="No change"
+                    />
+                  </div>
+                </div>
+
+                {/* Boolean toggles — tri-state: no change / yes / no */}
+                <div className="grid grid-cols-2 gap-3">
+                  {([
+                    ["taxable", "Taxable"],
+                    ["is_commissionable", "Commissionable"],
+                    ["is_addon", "Add-on"],
+                    ["addon_default_checked", "Add-on Pre-checked"],
+                    ["is_active", "Active"],
+                  ] as const).map(([key, label]) => (
+                    <div key={key}>
+                      <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">{label}</label>
+                      <select
+                        value={bulkEditForm[key]}
+                        onChange={(e) => setBulkEditForm({ ...bulkEditForm, [key]: e.target.value as "" | "true" | "false" })}
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      >
+                        <option value="">— No change —</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => setBulkEditOpen(false)}
+                  className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleBulkEdit}
+                  disabled={bulkEditSaving}
+                  className="px-4 py-2 text-sm font-medium rounded-md bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+                >
+                  {bulkEditSaving ? "Updating..." : `Update ${selectedIds.size} Items`}
                 </button>
               </div>
             </div>

@@ -114,6 +114,43 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ updated, total: items.length, percent });
   }
 
+  if (action === "edit") {
+    const { fields } = body as { fields: Record<string, unknown> };
+    if (!fields || typeof fields !== "object" || Object.keys(fields).length === 0) {
+      return NextResponse.json({ error: "fields object is required" }, { status: 400 });
+    }
+
+    // Only allow known pricebook_items columns
+    const allowedFields = [
+      "category", "display_name", "spec_line", "description",
+      "unit_price", "cost", "unit_of_measure", "manufacturer",
+      "model_number", "part_number", "is_addon", "addon_default_checked",
+      "applicable_system_types", "is_commissionable", "rebate_amount",
+      "taxable", "is_active", "hcp_category_name",
+      "system_type", "efficiency_rating", "refrigerant_type", "supplier_id",
+    ];
+
+    const updates: Record<string, unknown> = {};
+    for (const [key, value] of Object.entries(fields)) {
+      if (allowedFields.includes(key)) {
+        updates[key] = value;
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json({ error: "No valid fields to update" }, { status: 400 });
+    }
+
+    const { data, error } = await supabase
+      .from("pricebook_items")
+      .update(updates)
+      .in("id", ids)
+      .select();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ updated: data?.length || 0, items: data });
+  }
+
   // Legacy: if no action specified, treat as category change (backward compat)
   const { category } = body as { category: string };
   if (category) {
