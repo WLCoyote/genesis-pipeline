@@ -1510,12 +1510,11 @@ export default function PricebookManager({ initialItems, initialCategories, init
                       onChange={(e) => {
                         const newCost = e.target.value;
                         const updates: Partial<typeof form> = { cost: newCost };
-                        // Auto-suggest price for markup-eligible categories (skip if manual price)
+                        // Auto-fill price from markup tier (unless manual price is on)
                         if (
                           !form.manual_price &&
                           markupCategories.includes(form.category) &&
-                          newCost &&
-                          !form.unit_price
+                          newCost
                         ) {
                           const costNum = parseFloat(newCost);
                           const tier = findTier(costNum);
@@ -1530,31 +1529,6 @@ export default function PricebookManager({ initialItems, initialCategories, init
                     />
                   </div>
                 </div>
-                {/* Markup suggestion hint (hidden when manual price is on) */}
-                {!form.manual_price &&
-                  markupCategories.includes(form.category) &&
-                  form.cost &&
-                  (() => {
-                    const costNum = parseFloat(form.cost);
-                    const tier = findTier(costNum);
-                    if (!tier || isNaN(costNum)) return null;
-                    const suggested = (costNum * tier.multiplier).toFixed(2);
-                    return (
-                      <p className="text-xs text-gray-500 dark:text-gray-400 -mt-2">
-                        Suggested: ${suggested} (Tier {tier.tier_number} — {tier.multiplier}x markup)
-                        {form.unit_price !== suggested && form.unit_price && (
-                          <button
-                            type="button"
-                            onClick={() => setForm({ ...form, unit_price: suggested })}
-                            className="ml-2 text-blue-600 dark:text-blue-400 hover:underline"
-                          >
-                            Apply
-                          </button>
-                        )}
-                      </p>
-                    );
-                  })()}
-
                 {/* Manual price checkbox — shown only for markup-eligible categories */}
                 {markupCategories.includes(form.category) && (
                   <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 -mt-1">
