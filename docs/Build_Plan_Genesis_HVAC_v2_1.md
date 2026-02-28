@@ -252,99 +252,98 @@ SQL migration `013_markup_tiers.sql`:
 - **Category management modal**: "+" button next to category pills to add new categories.
 - API routes: `GET/POST /api/admin/pricebook/categories`, `GET/POST /api/admin/pricebook/suppliers`, bulk PUT extended with `action` routing (category, activate, deactivate, price_adjust, edit).
 
-### Step 6.6: Quote Builder — NOT STARTED
+### Step 6.6A: Database Migrations — NOT STARTED
+
+SQL migration `sql/018_quote_builder_schema.sql`:
+
+**New tables:**
+- `quote_templates` — name, description, system_type, created_by FK users, is_shared, is_active
+- `quote_template_tiers` — template_id FK CASCADE, tier_number (1–3), tier_name, tagline, feature_bullets JSONB, is_recommended, image_url (Supabase Storage)
+- `quote_template_items` — template_tier_id FK CASCADE, pricebook_item_id FK, quantity, is_addon, addon_default_checked, sort_order
+- `estimate_line_items` — estimate_id FK CASCADE, pricebook_item_id FK, option_group (1–3), display_name, spec_line, description, quantity, unit_price, line_total, is_addon, is_selected, sort_order, hcp_option_id
+- `financing_plans` — plan_code UNIQUE, label, fee_pct, months, apr, is_default, is_active, synchrony_url, display_order. Seed: Plan 930 (11.60%, 25mo, 0% APR, default), Plan 980 (8.70%, 37mo, 5.99%), Plan 943 (8.70%, 132mo, 9.99%)
+- `proposal_engagement` — estimate_id FK, event_type CHECK, option_group, financing_plan, session_seconds, device_type, occurred_at. RLS: anon INSERT (public proposal page), authenticated SELECT via estimates join.
+- `large_job_tags` — tag_name UNIQUE, is_active. Seed: "Remodel", "New Con"
+
+**New columns on `estimates`:** proposal_token, proposal_sent_at, proposal_signed_at, proposal_signed_name, proposal_signature_data, proposal_signed_ip, proposal_pdf_url, selected_financing_plan_id FK, payment_schedule_type, tax_rate, tax_amount, subtotal, template_id FK.
+
+**Types:** Add QuoteTemplate, QuoteTemplateTier, QuoteTemplateItem, EstimateLineItem, FinancingPlan, ProposalEngagement, LargeJobTag interfaces to `lib/types.ts`. Extend Estimate with new columns.
+
+### Step 6.6B: Quote Templates CRUD — NOT STARTED
+
+**API routes:**
+- `GET/POST /api/admin/quote-templates` — list (shared + own) / create
+- `GET/PUT/DELETE /api/admin/quote-templates/[id]` — full template with tiers + items / update / soft-delete
+- `POST /api/admin/quote-templates/[id]/image` — upload tier system image to Supabase Storage bucket `system-images`
+
+**Frontend:**
+- `app/dashboard/admin/quote-templates/page.tsx` — server page
+- `app/components/QuoteTemplateManager.tsx` — template list with search/filter, create/edit modal with 3 tier panels (name, tagline, feature bullets, is_recommended, image upload, pricebook item picker for tier items + addon items)
+
+Templates are pre-built packages: 3 tiers (Good/Better/Best) each with equipment, labor, materials, and recommended add-ons. Any user can create templates. System images are per-tier (represent the package, not individual items).
+
+### Step 6.6C: Quote Builder — NOT STARTED
 
 New page: `/dashboard/quotes/new`
 
-- Customer lookup (search existing) or create new customer
-- Select items from pricebook by category. Build up to 3 option groups.
-- Add add-ons (checkbox items shown separately on proposal)
-- PM Plan pre-checked by default
-- Real-time total calculation per option group
-- "Create Estimate" button: saves to `estimates` + `estimate_line_items`, generates `proposal_token`
+Sections: customer lookup/create → template selector → 3 tier builders (name, tagline, feature bullets, image, pricebook items + quantities) → addon picker → tax section → financing selection → summary panel → "Create Estimate" button.
 
-Requires new tables: `estimate_line_items`, `financing_plans`, `large_job_tags`. Add columns to `estimates` for proposal/tax/financing fields.
+**Workflow:** Pick a template to pre-populate tiers, or start from scratch. Everything editable. Prices snapshot from pricebook at creation time.
+
+**API routes:**
+- `GET /api/customers/search?q=` — search customers by name/email/phone
+- `POST /api/quotes/create` — creates estimate + estimate_line_items + generates proposal_token (crypto.randomBytes 32 hex). Estimate number format: `GEN-{sequential}`
+
+### Step 6.6D: Financing Plans CRUD — NOT STARTED
+
+**API routes:** `GET/POST /api/admin/financing-plans`, `PUT/DELETE /api/admin/financing-plans/[id]` — admin CRUD, editable table (MarkupTiersEditor pattern). Monthly payment formula: `financed_total = invoice / (1 - fee_pct)`, `monthly = financed_total / months`.
 
 ### Step 6.7: HCP Sync on Quote Creation — NOT STARTED
 
-When estimate is created in Pipeline:
-1. POST to HCP API to create customer (if new)
-2. POST to HCP API to create estimate with line items from pricebook
-3. Store `hcp_estimate_id` and `hcp_option_id` on local records
+New `lib/hcp-estimate.ts`: `createHcpCustomer()`, `createHcpEstimate()`. Called at end of quote creation. If sync fails, Pipeline estimate still created — show warning, allow manual retry via `POST /api/estimates/[id]/sync-hcp`.
 
 ### Step 6.8: WA DOR Tax Lookup — NOT STARTED
 
-Create `lib/tax.ts`:
-- `getTaxRate(address)` calls WA DOR API
-- Fallback: 9.2% if API unavailable
-- Cache rate on estimate record
+New `lib/tax.ts`: `getTaxRate(address, city, zip)` calls WA DOR API at `webgis.dor.wa.gov/webapi/addressrates.aspx?output=json`. Fallback: 9.2%. Timeout: 5s. New API route: `GET /api/tax/lookup?address=&city=&zip=`.
 
 ---
 
 ## PHASE 7: Proposal Engine — NOT STARTED
 
-Branded customer-facing proposal pages. See PRD v4.0 Section 4.
+Interactive customer-facing proposal page. Design defined in `docs/genesis-proposal-interactive.html`. Dark navy/blue/orange theme with Barlow Condensed + Lato fonts.
 
-### Step 7.1: Custom Domains
+### Step 7.1: Proposal Page
 
-1. Add CNAME records in Namecheap: `app.genesishvacr.com` and `proposals.genesishvacr.com` → `genesis-pipeline.vercel.app`
-2. Add both custom domains in Vercel project settings
-3. Update Supabase auth redirect URLs
-4. Update `NEXT_PUBLIC_SITE_URL` env var
+New page: `app/proposals/[token]/page.tsx` — **no auth**, token-gated. Standalone layout (no DashboardShell). Dark theme always (explicit Tailwind colors, no `dark:` prefix).
 
-**VERIFY:** Both domains resolve. Dashboard loads at `app.genesishvacr.com`. Proposal route accessible at `proposals.genesishvacr.com`.
+**Component directory: `app/components/proposal/`**
+- `ProposalPage.tsx` — main wrapper, state: selectedTier, selectedAddons, selectedPlan, priceMode (monthly/full/cash), customerName, signatureData
+- `ProposalHeader.tsx` — logo, customer info, price guarantee badge
+- `TierCards.tsx` — Good/Better/Best cards with system image, brand/model, SEER, feature bullets, cash price, monthly, select button. "Most Popular" badge on is_recommended tier.
+- `AddonCards.tsx` — checkbox cards with prices, pre-checked from template config
+- `FinancingCalculator.tsx` — plan dropdown, live monthly recalculation: `financed = total / (1 - fee_pct)`, `monthly = financed / months`
+- `PaymentSchedule.tsx` — visual timeline (50/50 standard or 50/25/25/1000 large_job)
+- `WhyGenesis.tsx` — reviews + company story (from settings table JSONB: `proposal_reviews`, `proposal_company_story`)
+- `SignatureBlock.tsx` — name input + drawn signature canvas (react-signature-canvas) + "Approve Proposal"
+- `StickyBottomBar.tsx` — selected package, addon tags, running total, CTA
 
-### Step 7.2: Database — Proposal Tables
+**Dependencies to add:** `react-signature-canvas`, `@react-pdf/renderer`
 
-Create SQL migration for:
-- `proposal_engagement` — estimate_id, event_type (page_open/option_view/calculator_open/plan_selected/addon_checked/addon_unchecked/signature_started/signed), option_group, financing_plan, session_seconds, device_type, occurred_at.
+### Step 7.2: Engagement Tracking
 
-RLS: public insert (no auth — customer interactions), read scoped to estimate owner + admin.
+`POST /api/proposals/[token]/engage` — public, no auth. Events: page_open, option_view, calculator_open, plan_selected, addon_checked/unchecked, signature_started, signed. Session timing via visibilitychange.
 
-**VERIFY:** Table created. Public insert works without auth.
+### Step 7.3: Signature + PDF Generation
 
-### Step 7.3: Proposal Page
+`POST /api/proposals/[token]/sign` — public, no auth. Body: customer_name, signature_data, selected_tier, selected_addon_ids, financing_plan_id. Steps: validate token → record signature → update line items is_selected → set estimate status=won → generate PDF via `@react-pdf/renderer` (`lib/proposal-pdf.ts`) → upload to Supabase Storage → HCP sync (approve/decline options) → send confirmation email with PDF → fire notifications.
 
-New page: `/app/proposals/[token]/page.tsx`
+### Step 7.4: Proposal Tracking in Dashboard
 
-Light theme (NOT dark mode). No auth required. Token-gated — invalid token shows 404.
+**New components:**
+- `ProposalEngagementPanel.tsx` — shows on estimate detail when proposal_token exists: total opens, last opened, time on page, most viewed option, financing interactions, addon changes, timeline
+- `LineItemsView.tsx` — displays estimate_line_items grouped by option_group (replaces OptionsList for Pipeline-built estimates)
 
-Layout per PRD v4.0 Section 4.2:
-1. Header — Genesis logo, comfort pro name/avatar, date
-2. Hero — personalized greeting, service address
-3. Price toggle — Monthly (default) / Full Price / Cash Price
-4. Equipment option cards — display name, spec line, description, price per toggle, rebate badge, "Select This Option"
-5. Financing calculator — Synchrony plan dropdown, real-time monthly payment, dealer fee, cash savings, "Apply for Financing" link
-6. Add-ons — checkbox cards, PM Plan pre-checked, real-time total update
-7. Payment schedule — standard (50/50) or large-job (50/25/25/1000) based on tags
-8. Why Genesis — Google reviews, company story
-9. Signature block — summary, name field, signature canvas, "Approve Proposal" button
-10. Footer — logo, phone, website, license, comfort pro contact
-
-**Dependencies to add:** `react-signature-canvas`, `@react-pdf/renderer`, `shadcn/ui`
-
-**VERIFY:** Proposal page renders with test data. All sections display correctly. Responsive on mobile.
-
-### Step 7.4: Proposal API Routes
-
-- POST `/api/proposals/[token]/engage` — public, no auth. Records engagement events to `proposal_engagement`.
-- POST `/api/proposals/[token]/sign` — public, no auth. Records signature, IP, timestamp. Generates signed PDF. Updates estimate status to won. Fires HCP approval. Sends confirmation email with PDF.
-
-**VERIFY:** Engagement events recorded. Signature captured. PDF generated. HCP updated. Confirmation email sent.
-
-### Step 7.5: Proposal Tracking in Dashboard
-
-Estimate detail page shows engagement data:
-- Total opens, last open date
-- Which option viewed most
-- Calculator interactions
-- Financing plan selected
-- Time on page
-- Device type
-
-Comfort pro sees this before making follow-up calls (Day 3 and Day 14 call tasks reference this data).
-
-**VERIFY:** Engagement data visible on estimate detail. Updates in real-time.
+**Modified:** estimate detail page (dual data model: line_items for Pipeline-built, options for HCP-polled), EstimateActions (add "View Proposal" + "Resend Proposal" buttons)
 
 ---
 

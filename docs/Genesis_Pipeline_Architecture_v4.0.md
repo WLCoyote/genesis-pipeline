@@ -300,11 +300,16 @@ RLS: all authenticated can SELECT, admin only for write. Seeded with Gensco, Fer
 | snooze_until | TIMESTAMPTZ | NULL unless snoozed. Cron skips sequence steps while snoozed. |
 | snooze_note | TEXT | Required when snoozing. Reason for pause. |
 | auto_decline_date | DATE | Calculated from `sent_date + auto_decline_days` setting. |
-| proposal_token | TEXT UNIQUE | Secure random token for proposal URL. `proposals.genesishvacr.com/[token]` |
+| proposal_token | TEXT UNIQUE | Secure random token for proposal URL. `/proposals/[token]` |
+| proposal_sent_at | TIMESTAMPTZ | When proposal link was sent to customer. |
 | proposal_signed_at | TIMESTAMPTZ | When customer signed the proposal. NULL until signed. |
+| proposal_signed_name | TEXT | Customer's typed name on signature. |
+| proposal_signature_data | TEXT | Base64 drawn signature canvas data. NULL if typed only. |
 | proposal_signed_ip | TEXT | IP address of signing device. Legal record. |
 | proposal_pdf_url | TEXT | Supabase Storage URL of signed proposal PDF. |
-| selected_financing_plan | TEXT | Which Synchrony plan customer selected at signing. e.g., "930" |
+| selected_financing_plan_id | UUID FK → financing_plans | Which financing plan customer selected at signing. |
+| subtotal | DECIMAL(10,2) | Pre-tax total for the signed option + addons. |
+| template_id | UUID FK → quote_templates | Which template was used to build this quote. NULL if built from scratch. |
 | payment_schedule_type | ENUM | `standard` \| `large_job`. Determined by HCP tags at estimate creation. |
 | online_estimate_url | TEXT | HCP customer-facing URL if manually set. Not auto-populated (HCP API does not expose it). |
 
@@ -321,6 +326,55 @@ RLS: all authenticated can SELECT, admin only for write. Seeded with Gensco, Fer
 | multiplier | DECIMAL(5,2) NOT NULL | e.g., 7.00, 2.25, 1.75. Markup % = (multiplier - 1) x 100. Profit % = (1 - 1/multiplier) x 100. |
 
 RLS: all authenticated can SELECT, admin only for write. Seeded with 11 default tiers. Labor calculator inputs stored in `settings` table as JSONB (key: `labor_calculator`).
+
+#### quote_templates
+
+*Pre-built quote packages with 3 tiers (Good/Better/Best). Any user can create templates. Templates define equipment, labor, materials, and recommended add-ons per tier.*
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| name | TEXT NOT NULL | Template name, e.g., "Lennox Furnace + AC Replacement" |
+| description | TEXT | Optional description |
+| system_type | TEXT | e.g., "heat_pump", "furnace_ac", "mini_split" |
+| created_by | UUID FK → users | Who created the template |
+| is_shared | BOOLEAN | Default false. When true, visible to all users. |
+| is_active | BOOLEAN | Default true. Soft-delete sets to false. |
+
+RLS: authenticated SELECT where `is_shared = true OR created_by = auth.uid()`. Owner + admin write.
+
+#### quote_template_tiers
+
+*Per-tier metadata: name, tagline, feature bullets, system image. Each template has up to 3 tiers.*
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| template_id | UUID FK → quote_templates | ON DELETE CASCADE |
+| tier_number | INTEGER CHECK 1–3 | 1=Good, 2=Better, 3=Best |
+| tier_name | TEXT NOT NULL | e.g., "Standard Comfort" |
+| tagline | TEXT | e.g., "Reliable performance at an honest price" |
+| feature_bullets | JSONB | String array of customer-facing selling points |
+| is_recommended | BOOLEAN | Default false. Shows "Most Popular" badge on proposal. |
+| image_url | TEXT | Supabase Storage path for system package image |
+
+UNIQUE(template_id, tier_number). RLS mirrors parent.
+
+#### quote_template_items
+
+*Pricebook items assigned to each tier. Includes both tier equipment/labor and addon items.*
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| template_tier_id | UUID FK → quote_template_tiers | ON DELETE CASCADE |
+| pricebook_item_id | UUID FK → pricebook_items | Source pricebook item |
+| quantity | DECIMAL(10,2) | Default 1 |
+| is_addon | BOOLEAN | Default false. True = shown as optional checkbox on proposal |
+| addon_default_checked | BOOLEAN | Default false. Pre-checked addons on proposal |
+| sort_order | INTEGER | Display order within tier |
+
+RLS mirrors parent template.
 
 #### estimate_line_items
 

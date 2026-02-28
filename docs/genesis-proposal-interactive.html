@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Genesis HVAC — Your Custom Comfort Proposal</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800;900&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy-deep: #050d1a;
+  --navy: #091526;
+  --navy-mid: #0e2040;
+  --navy-card: #0c1c35;
+  --navy-border: #1a3357;
+  --blue: #1565c0;
+  --blue-bright: #1e88e5;
+  --blue-glow: #42a5f5;
+  --orange: #e65100;
+  --orange-bright: #ff6d00;
+  --orange-glow: #ff8f00;
+  --gold: #f9a825;
+  --green: #00c853;
+  --white: #ffffff;
+  --off-white: #e8edf5;
+  --gray: #7a8fa8;
+  --gray-light: #b0bec5;
+  --text: #cdd8e8;
+  --shadow-blue: rgba(30, 136, 229, 0.3);
+  --shadow-orange: rgba(255, 109, 0, 0.35);
+}
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Lato', sans-serif;
+  background: var(--navy-deep);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ─── ANIMATIONS ─── */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+@keyframes pulse-border {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(30,136,229,0.4), 0 20px 60px rgba(0,0,0,0.5); }
+  50%       { box-shadow: 0 0 0 4px rgba(30,136,229,0.15), 0 20px 60px rgba(0,0,0,0.5); }
+}
+@keyframes glow-orange {
+  0%, 100% { box-shadow: 0 0 20px rgba(255,109,0,0.3), 0 20px 60px rgba(0,0,0,0.5); }
+  50%       { box-shadow: 0 0 40px rgba(255,109,0,0.5), 0 20px 60px rgba(0,0,0,0.5); }
+}
+@keyframes count-up {
+  from { transform: scale(1.15); color: var(--gold); }
+  to   { transform: scale(1); color: var(--white); }
+}
+@keyframes tick {
+  0%   { transform: scale(0) rotate(-20deg); opacity: 0; }
+  60%  { transform: scale(1.2) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
+@keyframes slide-in-right {
+  from { transform: translateX(30px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+/* ─── HEADER ─── */
+.header {
+  background: linear-gradient(160deg, #040b17 0%, #091a35 55%, #0d2348 100%);
+  border-bottom: 1px solid var(--navy-border);
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.5);
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 40px;
+  gap: 20px;
+}
+.logo-wrap { display: flex; align-items: center; gap: 14px; }
+.logo-flame {
+  width: 46px; height: 46px;
+  background: linear-gradient(135deg, var(--blue), #0d47a1);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  box-shadow: 0 0 20px rgba(21,101,192,0.5);
+  flex-shrink: 0;
+}
+.logo-text-main {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--white);
+  line-height: 1;
+}
+.logo-sub {
+  font-size: 9px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--blue-glow);
+  margin-top: 3px;
+}
+.logo-tagline {
+  font-size: 11px;
+  color: var(--gray);
+  font-style: italic;
+  margin-top: 1px;
+}
+
+.header-customer {
+  display: flex;
+  gap: 28px;
+  align-items: center;
+}
+.hc-field { display: flex; flex-direction: column; align-items: flex-end; }
+.hc-label { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--gray); }
+.hc-value { font-size: 13px; font-weight: 700; color: var(--off-white); }
+
+.price-guarantee {
+  background: linear-gradient(135deg, var(--orange), var(--orange-bright));
+  color: white;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px var(--shadow-orange);
+}
+
+/* ─── HERO ─── */
+.hero {
+  background: linear-gradient(180deg, #091a35 0%, #050d1a 100%);
+  padding: 44px 40px 36px;
+  text-align: center;
+  border-bottom: 1px solid var(--navy-border);
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  top: -100px; left: 50%;
+  transform: translateX(-50%);
+  width: 700px; height: 300px;
+  background: radial-gradient(ellipse, rgba(21,101,192,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.hero-eyebrow {
+  font-size: 10px;
+  letter-spacing: 5px;
+  text-transform: uppercase;
+  color: var(--blue-glow);
+  margin-bottom: 10px;
+}
+.hero-title {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 48px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--white);
+  line-height: 1;
+  margin-bottom: 10px;
+}
+.hero-title span { color: var(--blue-glow); }
+.hero-sub { font-size: 15px; color: var(--gray); max-width: 560px; margin: 0 auto; line-height: 1.6; }
+.step-indicators {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+.step-dot {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 11px; color: var(--gray);
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--navy-border);
+  background: rgba(255,255,255,0.03);
+  transition: all 0.3s;
+}
+.step-dot.active { color: var(--white); border-color: var(--blue-bright); background: rgba(21,101,192,0.15); }
+.step-dot .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+/* ─── SECTION WRAPPER ─── */
+.section {
+  padding: 52px 40px;
+  animation: fadeUp 0.6s ease both;
+}
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 32px;
+}
+.section-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 48px;
+  font-weight: 900;
+  color: rgba(30,136,229,0.2);
+  line-height: 1;
+  user-select: none;
+}
+.section-info h2 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--white);
+  line-height: 1;
+}
+.section-info p { font-size: 13px; color: var(--gray); margin-top: 3px; }
+.divider { height: 1px; background: linear-gradient(90deg, var(--navy-border) 0%, transparent 80%); margin-bottom: 32px; }
+
+/* ─── TIER CARDS ─── */
+.tiers-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 12px;
+}
+
+.tier-card {
+  background: var(--navy-card);
+  border: 1.5px solid var(--navy-border);
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.25s, border-color 0.25s, box-shadow 0.25s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  user-select: none;
+}
+.tier-card:hover { transform: translateY(-5px); }
+.tier-card.selected-good {
+  border-color: var(--gray);
+  box-shadow: 0 0 0 2px rgba(120,144,156,0.3), 0 20px 60px rgba(0,0,0,0.5);
+}
+.tier-card.selected-better {
+  border-color: var(--blue-bright);
+  box-shadow: 0 0 0 2px rgba(30,136,229,0.2), 0 20px 60px rgba(0,0,0,0.5);
+  animation: pulse-border 3s ease infinite;
+}
+.tier-card.selected-best {
+  border-color: var(--orange-bright);
+  box-shadow: 0 0 0 2px rgba(255,109,0,0.2), 0 20px 60px rgba(0,0,0,0.5);
+  animation: glow-orange 3s ease infinite;
+}
+
+/* Popular banner */
+.popular-banner {
+  background: linear-gradient(90deg, var(--blue) 0%, var(--blue-bright) 100%);
+  text-align: center;
+  padding: 7px 12px;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: white;
+}
+.no-banner { height: 32px; background: rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; }
+.no-banner span { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--gray); }
+
+/* Tier head */
+.tier-head {
+  padding: 20px 22px 16px;
+}
+.tier-badge-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.tier-badge {
+  font-size: 9px;
+  font-weight: 900;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.badge-good  { background: rgba(120,144,156,0.15); color: var(--gray-light); border: 1px solid rgba(120,144,156,0.3); }
+.badge-better{ background: rgba(21,101,192,0.2); color: var(--blue-glow); border: 1px solid rgba(30,136,229,0.3); }
+.badge-best  { background: rgba(230,81,0,0.2); color: var(--orange-glow); border: 1px solid rgba(255,109,0,0.3); }
+
+.tier-name {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 36px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--white);
+  line-height: 1;
+}
+.tier-tagline { font-size: 12px; color: var(--gray); margin-top: 3px; }
+
+/* Equipment image */
+.equip-img-wrap {
+  position: relative;
+  height: 185px;
+  overflow: hidden;
+  border-top: 1px solid var(--navy-border);
+  border-bottom: 1px solid var(--navy-border);
+  background: linear-gradient(135deg, #06111f 0%, #0b1e36 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.equip-img-wrap img {
+  height: 160px;
+  width: auto;
+  max-width: 92%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.6));
+  transition: transform 0.3s;
+}
+.tier-card:hover .equip-img-wrap img { transform: scale(1.04); }
+.equip-overlay {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(0deg, rgba(6,17,31,0.9) 0%, transparent 100%);
+  padding: 10px 16px 8px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.equip-brand-name { font-size: 11px; font-weight: 700; color: var(--off-white); }
+.equip-model { font-size: 10px; color: var(--gray); }
+.seer-tag {
+  font-size: 10px;
+  font-weight: 900;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: rgba(0,200,83,0.15);
+  color: var(--green);
+  border: 1px solid rgba(0,200,83,0.25);
+  white-space: nowrap;
+}
+
+/* Features list */
+.tier-features {
+  padding: 14px 22px;
+  flex: 1;
+}
+.feat-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: var(--text);
+}
+.feat-item:last-child { border-bottom: none; }
+.feat-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+.feat-item.muted { color: var(--gray); }
+.feat-item strong { color: var(--white); font-weight: 700; }
+
+/* Pricing block */
+.tier-pricing {
+  padding: 16px 22px 20px;
+  border-top: 1px solid var(--navy-border);
+  background: rgba(0,0,0,0.2);
+}
+.price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.price-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--gray);
+  margin-bottom: 2px;
+}
+.cash-num {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 46px;
+  font-weight: 900;
+  color: var(--white);
+  line-height: 1;
+  letter-spacing: -1px;
+}
+.monthly-box {
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.monthly-box-good   { background: rgba(120,144,156,0.08); border: 1px solid rgba(120,144,156,0.2); }
+.monthly-box-better { background: rgba(21,101,192,0.12); border: 1px solid rgba(30,136,229,0.25); }
+.monthly-box-best   { background: rgba(230,81,0,0.1);  border: 1px solid rgba(255,109,0,0.25); }
+.mo-left {}
+.mo-amount { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 900; color: var(--white); }
+.mo-per { font-size: 11px; color: var(--gray); margin-top: 1px; }
+.mo-terms { font-size: 10px; color: var(--gray); text-align: right; line-height: 1.5; }
+
+.select-btn {
+  width: 100%;
+  padding: 13px;
+  border: none;
+  border-radius: 10px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.btn-good   { background: rgba(120,144,156,0.12); color: var(--gray-light); border: 1.5px solid rgba(120,144,156,0.3); }
+.btn-better { background: linear-gradient(135deg, var(--blue), var(--blue-bright)); color: white; box-shadow: 0 6px 20px var(--shadow-blue); }
+.btn-best   { background: linear-gradient(135deg, var(--orange), var(--orange-bright)); color: white; box-shadow: 0 6px 20px var(--shadow-orange); }
+.btn-good:hover   { background: rgba(120,144,156,0.2); border-color: rgba(120,144,156,0.6); color: var(--white); }
+.btn-better:hover { box-shadow: 0 10px 28px var(--shadow-blue); transform: translateY(-2px); }
+.btn-best:hover   { box-shadow: 0 10px 28px var(--shadow-orange); transform: translateY(-2px); }
+
+/* Selected overlay */
+.selected-check {
+  display: none;
+  position: absolute;
+  top: 42px; right: 14px;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 900;
+  z-index: 5;
+  animation: tick 0.35s ease both;
+}
+.tier-card.selected-good  .selected-check { display: flex; background: rgba(120,144,156,0.3); }
+.tier-card.selected-better .selected-check { display: flex; background: var(--blue); }
+.tier-card.selected-best  .selected-check { display: flex; background: var(--orange); }
+
+/* ─── ADDONS ─── */
+.addons-section {
+  padding: 0 40px 52px;
+  animation: fadeUp 0.6s 0.1s ease both;
+}
+.addons-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 14px;
+}
+.addon-card {
+  background: var(--navy-card);
+  border: 1.5px solid var(--navy-border);
+  border-radius: 14px;
+  padding: 16px 18px;
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+.addon-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(21,101,192,0.08), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.addon-card:hover { border-color: rgba(30,136,229,0.4); }
+.addon-card:hover::before { opacity: 1; }
+.addon-card.active { border-color: var(--blue-bright); background: rgba(21,101,192,0.1); }
+.addon-card.active::before { opacity: 1; }
+
+.addon-img {
+  width: 52px; height: 52px; flex-shrink: 0;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(21,101,192,0.15), rgba(21,101,192,0.05));
+  border: 1px solid rgba(21,101,192,0.2);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px;
+  transition: transform 0.2s;
+}
+.addon-card.active .addon-img { transform: scale(1.05); }
+
+.addon-content { flex: 1; min-width: 0; }
+.addon-name { font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 3px; }
+.addon-desc { font-size: 11px; color: var(--gray); line-height: 1.4; }
+
+.addon-right { text-align: right; flex-shrink: 0; }
+.addon-price-cash { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; color: var(--white); }
+.addon-price-mo { font-size: 10px; color: var(--blue-glow); margin-top: 1px; }
+
+.addon-check {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--navy-border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.addon-card.active .addon-check {
+  background: var(--blue-bright);
+  border-color: var(--blue-bright);
+  animation: tick 0.3s ease;
+}
+
+/* ─── SUMMARY STRIP ─── */
+.summary-strip {
+  position: sticky;
+  bottom: 0;
+  z-index: 90;
+  background: rgba(5, 13, 26, 0.97);
+  border-top: 1px solid var(--navy-border);
+  backdrop-filter: blur(20px);
+  padding: 0 40px;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.6);
+}
+.summary-inner {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 14px 0;
+  min-height: 74px;
+}
+.summary-pkg {
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+}
+.summary-pkg-label { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--gray); }
+.summary-pkg-name  { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: var(--white); line-height: 1.1; }
+.summary-divider { width: 1px; height: 40px; background: var(--navy-border); flex-shrink: 0; }
+.summary-addons {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.summary-tag {
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(21,101,192,0.15);
+  border: 1px solid rgba(30,136,229,0.25);
+  color: var(--blue-glow);
+  animation: slide-in-right 0.3s ease;
+}
+.summary-no-addons { font-size: 12px; color: var(--gray); font-style: italic; }
+.summary-totals {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.sum-total { text-align: right; }
+.sum-label { font-size: 9px; text-transform: uppercase; letter-spacing: 2px; color: var(--gray); }
+.sum-amount {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 34px;
+  font-weight: 900;
+  color: var(--white);
+  line-height: 1;
+  transition: color 0.3s;
+}
+.sum-amount.updated { animation: count-up 0.4s ease; }
+.sum-mo { font-size: 11px; color: var(--blue-glow); }
+
+.cta-accept {
+  background: linear-gradient(135deg, var(--orange), var(--orange-bright));
+  color: white;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 28px;
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 6px 20px var(--shadow-orange);
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.cta-accept:hover { transform: translateY(-2px); box-shadow: 0 10px 30px var(--shadow-orange); }
+.cta-accept:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+/* ─── WHY GENESIS ─── */
+.why-section {
+  padding: 0 40px 52px;
+  animation: fadeUp 0.6s 0.2s ease both;
+}
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 14px;
+}
+.why-card {
+  background: var(--navy-card);
+  border: 1.5px solid var(--navy-border);
+  border-radius: 14px;
+  padding: 22px 16px;
+  text-align: center;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.why-card:hover { border-color: rgba(30,136,229,0.3); transform: translateY(-3px); }
+.why-icon { font-size: 28px; margin-bottom: 10px; }
+.why-title { font-size: 13px; font-weight: 700; color: var(--white); margin-bottom: 5px; }
+.why-desc  { font-size: 11px; color: var(--gray); line-height: 1.5; }
+.star-row  { color: var(--gold); font-size: 12px; margin-bottom: 4px; }
+
+/* ─── FINANCING ─── */
+.fin-section {
+  padding: 0 40px 52px;
+  animation: fadeUp 0.6s 0.25s ease both;
+}
+.fin-bar {
+  background: linear-gradient(135deg, rgba(21,101,192,0.12) 0%, rgba(21,101,192,0.04) 100%);
+  border: 1px solid rgba(30,136,229,0.2);
+  border-radius: 16px;
+  padding: 24px 32px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+.fin-icon { font-size: 36px; flex-shrink: 0; }
+.fin-text h3 { font-size: 17px; font-weight: 700; color: var(--white); margin-bottom: 4px; }
+.fin-text p  { font-size: 12px; color: var(--gray); line-height: 1.5; }
+.fin-pills { margin-left: auto; display: flex; gap: 12px; flex-shrink: 0; }
+.fin-pill {
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--navy-border);
+  border-radius: 10px;
+  padding: 10px 18px;
+  text-align: center;
+}
+.fin-pill-rate { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: var(--white); }
+.fin-pill-term { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--gray); margin-top: 1px; }
+
+/* ─── SIGNATURE ─── */
+.sig-section {
+  padding: 0 40px 120px;
+  animation: fadeUp 0.6s 0.3s ease both;
+}
+.sig-card {
+  background: var(--navy-card);
+  border: 1.5px solid var(--navy-border);
+  border-radius: 18px;
+  padding: 36px 40px;
+}
+.sig-card h3 {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: 26px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--white);
+  margin-bottom: 6px;
+}
+.sig-card .sig-note { font-size: 13px; color: var(--gray); margin-bottom: 28px; line-height: 1.6; }
+.sig-fields {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 24px;
+}
+.sig-field label {
+  display: block;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: var(--gray);
+  margin-bottom: 8px;
+}
+.sig-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1.5px solid var(--navy-border);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: var(--white);
+  font-family: 'Lato', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.sig-input:focus { border-color: var(--blue-bright); }
+.sig-input::placeholder { color: var(--gray); font-style: italic; }
+
+/* Selected summary in sig */
+.sig-selection-preview {
+  background: rgba(21,101,192,0.08);
+  border: 1px solid rgba(30,136,229,0.2);
+  border-radius: 10px;
+  padding: 14px 18px;
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+.sig-sel-left { font-size: 13px; color: var(--text); line-height: 1.6; }
+.sig-sel-left strong { color: var(--white); }
+.sig-sel-right { text-align: right; flex-shrink: 0; }
+.sig-sel-cash  { font-family: 'Barlow Condensed', sans-serif; font-size: 32px; font-weight: 900; color: var(--white); }
+.sig-sel-mo    { font-size: 12px; color: var(--blue-glow); }
+
+/* ─── FOOTER ─── */
+.footer {
+  background: #030a14;
+  border-top: 1px solid var(--navy-border);
+  padding: 20px 40px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--gray);
+  line-height: 1.8;
+}
+.footer strong { color: var(--off-white); }
+
+/* ─── UTILITY ─── */
+.empty-state { font-size: 13px; color: var(--gray); font-style: italic; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 900px) {
+  .tiers-grid { grid-template-columns: 1fr; }
+  .addons-grid { grid-template-columns: 1fr 1fr; }
+  .why-grid { grid-template-columns: 1fr 1fr; }
+  .header-inner { flex-wrap: wrap; padding: 12px 20px; }
+  .section, .addons-section, .why-section, .fin-section, .sig-section { padding-left: 20px; padding-right: 20px; }
+  .summary-strip { padding: 0 20px; }
+  .summary-inner { flex-wrap: wrap; gap: 12px; padding: 12px 0; }
+  .fin-bar { flex-direction: column; }
+  .sig-fields { grid-template-columns: 1fr; }
+  .header-customer { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo-wrap">
+      <div class="logo-flame">❄</div>
+      <div>
+        <div class="logo-text-main">Genesis</div>
+        <div class="logo-sub">Heating · Cooling · Refrigeration</div>
+        <div class="logo-tagline">Comfort You Can Trust</div>
+      </div>
+    </div>
+    <div class="header-customer">
+      <div class="hc-field">
+        <span class="hc-label">Customer</span>
+        <span class="hc-value">John Smith</span>
+      </div>
+      <div class="hc-field">
+        <span class="hc-label">Address</span>
+        <span class="hc-value">Monroe, WA</span>
+      </div>
+      <div class="hc-field">
+        <span class="hc-label">Proposal #</span>
+        <span class="hc-value">GEN-1021</span>
+      </div>
+      <div class="hc-field">
+        <span class="hc-label">Date</span>
+        <span class="hc-value">May 10, 2026</span>
+      </div>
+      <div class="hc-field">
+        <span class="hc-label">Technician</span>
+        <span class="hc-value">Mike Johnson</span>
+      </div>
+    </div>
+    <div class="price-guarantee">⏰ Price Guaranteed 30 Days</div>
+  </div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-eyebrow">✦ Your personalized estimate</div>
+  <div class="hero-title">Build Your <span>Perfect</span> Comfort System</div>
+  <div class="hero-sub">Select your equipment package below, customize with add-ons, and see your total update in real time. No pressure — just clarity.</div>
+  <div class="step-indicators">
+    <div class="step-dot active" id="step1dot"><span class="dot"></span> 1. Choose Package</div>
+    <div class="step-dot" id="step2dot"><span class="dot"></span> 2. Add Upgrades</div>
+    <div class="step-dot" id="step3dot"><span class="dot"></span> 3. Review & Accept</div>
+  </div>
+</div>
+
+<!-- TIER SECTION -->
+<div class="section">
+  <div class="section-label">
+    <div class="section-num">01</div>
+    <div class="section-info">
+      <h2>Choose Your Package</h2>
+      <p>Click a tier to select it — your running total updates instantly below.</p>
+    </div>
+  </div>
+  <div class="divider"></div>
+
+  <div class="tiers-grid">
+
+    <!-- GOOD -->
+    <div class="tier-card" id="card-good" onclick="selectTier('good')">
+      <div class="selected-check">✓</div>
+      <div class="no-banner"><span>Standard Option</span></div>
+      <div class="tier-head">
+        <div class="tier-badge-row">
+          <span class="tier-badge badge-good">⚙ Good</span>
+        </div>
+        <div class="tier-name">Standard<br>Comfort</div>
+        <div class="tier-tagline">Reliable performance at an honest price</div>
+      </div>
+      <div class="equip-img-wrap">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Carrier_air_conditioning_unit.jpg/400px-Carrier_air_conditioning_unit.jpg"
+             onerror="this.src='https://placehold.co/320x160/0c1c35/1e88e5?text=Gas+Furnace+%2B+AC+Unit&font=montserrat'"
+             alt="Standard HVAC System">
+        <div class="equip-overlay">
+          <div>
+            <div class="equip-brand-name">Lennox Merit Series</div>
+            <div class="equip-model">ML195 Furnace + 13ACX AC</div>
+          </div>
+          <div class="seer-tag">14 SEER</div>
+        </div>
+      </div>
+      <div class="tier-features">
+        <div class="feat-item"><span class="feat-icon">✅</span><span><strong>96% AFUE</strong> Single-Stage Gas Furnace</span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span>14 SEER Central Air Conditioner</span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span>Standard programmable thermostat</span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span>5-Year Parts Manufacturer Warranty</span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span>1-Year Genesis Labor Warranty</span></div>
+        <div class="feat-item muted"><span class="feat-icon">–</span><span>Single-speed blower motor</span></div>
+        <div class="feat-item muted"><span class="feat-icon">–</span><span>No variable-speed operation</span></div>
+      </div>
+      <div class="tier-pricing">
+        <div class="price-label">Cash / Check Price</div>
+        <div class="price-row"><span class="cash-num">$9,450</span></div>
+        <div class="monthly-box monthly-box-good">
+          <div class="mo-left">
+            <div class="mo-amount">$129<small style="font-size:13px;font-weight:400">/mo</small></div>
+            <div class="mo-per">Financing Available</div>
+          </div>
+          <div class="mo-terms">Subject to<br>credit approval</div>
+        </div>
+        <button class="select-btn btn-good">Select Standard</button>
+      </div>
+    </div>
+
+    <!-- BETTER -->
+    <div class="tier-card" id="card-better" onclick="selectTier('better')">
+      <div class="selected-check">✓</div>
+      <div class="popular-banner">⭐ Most Popular — Recommended for Your Home</div>
+      <div class="tier-head">
+        <div class="tier-badge-row">
+          <span class="tier-badge badge-better">⭐ Better</span>
+        </div>
+        <div class="tier-name">Enhanced<br>Efficiency</div>
+        <div class="tier-tagline">The sweet spot of comfort & savings</div>
+      </div>
+      <div class="equip-img-wrap">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Carrier_air_conditioning_unit.jpg/400px-Carrier_air_conditioning_unit.jpg"
+             onerror="this.src='https://placehold.co/320x160/091a35/42a5f5?text=High-Efficiency+System&font=montserrat'"
+             alt="Enhanced HVAC System">
+        <div class="equip-overlay">
+          <div>
+            <div class="equip-brand-name">Lennox Elite Series</div>
+            <div class="equip-model">EL296V Furnace + 16ACX AC</div>
+          </div>
+          <div class="seer-tag">16 SEER</div>
+        </div>
+      </div>
+      <div class="tier-features">
+        <div class="feat-item"><span class="feat-icon">✅</span><span><strong>96% AFUE</strong> Two-Stage Gas Furnace</span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span>16 SEER High-Efficiency AC</span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span><strong>Variable-speed ECM blower</strong> — quieter, even temps</span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span>Wi-Fi Smart Thermostat (Honeywell T6)</span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span>10-Year Parts Manufacturer Warranty</span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span>2-Year Genesis Labor Warranty</span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span style="color:var(--green)">Up to $500 Utility Rebate Eligible</span></div>
+      </div>
+      <div class="tier-pricing">
+        <div class="price-label">Cash / Check Price</div>
+        <div class="price-row"><span class="cash-num">$12,950</span></div>
+        <div class="monthly-box monthly-box-better">
+          <div class="mo-left">
+            <div class="mo-amount">$169<small style="font-size:13px;font-weight:400">/mo</small></div>
+            <div class="mo-per">0% Financing — 18 Months</div>
+          </div>
+          <div class="mo-terms">Synchrony Bank<br>OAC</div>
+        </div>
+        <button class="select-btn btn-better">✦ Select Enhanced</button>
+      </div>
+    </div>
+
+    <!-- BEST -->
+    <div class="tier-card" id="card-best" onclick="selectTier('best')">
+      <div class="selected-check">✓</div>
+      <div class="no-banner"><span>🔥 Premium Option</span></div>
+      <div class="tier-head">
+        <div class="tier-badge-row">
+          <span class="tier-badge badge-best">🔥 Best</span>
+        </div>
+        <div class="tier-name">Premium<br>Performance</div>
+        <div class="tier-tagline">Maximum comfort, minimum energy bill</div>
+      </div>
+      <div class="equip-img-wrap">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Carrier_air_conditioning_unit.jpg/400px-Carrier_air_conditioning_unit.jpg"
+             onerror="this.src='https://placehold.co/320x160/0d1a2e/ff6d00?text=Premium+System&font=montserrat'"
+             alt="Premium HVAC System">
+        <div class="equip-overlay">
+          <div>
+            <div class="equip-brand-name">Lennox Signature Series</div>
+            <div class="equip-model">SL280V Furnace + XC21 AC</div>
+          </div>
+          <div class="seer-tag">21 SEER</div>
+        </div>
+      </div>
+      <div class="tier-features">
+        <div class="feat-item"><span class="feat-icon">✅</span><span><strong>98% AFUE</strong> Modulating Variable-Stage Furnace</span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span>21 SEER Variable-Speed AC — top in class</span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span>Lennox iComfort S30 AI Learning Thermostat</span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span>Whole-home humidity control included</span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span><strong>Lifetime Heat Exchanger Warranty</strong></span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span>10-Year Parts + 5-Year Labor Warranty</span></div>
+        <div class="feat-item"><span class="feat-icon">✅</span><span style="color:var(--green)">Up to $1,500 Tax Credit + Utility Rebates</span></div>
+      </div>
+      <div class="tier-pricing">
+        <div class="price-label">Cash / Check Price</div>
+        <div class="price-row"><span class="cash-num">$17,890</span></div>
+        <div class="monthly-box monthly-box-best">
+          <div class="mo-left">
+            <div class="mo-amount">$219<small style="font-size:13px;font-weight:400">/mo</small></div>
+            <div class="mo-per">Premium Financing</div>
+          </div>
+          <div class="mo-terms">GreenSky / Synchrony<br>OAC</div>
+        </div>
+        <button class="select-btn btn-best">🔥 Select Premium</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADDONS SECTION -->
+<div class="addons-section">
+  <div class="section-label">
+    <div class="section-num">02</div>
+    <div class="section-info">
+      <h2>Power-Up Your System</h2>
+      <p>Check any upgrade — it's added to your total instantly. All can roll into monthly payments.</p>
+    </div>
+  </div>
+  <div class="divider"></div>
+
+  <div class="addons-grid">
+
+    <div class="addon-card" id="addon-uv" onclick="toggleAddon('uv', 649, 9)">
+      <div class="addon-img">🦠</div>
+      <div class="addon-content">
+        <div class="addon-name">UV Air Purification</div>
+        <div class="addon-desc">Kills 99.9% of bacteria, mold & viruses. Ideal for allergy sufferers & families.</div>
+      </div>
+      <div class="addon-right">
+        <div class="addon-price-cash">+$649</div>
+        <div class="addon-price-mo">+$9/mo</div>
+      </div>
+      <div class="addon-check" id="check-uv"></div>
+    </div>
+
+    <div class="addon-card" id="addon-humid" onclick="toggleAddon('humid', 895, 13)">
+      <div class="addon-img">💧</div>
+      <div class="addon-content">
+        <div class="addon-name">Whole-Home Humidifier</div>
+        <div class="addon-desc">Aprilaire bypass humidifier. Protects wood floors, skin, and improves sleep quality.</div>
+      </div>
+      <div class="addon-right">
+        <div class="addon-price-cash">+$895</div>
+        <div class="addon-price-mo">+$13/mo</div>
+      </div>
+      <div class="addon-check" id="check-humid"></div>
+    </div>
+
+    <div class="addon-card" id="addon-warranty" onclick="toggleAddon('warranty', 1200, 17)">
+      <div class="addon-img">🛡️</div>
+      <div class="addon-content">
+        <div class="addon-name">5-Year Extended Labor Warranty</div>
+        <div class="addon-desc">Full parts & labor, priority scheduling, annual tune-ups included.</div>
+      </div>
+      <div class="addon-right">
+        <div class="addon-price-cash">+$1,200</div>
+        <div class="addon-price-mo">+$17/mo</div>
+      </div>
+      <div class="addon-check" id="check-warranty"></div>
+    </div>
+
+    <div class="addon-card" id="addon-duct" onclick="toggleAddon('duct', 450, 7)">
+      <div class="addon-img">🌀</div>
+      <div class="addon-content">
+        <div class="addon-name">Professional Duct Cleaning</div>
+        <div class="addon-desc">Full system vacuumed & sanitized. Improves airflow and reduces dust & allergens.</div>
+      </div>
+      <div class="addon-right">
+        <div class="addon-price-cash">+$450</div>
+        <div class="addon-price-mo">+$7/mo</div>
+      </div>
+      <div class="addon-check" id="check-duct"></div>
+    </div>
+
+    <div class="addon-card" id="addon-aeroseal" onclick="toggleAddon('aeroseal', 1800, 25)">
+      <div class="addon-img">🔒</div>
+      <div class="addon-content">
+        <div class="addon-name">Aeroseal Duct Sealing</div>
+        <div class="addon-desc">Seals leaks from inside — improves efficiency up to 30%. Computer-verified results.</div>
+      </div>
+      <div class="addon-right">
+        <div class="addon-price-cash">+$1,800</div>
+        <div class="addon-price-mo">+$25/mo</div>
+      </div>
+      <div class="addon-check" id="check-aeroseal"></div>
+    </div>
+
+    <div class="addon-card" id="addon-plan" onclick="toggleAddon('plan', 299, 4)">
+      <div class="addon-img">⭐</div>
+      <div class="addon-content">
+        <div class="addon-name">Genesis Priority Service Plan</div>
+        <div class="addon-desc">Spring + fall tune-ups, priority emergency scheduling, 15% off all repairs.</div>
+      </div>
+      <div class="addon-right">
+        <div class="addon-price-cash">+$299/yr</div>
+        <div class="addon-price-mo">+$4/mo</div>
+      </div>
+      <div class="addon-check" id="check-plan"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- WHY GENESIS -->
+<div class="why-section">
+  <div class="section-label">
+    <div class="section-num">03</div>
+    <div class="section-info">
+      <h2>Why Families Choose Genesis</h2>
+      <p>Local · Trusted · Family owned since day one.</p>
+    </div>
+  </div>
+  <div class="divider"></div>
+  <div class="why-grid">
+    <div class="why-card">
+      <div class="why-icon">👨‍👩‍👧</div>
+      <div class="why-title">Family Owned</div>
+      <div class="why-desc">Local Monroe business. You call, we answer — no call centers, ever.</div>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">⭐</div>
+      <div class="why-title">5-Star Rated</div>
+      <div class="star-row">★★★★★</div>
+      <div class="why-desc">200+ verified Google reviews from your neighbors.</div>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">🏅</div>
+      <div class="why-title">Licensed & Insured</div>
+      <div class="why-desc">WA State certified. Fully insured for your complete protection.</div>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">💳</div>
+      <div class="why-title">Easy Financing</div>
+      <div class="why-desc">Approved in minutes. Multiple 0% options for qualified buyers.</div>
+    </div>
+    <div class="why-card">
+      <div class="why-icon">💯</div>
+      <div class="why-title">100% Guarantee</div>
+      <div class="why-desc">If you're not completely satisfied, we make it right. Period.</div>
+    </div>
+  </div>
+</div>
+
+<!-- FINANCING -->
+<div class="fin-section">
+  <div class="fin-bar">
+    <div class="fin-icon">💳</div>
+    <div class="fin-text">
+      <h3>Flexible Financing — Approved in Minutes</h3>
+      <p>We partner with Synchrony Bank & GreenSky. No hard credit pull to check your rate. Finance your entire package including add-ons.</p>
+    </div>
+    <div class="fin-pills">
+      <div class="fin-pill">
+        <div class="fin-pill-rate">0%</div>
+        <div class="fin-pill-term">18-mo promo</div>
+      </div>
+      <div class="fin-pill">
+        <div class="fin-pill-rate">0%</div>
+        <div class="fin-pill-term">72-mo term</div>
+      </div>
+      <div class="fin-pill">
+        <div class="fin-pill-rate">Same Day</div>
+        <div class="fin-pill-term">Approval</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SIGNATURE -->
+<div class="sig-section">
+  <div class="section-label">
+    <div class="section-num">04</div>
+    <div class="section-info">
+      <h2>Review & Accept Your Proposal</h2>
+      <p>Your complete selection is summarized below. Sign to authorize your installation.</p>
+    </div>
+  </div>
+  <div class="divider"></div>
+
+  <div class="sig-card">
+    <h3>Authorization to Proceed</h3>
+    <p class="sig-note">By signing below, you authorize Genesis Heating, Cooling & Refrigeration to proceed with the selected installation package. A deposit of 50% is due at signing. Remaining balance due upon completion.</p>
+
+    <div class="sig-selection-preview">
+      <div class="sig-sel-left" id="sig-preview-left">
+        <strong>No package selected yet.</strong><br>
+        <span style="color:var(--gray); font-size:12px">Please choose a package above to continue.</span>
+      </div>
+      <div class="sig-sel-right">
+        <div class="sig-sel-cash" id="sig-preview-cash">—</div>
+        <div class="sig-sel-mo" id="sig-preview-mo"></div>
+      </div>
+    </div>
+
+    <div class="sig-fields">
+      <div class="sig-field">
+        <label>Customer Signature</label>
+        <input class="sig-input" type="text" placeholder="Sign your name here…">
+      </div>
+      <div class="sig-field">
+        <label>Print Name</label>
+        <input class="sig-input" type="text" placeholder="Full legal name">
+      </div>
+      <div class="sig-field">
+        <label>Date</label>
+        <input class="sig-input" type="text" id="sig-date" placeholder="Today's date">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STICKY SUMMARY STRIP -->
+<div class="summary-strip">
+  <div class="summary-inner">
+    <div class="summary-pkg">
+      <span class="summary-pkg-label">Selected Package</span>
+      <span class="summary-pkg-name" id="sum-pkg-name">Nothing selected yet</span>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-addons" id="sum-addons">
+      <span class="summary-no-addons">No add-ons yet — check boxes above ↑</span>
+    </div>
+    <div class="summary-divider"></div>
+    <div class="summary-totals">
+      <div class="sum-total">
+        <div class="sum-label">Cash Total</div>
+        <div class="sum-amount" id="sum-cash">—</div>
+      </div>
+      <div class="sum-total">
+        <div class="sum-label">Est. Monthly</div>
+        <div class="sum-amount" id="sum-mo" style="font-size:26px;">—</div>
+        <div class="sum-mo" id="sum-mo-terms"></div>
+      </div>
+    </div>
+    <button class="cta-accept" id="accept-btn" onclick="scrollToSig()" disabled>
+      ✦ Accept &amp; Schedule Install
+    </button>
+  </div>
+</div>
+
+<footer class="footer">
+  <p><strong>Genesis Heating, Cooling & Refrigeration</strong> · Monroe, WA · (360) 805-1234 · info@genesishvac.com</p>
+  <p>WA Contractor License #GENHVAC12345 · EPA 608 Certified · Lennox Premier Dealer</p>
+  <p style="margin-top:6px; max-width:780px; margin-left:auto; margin-right:auto;">
+    Financing subject to credit approval through Synchrony Bank or GreenSky. Monthly payments are estimates based on 72-month term at 0% APR for qualified buyers. Prices valid 30 days from proposal date. Equipment subject to availability. Manufacturer warranty terms apply. Rebates subject to utility provider approval.
+  </p>
+</footer>
+
+<script>
+// ─── DATA ───────────────────────────────────────────
+const tiers = {
+  good:   { name: 'Standard Comfort',    cash: 9450,  mo: 129 },
+  better: { name: 'Enhanced Efficiency', cash: 12950, mo: 169 },
+  best:   { name: 'Premium Performance', cash: 17890, mo: 219 },
+};
+
+const addonLabels = {
+  uv:       'UV Air Purification',
+  humid:    'Whole-Home Humidifier',
+  warranty: '5-Yr Extended Warranty',
+  duct:     'Duct Cleaning',
+  aeroseal: 'Aeroseal Sealing',
+  plan:     'Priority Service Plan',
+};
+
+let selectedTier = null;
+let addons = {};   // { id: { cash, mo } }
+
+// ─── TIER SELECTION ───────────────────────────────
+function selectTier(tier) {
+  // Remove old selection classes
+  ['good','better','best'].forEach(t => {
+    const c = document.getElementById('card-' + t);
+    c.classList.remove('selected-good','selected-better','selected-best');
+  });
+
+  selectedTier = tier;
+  document.getElementById('card-' + tier).classList.add('selected-' + tier);
+
+  // Update step indicators
+  document.getElementById('step1dot').classList.add('active');
+  document.getElementById('step2dot').classList.add('active');
+
+  updateSummary();
+}
+
+// ─── ADDON TOGGLE ────────────────────────────────
+function toggleAddon(id, cash, mo) {
+  const card  = document.getElementById('addon-' + id);
+  const check = document.getElementById('check-' + id);
+
+  if (addons[id]) {
+    delete addons[id];
+    card.classList.remove('active');
+    check.textContent = '';
+  } else {
+    addons[id] = { cash, mo };
+    card.classList.add('active');
+    check.textContent = '✓';
+  }
+
+  document.getElementById('step2dot').classList.add('active');
+  updateSummary();
+}
+
+// ─── SUMMARY UPDATE ──────────────────────────────
+function updateSummary() {
+  const pkgNameEl  = document.getElementById('sum-pkg-name');
+  const cashEl     = document.getElementById('sum-cash');
+  const moEl       = document.getElementById('sum-mo');
+  const moTermsEl  = document.getElementById('sum-mo-terms');
+  const addonsEl   = document.getElementById('sum-addons');
+  const acceptBtn  = document.getElementById('accept-btn');
+  const sigLeft    = document.getElementById('sig-preview-left');
+  const sigCash    = document.getElementById('sig-preview-cash');
+  const sigMo      = document.getElementById('sig-preview-mo');
+
+  if (!selectedTier) {
+    pkgNameEl.textContent = 'Nothing selected yet';
+    cashEl.textContent = '—';
+    moEl.textContent = '—';
+    moTermsEl.textContent = '';
+    acceptBtn.disabled = true;
+    return;
+  }
+
+  const tier = tiers[selectedTier];
+  let totalCash = tier.cash;
+  let totalMo   = tier.mo;
+
+  Object.values(addons).forEach(a => {
+    totalCash += a.cash;
+    totalMo   += a.mo;
+  });
+
+  // Package name
+  pkgNameEl.textContent = tier.name;
+
+  // Animate total
+  animateValue(cashEl, totalCash);
+  animateValue(moEl, totalMo, true);
+  moTermsEl.textContent = '/ month OAC';
+
+  // Add-on tags
+  const addonIds = Object.keys(addons);
+  if (addonIds.length === 0) {
+    addonsEl.innerHTML = '<span class="summary-no-addons">No add-ons selected</span>';
+  } else {
+    addonsEl.innerHTML = addonIds.map(id =>
+      `<span class="summary-tag">+ ${addonLabels[id]}</span>`
+    ).join('');
+  }
+
+  // Enable button
+  acceptBtn.disabled = false;
+
+  // Signature preview
+  const addonStr = addonIds.length > 0
+    ? '<br><span style="font-size:11px;color:var(--blue-glow)">Add-ons: ' + addonIds.map(id => addonLabels[id]).join(', ') + '</span>'
+    : '';
+  sigLeft.innerHTML = `<strong>${tier.name} Package</strong>${addonStr}`;
+  sigCash.textContent = '$' + totalCash.toLocaleString();
+  sigMo.textContent   = 'Est. $' + totalMo + '/mo';
+}
+
+function animateValue(el, value, isMo) {
+  if (isMo) {
+    el.textContent = '$' + value + '/mo';
+  } else {
+    el.textContent = '$' + value.toLocaleString();
+  }
+  el.classList.remove('updated');
+  void el.offsetWidth;
+  el.classList.add('updated');
+}
+
+// ─── SCROLL TO SIGNATURE ─────────────────────────
+function scrollToSig() {
+  document.querySelector('.sig-section').scrollIntoView({ behavior: 'smooth' });
+  document.getElementById('step3dot').classList.add('active');
+}
+
+// ─── INIT ────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Set today's date
+  const today = new Date();
+  const formatted = today.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  const dateInput = document.getElementById('sig-date');
+  if (dateInput) dateInput.value = formatted;
+
+  // Auto-select "Better" as the recommended option
+  setTimeout(() => selectTier('better'), 400);
+});
+</script>
+
+</body>
+</html>

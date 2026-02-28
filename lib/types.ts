@@ -52,6 +52,19 @@ export interface Estimate {
   snooze_note: string | null;
   auto_decline_date: string | null;
   online_estimate_url: string | null;
+  proposal_token: string | null;
+  proposal_sent_at: string | null;
+  proposal_signed_at: string | null;
+  proposal_signed_name: string | null;
+  proposal_signature_data: string | null;
+  proposal_signed_ip: string | null;
+  proposal_pdf_url: string | null;
+  selected_financing_plan_id: string | null;
+  payment_schedule_type: "standard" | "large_job";
+  tax_rate: number | null;
+  tax_amount: number | null;
+  subtotal: number | null;
+  template_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -271,11 +284,102 @@ export interface LaborCalculatorInputs {
   desired_profit_pct: number;
 }
 
+// Quote templates — pre-built packages with 3 tiers (Good/Better/Best)
+export interface QuoteTemplate {
+  id: string;
+  name: string;
+  description: string | null;
+  system_type: string | null;
+  created_by: string;
+  is_shared: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuoteTemplateTier {
+  id: string;
+  template_id: string;
+  tier_number: number;
+  tier_name: string;
+  tagline: string | null;
+  feature_bullets: string[];
+  is_recommended: boolean;
+  image_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface QuoteTemplateItem {
+  id: string;
+  template_tier_id: string;
+  pricebook_item_id: string;
+  quantity: number;
+  is_addon: boolean;
+  addon_default_checked: boolean;
+  sort_order: number;
+}
+
+// Estimate line items — replaces estimate_options for Pipeline-built quotes
+export interface EstimateLineItem {
+  id: string;
+  estimate_id: string;
+  pricebook_item_id: string | null;
+  option_group: number;
+  display_name: string;
+  spec_line: string | null;
+  description: string | null;
+  quantity: number;
+  unit_price: number;
+  line_total: number;
+  is_addon: boolean;
+  is_selected: boolean;
+  sort_order: number;
+  hcp_option_id: string | null;
+  created_at: string;
+}
+
+// Financing plans — admin-managed, used by proposal calculator
+export interface FinancingPlan {
+  id: string;
+  plan_code: string;
+  label: string;
+  fee_pct: number;
+  months: number;
+  apr: number;
+  is_default: boolean;
+  is_active: boolean;
+  synchrony_url: string | null;
+  display_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Proposal engagement — tracks customer interactions on proposal page
+export interface ProposalEngagement {
+  id: string;
+  estimate_id: string;
+  event_type: string;
+  option_group: number | null;
+  financing_plan: string | null;
+  session_seconds: number | null;
+  device_type: string | null;
+  occurred_at: string;
+}
+
+// Large job tags — trigger 4-payment schedule on proposal
+export interface LargeJobTag {
+  id: string;
+  tag_name: string;
+  is_active: boolean;
+}
+
 // Joined types used in UI queries
 export interface EstimateWithRelations extends Estimate {
   customers: Customer;
   users?: Pick<User, "id" | "name" | "email">;
   follow_up_events?: FollowUpEvent[];
   estimate_options?: EstimateOption[];
+  estimate_line_items?: EstimateLineItem[];
   messages?: Message[];
 }

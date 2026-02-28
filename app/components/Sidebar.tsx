@@ -25,6 +25,8 @@ const navItems: NavItem[] = [
   { href: "/dashboard/admin", label: "Overview", roles: ["admin"] },
   { href: "/dashboard/admin/sequences", label: "Sequences", roles: ["admin"] },
   { href: "/dashboard/admin/pricebook", label: "Pricebook", roles: ["admin"] },
+  { href: "/dashboard/admin/quote-templates", label: "Templates", roles: ["admin"] },
+  { href: "/dashboard/admin/financing-plans", label: "Financing Plans", roles: ["admin"] },
   { href: "/dashboard/admin/settings", label: "Settings", roles: ["admin"] },
   { href: "/dashboard/admin/team", label: "Team", roles: ["admin"] },
   { href: "/dashboard/import", label: "Import CSV", roles: ["admin"] },

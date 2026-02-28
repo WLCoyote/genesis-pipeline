@@ -170,7 +170,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 (pricebook) partially complete — CRUD, HCP sync, pricing tools, bulk actions all live.
+Phases 0–3 complete. Phase 4 in progress. Phase 6 (pricebook) complete. Quote builder schema + templates + financing plans built.
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -181,8 +181,16 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 (pricebook) partially comple
 | Phase 4 | Deployment & E2E testing | In progress — blocked on A2P campaign approval for outbound SMS |
 | Phase 5 | Team launch | Not started |
 | Phase 6.1–6.5 | Pricebook CRUD, HCP import/sync, markup tiers, labor calc, manual price flag, bulk recalculate from tiers, bulk actions, cascading nav, dynamic categories, suppliers, bulk edit, refrigerant indicators, rich HCP descriptions | **Complete** |
-| Phase 6.6+ | Quote builder, HCP sync on quote, WA DOR tax | Not started |
-| Phase 7 | Proposal engine (branded pages, signatures) | Not started |
+| Phase 6.6A | Database migrations (quote templates, estimate line items, financing plans, proposal engagement, large job tags + estimate columns) | **Complete** |
+| Phase 6.6B | Quote templates CRUD (admin/user template management) | **Complete** |
+| Phase 6.6C | Quote builder page (customer lookup, template/item selection, tier builder, create estimate) | Not started |
+| Phase 6.6D | Financing plans CRUD | **Complete** |
+| Phase 6.7 | HCP sync on quote creation | Not started |
+| Phase 6.8 | WA DOR tax lookup | Not started |
+| Phase 7.1 | Proposal page (customer-facing interactive page, dark theme, tier cards, addons, financing calculator) | Not started |
+| Phase 7.2 | Engagement tracking (page opens, option views, calculator use) | Not started |
+| Phase 7.3 | Signature + PDF generation | Not started |
+| Phase 7.4 | Proposal tracking in dashboard | Not started |
 | Phase 8 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
 | v0.2 | HCP webhooks, analytics | Future |

@@ -85,11 +85,47 @@
 | `/api/admin/labor-calculator` | GET | Read saved labor calculator inputs from settings (any authenticated user) |
 | `/api/admin/labor-calculator` | PUT | Save labor calculator inputs to settings (admin only) |
 
+### Quote Templates
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/api/admin/quote-templates` | GET | List templates (shared + own). Filters: `?system_type=`, `?search=` |
+| `/api/admin/quote-templates` | POST | Create template with tiers + items (any authenticated user) |
+| `/api/admin/quote-templates/[id]` | GET | Full template with tiers + items (owner or shared) |
+| `/api/admin/quote-templates/[id]` | PUT | Update template (owner or admin) |
+| `/api/admin/quote-templates/[id]` | DELETE | Soft-delete template (owner or admin) |
+| `/api/admin/quote-templates/[id]/image` | POST | Upload tier system image to Supabase Storage (owner or admin) |
+
+### Financing Plans
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/api/admin/financing-plans` | GET | List all financing plans (any authenticated user) |
+| `/api/admin/financing-plans` | POST | Create financing plan (admin only) |
+| `/api/admin/financing-plans/[id]` | PUT | Update financing plan (admin only) |
+| `/api/admin/financing-plans/[id]` | DELETE | Soft-delete financing plan (admin only) |
+
+### Quote Builder
+
+| Route | Method | Purpose |
+|-------|--------|---------|
+| `/api/customers/search` | GET | Search customers by name/email/phone. `?q=` (any authenticated user) |
+| `/api/quotes/create` | POST | Create estimate + line items + generate proposal_token (admin, comfort_pro) |
+| `/api/tax/lookup` | GET | WA DOR tax rate lookup. `?address=&city=&zip=` (any authenticated user) |
+| `/api/estimates/[id]/sync-hcp` | POST | Manual retry HCP sync for failed quote syncs (admin, estimate owner) |
+
 ### Data Import
 
 | Route | Method | Purpose |
 |-------|--------|---------|
 | `/api/import/csv` | POST | CSV estimate import from HCP export |
+
+### Proposal (Public — no auth, token-gated)
+
+| Route | Method | Auth | Purpose |
+|-------|--------|------|---------|
+| `/api/proposals/[token]/engage` | POST | None (public) | Record engagement event (page_open, option_view, etc.) |
+| `/api/proposals/[token]/sign` | POST | None (public) | Sign proposal — capture signature, generate PDF, mark estimate won, HCP sync |
 
 ## Cross-App API (Command Layer / inter-app)
 
