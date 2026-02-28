@@ -70,11 +70,15 @@
 | `/api/admin/hcp-lead-sources` | GET | Sync lead source options from HCP API |
 | `/api/admin/pricebook` | GET | List pricebook items (filters: `?category=`, `?search=`, `?active=`) |
 | `/api/admin/pricebook` | POST | Create pricebook item (admin only) |
-| `/api/admin/pricebook/[id]` | PUT | Update item + HCP sync (admin only) |
+| `/api/admin/pricebook/[id]` | PUT | Update item + HCP sync with rich description (admin only) |
 | `/api/admin/pricebook/[id]` | DELETE | Soft-delete item (set inactive, admin only) |
 | `/api/admin/pricebook/import` | POST | Bootstrap import all materials + services from HCP (additive only, admin) |
-| `/api/admin/pricebook/bulk` | PUT | Bulk update category for selected items (admin only) |
+| `/api/admin/pricebook/bulk` | PUT | Bulk actions: `action=category\|activate\|deactivate\|price_adjust\|edit` (admin only) |
 | `/api/admin/pricebook/bulk` | POST | Bulk sync selected active materials to HCP (admin only) |
+| `/api/admin/pricebook/categories` | GET | List active pricebook categories (any authenticated user) |
+| `/api/admin/pricebook/categories` | POST | Create new category with name + hcp_type (admin only) |
+| `/api/admin/pricebook/suppliers` | GET | List active pricebook suppliers (any authenticated user) |
+| `/api/admin/pricebook/suppliers` | POST | Create new supplier (admin only) |
 | `/api/admin/markup-tiers` | GET | List all markup tiers ordered by tier_number (any authenticated user) |
 | `/api/admin/markup-tiers` | PUT | Replace all markup tiers (admin sends full array, delete + re-insert, admin only) |
 | `/api/admin/labor-calculator` | GET | Read saved labor calculator inputs from settings (any authenticated user) |

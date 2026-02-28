@@ -246,6 +246,38 @@ Also stores QBO OAuth tokens (encrypted) and HCP lead source cache.
 | hcp_category_name | TEXT | HCP category display name. |
 | system_type | TEXT | System type for equipment (e.g., Heat Pump, Furnace). |
 | efficiency_rating | TEXT | Efficiency rating for equipment (e.g., 14 SEER2, 16 SEER2). |
+| refrigerant_type | TEXT | Refrigerant type (e.g., R-410A, R-22, R-454B). Used for colored indicator dots. |
+| supplier_id | UUID FK → pricebook_suppliers | Which distributor/vendor this item comes from. NULL = unassigned. |
+
+#### pricebook_categories
+
+*Built in Phase 6.5. Dynamic categories replacing hardcoded CHECK constraint. Admin can add new categories.*
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| name | TEXT UNIQUE | Display name (e.g., "Equipment", "Accessory"). |
+| slug | TEXT UNIQUE | URL-safe key used in code (e.g., "equipment", "accessory"). |
+| hcp_type | ENUM | `material` \| `service`. Determines HCP sync behavior. |
+| display_order | INTEGER | Sort order for category pills. |
+| is_active | BOOLEAN | Inactive categories hidden from UI. |
+
+RLS: all authenticated can SELECT, admin only for write. Seeded with 6 defaults: Equipment, Labor, Material, Add-On, Service Plan, Accessory.
+
+#### pricebook_suppliers
+
+*Built in Phase 6.5. Tracks distributors/vendors for future API price feed integrations.*
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| name | TEXT UNIQUE | Supplier name (e.g., "Gensco", "Ferguson"). |
+| slug | TEXT UNIQUE | Auto-generated URL-safe key. |
+| api_type | TEXT | Identifies API client to use. `gensco`, `ferguson`, `manual`, null. |
+| api_config | JSONB | Future: endpoint URL, credentials, sync schedule per supplier. |
+| is_active | BOOLEAN | |
+
+RLS: all authenticated can SELECT, admin only for write. Seeded with Gensco, Ferguson, Johnstone Supply, RE Michel, Manual Entry.
 
 #### estimates
 
@@ -450,11 +482,13 @@ These routes are called by the dashboard UI. They require an authenticated Supab
 
 | `/api/admin/pricebook` | GET | List pricebook items (filters: `?category=`, `?search=`, `?active=`). |
 | `/api/admin/pricebook` | POST | Create pricebook item. Admin only. |
-| `/api/admin/pricebook/[id]` | PUT | Update item + auto-sync to HCP (materials). Admin only. |
+| `/api/admin/pricebook/[id]` | PUT | Update item + auto-sync to HCP (materials). Rich description includes specs. Admin only. |
 | `/api/admin/pricebook/[id]` | DELETE | Soft-delete (set inactive). Admin only. |
 | `/api/admin/pricebook/import` | POST | Import all materials + services from HCP (additive only). Admin only. |
-| `/api/admin/pricebook/bulk` | PUT | Bulk update category for selected items. Admin only. |
+| `/api/admin/pricebook/bulk` | PUT | Bulk actions: `action=category\|activate\|deactivate\|price_adjust\|edit`. Admin only. |
 | `/api/admin/pricebook/bulk` | POST | Bulk sync selected active materials to HCP. Admin only. |
+| `/api/admin/pricebook/categories` | GET/POST | List/create dynamic pricebook categories. Admin write, any auth read. |
+| `/api/admin/pricebook/suppliers` | GET/POST | List/create pricebook suppliers. Admin write, any auth read. |
 | `/api/admin/markup-tiers` | GET/PUT | Read/replace markup tier table. Admin write, any auth read. |
 | `/api/admin/labor-calculator` | GET/PUT | Read/save labor calculator inputs (settings JSONB). Admin write. |
 

@@ -237,7 +237,20 @@ SQL migration `013_markup_tiers.sql`:
   - Material/Labor/Addon/Service Plan: Subcategory dropdown (from `hcp_category_name`)
 - Modal supports subcategory, system_type, and efficiency_rating combo fields (select existing or type new)
 
-### Step 6.5: Quote Builder — NOT STARTED
+### Step 6.5: Dynamic Categories, Suppliers, Bulk Edit & Pricing Tools ✅ COMPLETE
+
+- **Dynamic categories** (`pricebook_categories` table, sql/015): replaces hardcoded CHECK constraint. Admin can add new categories with HCP type (material/service). Seeded: Equipment, Labor, Material, Add-On, Service Plan, Accessory.
+- **Supplier tracking** (`pricebook_suppliers` table, sql/016): tracks which distributor/vendor an item comes from. `api_type` field for future API integrations (Gensco, Ferguson, etc.). Supplier dropdown + inline add in create/edit modal.
+- **Bulk price adjust**: percentage-based increase/decrease applied to both cost and unit_price for selected items. For supplier price changes.
+- **Bulk activate/deactivate**: buttons in action bar for selected items.
+- **Bulk edit modal**: select multiple items → full edit form. Only filled fields applied. Covers category, manufacturer, model, system type, efficiency, refrigerant, supplier, subcategory, description, spec line, part number, UOM, rebate, and all boolean toggles (tri-state: no change / yes / no).
+- **Brand column**: replaced redundant Category column in table with manufacturer/brand (category pills handle filtering).
+- **Refrigerant indicators**: colored dots in dedicated column. R-410A (pink), R-22 (green), R-454B (gray/red ring), R-32 (blue/green ring), R-134A (light blue), R-404A (orange), R-290 (silver/red ring). Dropdown in create/edit modal.
+- **Rich HCP descriptions**: sync to HCP now includes description, manufacturer, model, system type, efficiency, refrigerant, and spec line in the description field (HCP API only supports name + description for spec data).
+- **Category management modal**: "+" button next to category pills to add new categories.
+- API routes: `GET/POST /api/admin/pricebook/categories`, `GET/POST /api/admin/pricebook/suppliers`, bulk PUT extended with `action` routing (category, activate, deactivate, price_adjust, edit).
+
+### Step 6.6: Quote Builder — NOT STARTED
 
 New page: `/dashboard/quotes/new`
 
@@ -250,14 +263,14 @@ New page: `/dashboard/quotes/new`
 
 Requires new tables: `estimate_line_items`, `financing_plans`, `large_job_tags`. Add columns to `estimates` for proposal/tax/financing fields.
 
-### Step 6.6: HCP Sync on Quote Creation — NOT STARTED
+### Step 6.7: HCP Sync on Quote Creation — NOT STARTED
 
 When estimate is created in Pipeline:
 1. POST to HCP API to create customer (if new)
 2. POST to HCP API to create estimate with line items from pricebook
 3. Store `hcp_estimate_id` and `hcp_option_id` on local records
 
-### Step 6.7: WA DOR Tax Lookup — NOT STARTED
+### Step 6.8: WA DOR Tax Lookup — NOT STARTED
 
 Create `lib/tax.ts`:
 - `getTaxRate(address)` calls WA DOR API

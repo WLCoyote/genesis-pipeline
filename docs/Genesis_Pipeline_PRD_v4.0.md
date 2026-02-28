@@ -398,7 +398,7 @@ Agent skill examples: "How's the pipeline looking?" → /stats. "Which proposals
 | Phase 3 | Frontend dashboard, dark mode, all UI | Complete |
 | Phase 4 | Deployment, E2E testing | In progress — blocked on A2P approval |
 | Phase 5 | Team launch (onboard users, training) | Not started |
-| Phase 6 | Pricebook & pricing tools | 6.1–6.4 complete (pricebook CRUD, HCP import/sync, markup tiers, labor calc, bulk actions, cascading nav). Quote builder (6.5+) not started. |
+| Phase 6 | Pricebook & pricing tools | 6.1–6.5 complete (pricebook CRUD, HCP import/sync, markup tiers, labor calc, bulk actions, cascading nav, dynamic categories, suppliers, bulk edit modal, refrigerant indicators, rich HCP descriptions). Quote builder (6.6+) not started. |
 | Phase 7 | Proposal engine (branded pages, signatures) | Not started |
 | Phase 8 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
