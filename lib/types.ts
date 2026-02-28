@@ -215,6 +215,8 @@ export interface PricebookItem {
   hcp_type: HcpEntityType | null;
   hcp_category_uuid: string | null;
   hcp_category_name: string | null;
+  system_type: string | null;
+  efficiency_rating: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;

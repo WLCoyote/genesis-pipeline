@@ -103,6 +103,8 @@ export async function POST(request: NextRequest) {
     taxable: body.taxable ?? true,
     is_active: body.is_active ?? true,
     hcp_category_name: body.hcp_category_name || null,
+    system_type: body.system_type || null,
+    efficiency_rating: body.efficiency_rating || null,
   };
 
   const { data, error } = await supabase

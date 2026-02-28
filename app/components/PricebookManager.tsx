@@ -30,6 +30,8 @@ const EMPTY_FORM = {
   display_name: "",
   category: "equipment" as PricebookCategory,
   hcp_category_name: "",
+  system_type: "",
+  efficiency_rating: "",
   spec_line: "",
   description: "",
   unit_price: "",
@@ -55,6 +57,9 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
   const [items, setItems] = useState(initialItems);
   const [categoryFilter, setCategoryFilter] = useState<PricebookCategory | "all">("all");
   const [subcategoryFilter, setSubcategoryFilter] = useState<string>("all");
+  const [manufacturerFilter, setManufacturerFilter] = useState<string>("all");
+  const [systemTypeFilter, setSystemTypeFilter] = useState<string>("all");
+  const [efficiencyFilter, setEfficiencyFilter] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [showInactive, setShowInactive] = useState(false);
 
@@ -102,9 +107,12 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState("");
 
-  // Compute subcategories for the selected filter category
+  // Is equipment category — uses manufacturer → system type → efficiency hierarchy
+  const isEquipmentFilter = categoryFilter === "equipment";
+
+  // Compute subcategories (hcp_category_name) for non-equipment categories
   const subcategories = useMemo(() => {
-    if (categoryFilter === "all") return [];
+    if (categoryFilter === "all" || isEquipmentFilter) return [];
     const names = new Set<string>();
     for (const item of items) {
       if (item.category === categoryFilter && item.hcp_category_name) {
@@ -112,7 +120,48 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
       }
     }
     return Array.from(names).sort();
-  }, [items, categoryFilter]);
+  }, [items, categoryFilter, isEquipmentFilter]);
+
+  // Equipment drill-down: manufacturers for current category
+  const manufacturers = useMemo(() => {
+    if (!isEquipmentFilter) return [];
+    const names = new Set<string>();
+    for (const item of items) {
+      if (item.category === "equipment" && item.manufacturer) {
+        names.add(item.manufacturer);
+      }
+    }
+    return Array.from(names).sort();
+  }, [items, isEquipmentFilter]);
+
+  // Equipment drill-down: system types for selected manufacturer
+  const systemTypes = useMemo(() => {
+    if (!isEquipmentFilter || manufacturerFilter === "all") return [];
+    const names = new Set<string>();
+    for (const item of items) {
+      if (item.category === "equipment" && item.manufacturer === manufacturerFilter && item.system_type) {
+        names.add(item.system_type);
+      }
+    }
+    return Array.from(names).sort();
+  }, [items, isEquipmentFilter, manufacturerFilter]);
+
+  // Equipment drill-down: efficiency ratings for selected manufacturer + system type
+  const efficiencyRatings = useMemo(() => {
+    if (!isEquipmentFilter || manufacturerFilter === "all" || systemTypeFilter === "all") return [];
+    const names = new Set<string>();
+    for (const item of items) {
+      if (
+        item.category === "equipment" &&
+        item.manufacturer === manufacturerFilter &&
+        item.system_type === systemTypeFilter &&
+        item.efficiency_rating
+      ) {
+        names.add(item.efficiency_rating);
+      }
+    }
+    return Array.from(names).sort();
+  }, [items, isEquipmentFilter, manufacturerFilter, systemTypeFilter]);
 
   // Compute subcategories for the modal form's selected category
   const formSubcategories = useMemo(() => {
@@ -120,6 +169,27 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
     for (const item of items) {
       if (item.category === form.category && item.hcp_category_name) {
         names.add(item.hcp_category_name);
+      }
+    }
+    return Array.from(names).sort();
+  }, [items, form.category]);
+
+  // Compute system types and efficiency ratings for the modal form
+  const formSystemTypes = useMemo(() => {
+    const names = new Set<string>();
+    for (const item of items) {
+      if (item.category === form.category && item.system_type) {
+        names.add(item.system_type);
+      }
+    }
+    return Array.from(names).sort();
+  }, [items, form.category]);
+
+  const formEfficiencyRatings = useMemo(() => {
+    const names = new Set<string>();
+    for (const item of items) {
+      if (item.category === form.category && item.efficiency_rating) {
+        names.add(item.efficiency_rating);
       }
     }
     return Array.from(names).sort();
@@ -135,6 +205,18 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
 
     if (subcategoryFilter !== "all") {
       result = result.filter((i) => i.hcp_category_name === subcategoryFilter);
+    }
+
+    if (manufacturerFilter !== "all") {
+      result = result.filter((i) => i.manufacturer === manufacturerFilter);
+    }
+
+    if (systemTypeFilter !== "all") {
+      result = result.filter((i) => i.system_type === systemTypeFilter);
+    }
+
+    if (efficiencyFilter !== "all") {
+      result = result.filter((i) => i.efficiency_rating === efficiencyFilter);
     }
 
     if (!showInactive) {
@@ -153,7 +235,7 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
     }
 
     return result;
-  }, [items, categoryFilter, subcategoryFilter, searchQuery, showInactive]);
+  }, [items, categoryFilter, subcategoryFilter, manufacturerFilter, systemTypeFilter, efficiencyFilter, searchQuery, showInactive]);
 
   // Margin calculation
   const calcMargin = (price: number | null, cost: number | null) => {
@@ -228,6 +310,8 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
       display_name: item.display_name,
       category: item.category,
       hcp_category_name: item.hcp_category_name || "",
+      system_type: item.system_type || "",
+      efficiency_rating: item.efficiency_rating || "",
       spec_line: item.spec_line || "",
       description: item.description || "",
       unit_price: item.unit_price != null ? String(item.unit_price) : "",
@@ -267,6 +351,8 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
       cost: form.cost ? parseFloat(form.cost) : null,
       rebate_amount: form.rebate_amount ? parseFloat(form.rebate_amount) : null,
       hcp_category_name: form.hcp_category_name.trim() || null,
+      system_type: form.system_type.trim() || null,
+      efficiency_rating: form.efficiency_rating.trim() || null,
     };
 
     try {
@@ -540,6 +626,9 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
               onClick={() => {
                 setCategoryFilter(cat.value);
                 setSubcategoryFilter("all");
+                setManufacturerFilter("all");
+                setSystemTypeFilter("all");
+                setEfficiencyFilter("all");
               }}
               className={`px-3 py-1 text-sm rounded-full transition-colors ${
                 categoryFilter === cat.value
@@ -572,33 +661,94 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
           </label>
         </div>
 
-        {/* Subcategory pills — only when a specific category is selected and subcategories exist */}
-        {categoryFilter !== "all" && subcategories.length > 0 && (
+        {/* Drill-down filters — cascading dropdowns based on category */}
+        {categoryFilter !== "all" && (isEquipmentFilter ? manufacturers.length > 0 : subcategories.length > 0) && (
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs text-gray-400 dark:text-gray-500 mr-1">Sub:</span>
-            <button
-              onClick={() => setSubcategoryFilter("all")}
-              className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                subcategoryFilter === "all"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
-              }`}
-            >
-              All ({subcategories.length})
-            </button>
-            {subcategories.map((sub) => (
-              <button
-                key={sub}
-                onClick={() => setSubcategoryFilter(sub)}
-                className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                  subcategoryFilter === sub
-                    ? "bg-blue-600 text-white"
-                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
-                }`}
-              >
-                {sub}
-              </button>
-            ))}
+            {isEquipmentFilter ? (
+              <>
+                {/* Equipment: Manufacturer → System Type → Efficiency */}
+                <select
+                  value={manufacturerFilter}
+                  onChange={(e) => {
+                    setManufacturerFilter(e.target.value);
+                    setSystemTypeFilter("all");
+                    setEfficiencyFilter("all");
+                  }}
+                  className="px-3 py-1 text-sm rounded-full border-0 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">All Manufacturers ({manufacturers.length})</option>
+                  {manufacturers.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+
+                {manufacturerFilter !== "all" && systemTypes.length > 0 && (
+                  <select
+                    value={systemTypeFilter}
+                    onChange={(e) => {
+                      setSystemTypeFilter(e.target.value);
+                      setEfficiencyFilter("all");
+                    }}
+                    className="px-3 py-1 text-sm rounded-full border-0 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">All System Types ({systemTypes.length})</option>
+                    {systemTypes.map((t) => (
+                      <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                )}
+
+                {systemTypeFilter !== "all" && efficiencyRatings.length > 0 && (
+                  <select
+                    value={efficiencyFilter}
+                    onChange={(e) => setEfficiencyFilter(e.target.value)}
+                    className="px-3 py-1 text-sm rounded-full border-0 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="all">All Ratings ({efficiencyRatings.length})</option>
+                    {efficiencyRatings.map((r) => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </select>
+                )}
+
+                {/* Breadcrumb trail */}
+                {manufacturerFilter !== "all" && (
+                  <button
+                    onClick={() => {
+                      setManufacturerFilter("all");
+                      setSystemTypeFilter("all");
+                      setEfficiencyFilter("all");
+                    }}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Non-equipment: Subcategory */}
+                <select
+                  value={subcategoryFilter}
+                  onChange={(e) => setSubcategoryFilter(e.target.value)}
+                  className="px-3 py-1 text-sm rounded-full border-0 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="all">All Subcategories ({subcategories.length})</option>
+                  {subcategories.map((sub) => (
+                    <option key={sub} value={sub}>{sub}</option>
+                  ))}
+                </select>
+
+                {subcategoryFilter !== "all" && (
+                  <button
+                    onClick={() => setSubcategoryFilter("all")}
+                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Clear
+                  </button>
+                )}
+              </>
+            )}
           </div>
         )}
       </div>
@@ -917,6 +1067,52 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
                     </datalist>
                   </div>
                 </div>
+
+                {/* System Type + Efficiency — for equipment */}
+                {form.category === "equipment" && (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        System Type
+                      </label>
+                      <input
+                        type="text"
+                        list="system-type-options"
+                        value={form.system_type}
+                        onChange={(e) =>
+                          setForm({ ...form, system_type: e.target.value })
+                        }
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                        placeholder="e.g., Heat Pump, Furnace"
+                      />
+                      <datalist id="system-type-options">
+                        {formSystemTypes.map((t) => (
+                          <option key={t} value={t} />
+                        ))}
+                      </datalist>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                        Efficiency Rating
+                      </label>
+                      <input
+                        type="text"
+                        list="efficiency-rating-options"
+                        value={form.efficiency_rating}
+                        onChange={(e) =>
+                          setForm({ ...form, efficiency_rating: e.target.value })
+                        }
+                        className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                        placeholder="e.g., 14 SEER2, 16 SEER2"
+                      />
+                      <datalist id="efficiency-rating-options">
+                        {formEfficiencyRatings.map((r) => (
+                          <option key={r} value={r} />
+                        ))}
+                      </datalist>
+                    </div>
+                  </div>
+                )}
 
                 {/* Spec Line */}
                 <div>

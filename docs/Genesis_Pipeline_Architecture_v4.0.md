@@ -244,6 +244,8 @@ Also stores QBO OAuth tokens (encrypted) and HCP lead source cache.
 | hcp_type | ENUM | `material` \| `service`. Determines sync behavior — materials can push, services read-only. |
 | hcp_category_uuid | TEXT | HCP category ID for reference. |
 | hcp_category_name | TEXT | HCP category display name. |
+| system_type | TEXT | System type for equipment (e.g., Heat Pump, Furnace). |
+| efficiency_rating | TEXT | Efficiency rating for equipment (e.g., 14 SEER2, 16 SEER2). |
 
 #### estimates
 
