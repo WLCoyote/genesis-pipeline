@@ -22,7 +22,25 @@ Genesis Pipeline is the sales engine for Genesis Refrigeration & HVAC. It is thr
 
 Pipeline is the system of record for sales. Housecall Pro remains the system of record for job execution. QuickBooks remains the system of record for financials. Pipeline connects them at the sales layer — from estimate to signed proposal to job creation.
 
-### 1.2 Core Problems Solved
+The platform replaces the need for expensive tools like Mailchimp ($45–$350/month) or GoHighLevel ($97–$297/month) by leveraging open-source and low-cost services, while delivering HVAC-specific functionality those platforms lack.
+
+### 1.2 Business Goals
+
+- Recover lost estimate revenue by ensuring every estimate gets a complete, multi-channel follow-up sequence automatically.
+- Total platform costs under $50/month base plus $10–50 variable for email/SMS volume and $5–10 for AI with usage caps.
+- Give management visibility into the full estimate pipeline: who's following up, who's not, and what's converting.
+- Enable broadcast marketing campaigns to the full customer base to drive repeat business and referrals.
+- Build a foundation that could eventually replace more expensive platforms as Genesis scales.
+
+### 1.3 Success Metrics
+
+- 90%+ of estimates receive the full follow-up sequence (vs. current ad-hoc approach).
+- Measurable improvement in estimate-to-job conversion rate within 90 days of launch.
+- Comfort pros actively using the dashboard daily to manage their pipeline.
+- First broadcast email campaign sent to segmented customer list within 30 days of pipeline MVP launch.
+- First-month total spend under $100.
+
+### 1.4 Core Problems Solved
 
 | Problem | How Pipeline Solves It |
 |---------|----------------------|
@@ -49,10 +67,11 @@ Pipeline is the system of record for sales. Housecall Pro remains the system of 
 
 | Role | Who | Access |
 |------|-----|--------|
-| Admin | Wylee | Full access. Configures sequences, pricebook, financing plans, add-on catalog, commission tiers, team settings. Views all data across all comfort pros. |
-| Comfort Pro | Sales staff | Sees only their assigned estimates and leads. Builds quotes in pricebook. Manages their follow-up queue. Views their own commission dashboard. |
-| CSR | Office staff | Creates and manages inbound leads. Assigns comfort pros. Moves qualified leads to HCP. Views inbox and unmatched SMS threads. |
-| Senior CP (V2) | Future role | Manager commission earned on their comfort pros' closed jobs. Schema supports this from day one. UI in V2. |
+| Admin | Wylee | Full access. Configures sequences, pricebook, financing plans, add-on catalog, commission tiers, team settings. Views all data across all comfort pros. Primary person setting up campaigns and automations. |
+| Comfort Pro | Sales staff (currently 1, growing) | Primary daily user of the estimate pipeline. Sees only their assigned estimates and leads. Builds quotes in pricebook. Manages their follow-up queue: can snooze sequences per customer with notes, edit messages before auto-send, and mark call tasks as completed. Views their own commission dashboard. Receives real-time notifications when leads engage (open emails, click links, reply to SMS). Needs the system to be as simple as Housecall Pro — productive within 10 minutes of first use. |
+| CSR | Office staff | Creates initial records when calls come in, can assign comfort pros to estimates. Creates and manages inbound leads from external sources (Facebook ads, Google ads, website forms) via the Leads tab — can update lead status, add notes, and move qualified leads to HCP with a single button click. Views inbox and unmatched SMS threads. Limited access — no campaign creation or settings management. |
+| Senior CP (V2) | Future role | Manager commission (+1%) earned on their comfort pros' closed jobs. Schema supports this from day one. UI in V2. |
+| Customers (indirect) | 5,000 residential HVAC clients in Monroe, WA area | Receive follow-up communications after estimates (email, SMS) and eventually broadcast marketing campaigns. Interact with branded proposal pages. Never log into the system. |
 
 ---
 
@@ -172,7 +191,7 @@ This is Wylee's personal sales cadence, automated. Every estimate, every time, w
 
 | Day | Channel | Action |
 |-----|---------|--------|
-| 0 | SMS + Email | Proposal sent notification. SMS: "Hi [name], [comfort pro] just sent your estimate. View and approve here: [link]." Branded email with "View Your Proposal" button. |
+| 0 | SMS + Email | Proposal sent notification. SMS: "Hi [name], this is [comfort pro] from Genesis. I just sent your estimate to [email] — you can view and approve it here: [link]." Branded email with "View Your Proposal" button. |
 | 1 | SMS | "Hi [name], just checking in — did you get a chance to look over the proposal? Happy to walk through any of the options." |
 | 3 | Call Task | Pipeline flags for comfort pro call. Shows full engagement history: opens, time on page, which option viewed most, calculator use, financing plan selected. Comfort pro calls informed. |
 | 7 | Email | Value-add email. Mentions financing options, manufacturer rebates, why now is a good time. "View Your Proposal" button links back to the same proposal page. |
@@ -187,9 +206,11 @@ This is Wylee's personal sales cadence, automated. Every estimate, every time, w
 - **Send Now** button: bypasses edit window, sends immediately. Designed for Day 0 — build estimate, sync to HCP, pull into Pipeline, Send Now on Day 0 SMS.
 - **Skip Step**: advances past current step without sending. Step marked Skipped in timeline.
 - **Execute**: sends a previously skipped step after the fact.
-- **Snooze**: pauses entire sequence for customer for a comfort-pro-selected duration. Requires a note.
+- **Snooze**: pauses entire sequence for customer for a comfort-pro-selected duration. Requires a note explaining the reason (e.g., "Customer waiting on financing approval, check back in 2 weeks").
 - **Pause/Resume**: admin can pause all follow-ups for the sequence without losing step configuration. Yellow "follow-ups on hold" banner appears on estimate detail.
+- **Auto-decline**: Admin-configurable threshold (default 60 days). A "declining soon" warning fires to the comfort pro 3 days before auto-decline. POSTs to HCP API to decline all options, keeping systems in sync.
 - Sequence stops immediately when any option is approved or all options are declined.
+- Admin can modify the default sequence template at any time. Changes apply in real-time to all estimates using that sequence — future/uncompleted steps reflect the new configuration, while historical events (sent, skipped, completed) are preserved as-is.
 
 ---
 
@@ -291,6 +312,14 @@ Agent skill examples: "How's the pipeline looking?" → /stats. "Which proposals
 | **MUST** | Command Layer API | `/api/v1/` endpoints per Section 8. `GENESIS_INTERNAL_API_KEY` auth. Standard response envelope. |
 | **MUST** | Follow-up sequences | Full cadence per Section 5. Already built — no regression from v3.2. |
 | **MUST** | Inbound lead management | All entry points per Section 7. Website form wiring is immediate priority. |
+| **MUST** | Dark mode | Full dark mode support across all internal dashboard pages. Toggle in header with sun/moon icon. Persists preference to localStorage. Respects system color scheme on first visit. Already built. |
+| **MUST** | Notifications | Real-time in-app alerts: email opened, link clicked, call task due, lead assigned, estimate approved/declined, declining soon, SMS received, unmatched SMS. Badge counter on dashboard. Already built. |
+| **MUST** | Team management | Admin Team page to invite new users (email, name, phone, role), edit roles, activate/deactivate. Invite-based provisioning. Already built. |
+| **MUST** | SMS inbox | Unmatched inbound SMS threads. Staff can reply, convert to lead, or dismiss. Already built. |
+| **MUST** | HCP estimate polling | Cron-based polling of HCP API. Detects sent estimates, status changes. Manual "Update Estimates" button. Already built. |
+| **MUST** | Admin delete & lead archiving | Admin can delete estimates/leads with cascade cleanup. Leads can be archived/unarchived. Already built. |
+| **MUST** | Estimate options tracking | Track individual options with HCP option IDs for two-way approve/decline sync. Mark Won/Lost with option selection modal. Already built. |
+| **MUST** | CSV import | Import estimates from HCP CSV export. Dedup on estimate_number. Already built. |
 | **SHOULD** | Add-on catalog admin | Admin manages add-ons: name, description, price, system type applicability, default checked state. |
 | **SHOULD** | Comfort pro photo/avatar | Appears on proposal page. Uploaded in team settings. Professional headshot. |
 | **SHOULD** | Pipeline analytics | Conversion rate, follow-up completion, per-comfort-pro metrics, avg days to close. |
@@ -313,6 +342,100 @@ Agent skill examples: "How's the pipeline looking?" → /stats. "Which proposals
 | `dashboard.genesishvacr.com` | Genesis Dashboard (when built). Separate Vercel deployment. |
 
 **Action required before proposal flow goes live:** add CNAME records in Namecheap for `app.genesishvacr.com` and `proposals.genesishvacr.com` pointing to `genesis-pipeline.vercel.app`. Add both custom domains in Vercel project settings. 15-minute setup.
+
+---
+
+## Section 11 — Non-Functional Requirements
+
+*Performance, security, and operational standards*
+
+- **Performance:** Handle 5,000+ customers, sub-2-second page loads, real-time notification delivery via Supabase Realtime.
+- **Security:** Google Workspace SSO only (no public access). Row Level Security on all tables. API keys stored in environment variables (Vercel/Supabase). HTTPS everywhere. Supabase service role key is server-only — never in client code.
+- **Usability:** Responsive design for mobile use by field staff. Navigation simplicity comparable to Housecall Pro. Comfort pros should be productive within 10 minutes of first use.
+- **Compliance:** Opt-out/unsubscribe links on all marketing emails. CAN-SPAM compliance for broadcasts. Follow-up sequences respect customer opt-out preferences. A2P 10DLC registration for business SMS compliance. Privacy policy and Terms pages at `/privacy` and `/terms`.
+- **Scalability:** Free tiers initially. Upgrade path: Supabase Pro ($25/mo) for more storage; Vercel Pro ($20/mo) for more cron jobs and function invocations.
+- **Reliability:** Sequence steps must execute even if the dashboard is not open. Cron jobs handle all scheduled work server-side. Cron validates sequence is still active and step still exists before sending — prevents sends after sequence is edited or paused.
+
+---
+
+## Section 12 — Risks & Dependencies
+
+*Known risks and external requirements*
+
+### 12.1 Risks
+
+| Risk | Mitigation |
+|------|-----------|
+| Email deliverability | New sending domain (marketing@genesishvacr.com) needs warm-up period. Start with small batches, authenticate domain early (SPF/DKIM/DMARC), use Resend's deliverability tools. |
+| Twilio A2P 10DLC registration | Required for business SMS compliance. First A2P campaign submission rejected (error 30896) — MESSAGE_FLOW opt-in description too vague. Resubmitted Feb 25, 2026 with detailed verbal consent script + web form opt-in path, consent logging, and call recording for audit. Without approval, US carriers silently drop outbound SMS (error 30034). |
+| HCP API limitations | API does not expose customer-facing estimate URLs (opaque hash). `scheduled_start_min/max` filters by appointment date, not creation date. Date params `start_date/end_date` silently ignored. Mitigated by filtering in code. |
+| Scope creep | Feature requests during build could delay MVP. Strict MoSCoW adherence — nothing outside "MUST" for each phase. |
+| AI cost overruns (Phase 3) | Daily token caps tracked in database with manual fallback. |
+| QBO OAuth token expiry | Refresh tokens expire if not used within 100 days. Commission confirmation cron runs daily, keeping tokens fresh. Fallback: admin re-authenticates via settings page. |
+
+### 12.2 Dependencies
+
+- **Accounts & API keys required:** Supabase, Vercel, Resend, Twilio, Housecall Pro API, GitHub, QuickBooks Online (for commission). Phase 3: Anthropic API.
+- **Domain setup:** SPF, DKIM, DMARC records for genesishvacr.com must be configured before any email sends.
+- **Custom domains:** CNAME records for `app.genesishvacr.com` and `proposals.genesishvacr.com` pointing to `genesis-pipeline.vercel.app`. Required before proposal flow goes live.
+- **Housecall Pro:** Continued use as system of record for jobs, scheduling, and invoicing.
+- **QuickBooks Online:** System of record for financials. Required for commission confirmation (invoice paid status).
+- **Synchrony Financial:** Financing application link and plan codes. Not an API integration — link opens in new tab.
+
+---
+
+## Section 13 — Timeline & Milestones
+
+*Build phases and success criteria*
+
+### 13.1 Build Phases
+
+| Phase | Focus | Status |
+|-------|-------|--------|
+| Phase 0 | Pre-build setup (accounts, env, repo) | Complete |
+| Phase 1 | Database schema, auth, RLS | Complete |
+| Phase 2 | Backend API routes, cron jobs, webhooks | Complete |
+| Phase 3 | Frontend dashboard, dark mode, all UI | Complete |
+| Phase 4 | Deployment, E2E testing | In progress — blocked on A2P approval |
+| Phase 5 | Team launch (onboard users, training) | Not started |
+| Phase 6 | Pricebook & quote builder | Not started |
+| Phase 7 | Proposal engine (branded pages, signatures) | Not started |
+| Phase 8 | Commission tracking (two-stage, QBO) | Not started |
+| Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
+
+See `docs/Build_Plan_Genesis_HVAC_v2_1.md` for detailed step-by-step instructions per phase.
+
+### 13.2 Success Criteria
+
+**MVP Launch (Phase 4 complete):** Functional pipeline dashboard. Every new estimate automatically enters the follow-up sequence. Comfort pro can manage their queue, snooze leads, and complete call tasks. SMS two-way working.
+
+**30-Day Check (Phase 5 stable):** 90%+ of estimates receiving full sequence. Comfort pros using dashboard daily. First broadcast campaign sent. Total spend under $100.
+
+**90-Day Check:** Measurable improvement in estimate conversion rate. Pipeline analytics informing sales process improvements. Marketing campaigns driving repeat business.
+
+**v4.0 Milestone (Phases 6-9 complete):** Pricebook-built estimates, branded proposal pages with financing calculator and digital signature, two-stage commission tracking confirmed against QBO invoices, Command Layer API operational for cross-app orchestration.
+
+---
+
+## Section 14 — Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| v4.0 | Feb 2026 | Added pricebook, proposal engine, commission tracking, Command Layer API, financing calculator, WA DOR tax, QBO integration. |
+| v3.2 | Feb 20 | Twilio Messaging Service for A2P compliance. Privacy/Terms pages. Inbox error display. |
+| v3.1 | Feb 18 | Paused state UI, sent date fix, HCP pro link, execute skipped steps, option selection modal, admin SMS notifications. |
+| v3.0 | Feb 18 | Full sequence timeline rewrite, Skip Step, sequence pause/resume. |
+| v2.9 | Feb 18 | HCP polling accuracy fixes (sent detection, customer name, cents/100, sent date). |
+| v2.8 | Feb 18 | HCP polling rewrite (correct API params, 5-page cap, pre-fetch index). |
+| v2.7 | Feb 17 | Send Now, moved-to-HCP lead archiving, multi-option total fix, Vercel timeout fix. |
+| v2.6 | Feb 17 | Manual Update Estimates, admin delete, lead archiving. |
+| v2.5 | Feb 16 | Pipeline entry flow correction, HCP lead source sync. |
+| v2.4 | Feb 15 | SMS Inbox for unmatched inbound messages. |
+| v2.3 | Feb 15 | Admin team management with invite-based provisioning. |
+| v2.2 | Feb 15 | Flow 2 leads, estimate links, dark mode. |
+| v2.1 | Feb 14 | Twilio Hosted SMS, two-way messaging. |
+| v2.0 | Feb 13 | Major revision — estimate pipeline focus, SMS integration. |
+| v1.0 | Feb 13 | Initial draft. |
 
 ---
 

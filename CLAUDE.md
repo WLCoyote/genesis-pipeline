@@ -80,15 +80,6 @@ These are the source of truth. **Read them before making decisions** — don't r
 | `docs/WEBHOOK_CONTRACTS.md` | Event payload formats for app-to-app webhooks | Before implementing cross-app events |
 | `docs/SHARED_TYPES.ts` | TypeScript types for standard response envelope and shared fields | Import when building `/api/v1/` endpoints |
 
-### **v2.1 Docs (kept as implementation reference)**
-
-The v4.0 docs describe the full vision but are thinner on the already-built foundation. The v2.1 docs contain critical details not yet in v4.0: existing table schemas (`customers`, `messages`, `notifications`, `follow_up_events`, `campaigns`, `estimate_options`), HCP polling logic, Vercel self-fetch constraint, cost targets, success metrics, and non-functional requirements. Keep these until v4.0 docs are backfilled.
-
-| Doc | Status |
-| ----- | ----- |
-| `docs/PRD_Genesis_HVAC_v2_1.md` | Kept — contains success metrics, non-functional requirements, risks, and implementation details not in v4.0 |
-| `docs/Architecture_Genesis_HVAC_v2_1.md` | Kept — contains existing table schemas, HCP polling logic, internal API route details, and deployment constraints not in v4.0 |
-
 ### **Keeping Docs Updated**
 
 * When we change a feature, data model, or architectural decision, **update the relevant doc** to reflect the change.
