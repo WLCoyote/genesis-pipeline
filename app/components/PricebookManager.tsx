@@ -939,6 +939,7 @@ export default function PricebookManager({ initialItems, initialCategories }: Pr
                       className="rounded"
                     />
                   </th>
+                  <th className="w-8 px-2 py-3"></th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">
                     Name
                   </th>
@@ -981,12 +982,12 @@ export default function PricebookManager({ initialItems, initialCategories }: Pr
                           className="rounded"
                         />
                       </td>
+                      <td className="px-2 py-3 text-center">
+                        {refrigerantDot(item.refrigerant_type)}
+                      </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-1.5">
-                          {refrigerantDot(item.refrigerant_type)}
-                          <span className="font-medium text-gray-900 dark:text-gray-100">
-                            {item.display_name}
-                          </span>
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                          {item.display_name}
                         </div>
                         {item.spec_line && (
                           <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
@@ -1085,9 +1086,9 @@ export default function PricebookManager({ initialItems, initialCategories }: Pr
                         onChange={() => toggleSelect(item.id)}
                         className="rounded mt-1"
                       />
+                      {refrigerantDot(item.refrigerant_type)}
                       <div>
-                        <div className="flex items-center gap-1.5 font-medium text-gray-900 dark:text-gray-100">
-                          {refrigerantDot(item.refrigerant_type)}
+                        <div className="font-medium text-gray-900 dark:text-gray-100">
                           {item.display_name}
                         </div>
                         <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
