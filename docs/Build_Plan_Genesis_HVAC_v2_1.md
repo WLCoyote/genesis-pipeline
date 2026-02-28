@@ -329,9 +329,9 @@ New page: `app/proposals/[token]/page.tsx` — **no auth**, token-gated. Standal
 
 **Dependencies to add:** `react-signature-canvas`, `@react-pdf/renderer`
 
-### Step 7.2: Engagement Tracking
+### Step 7.2: Engagement Tracking — **COMPLETE**
 
-`POST /api/proposals/[token]/engage` — public, no auth. Events: page_open, option_view, calculator_open, plan_selected, addon_checked/unchecked, signature_started, signed. Session timing via visibilitychange.
+`POST /api/proposals/[token]/engage` — public, no auth. Events: page_open, option_view, calculator_open, plan_selected, addon_checked/unchecked, signature_started, signed. Session timing via visibilitychange + beforeunload using navigator.sendBeacon. Device type auto-detected from user-agent. All events wired into ProposalPage client component. Best-effort tracking — never blocks the customer experience.
 
 ### Step 7.3: Signature + PDF Generation
 

@@ -170,7 +170,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7.1 (proposal page) complete.
+Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7.1–7.2 complete.
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -188,7 +188,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7.1 (proposa
 | Phase 6.7 | HCP sync on quote creation (lib/hcp-estimate.ts, sync on quote create, manual retry endpoint) | **Complete** |
 | Phase 6.8 | WA DOR tax lookup (lib/tax.ts, GET /api/tax/lookup) | **Complete** |
 | Phase 7.1 | Proposal page (token-gated public page, dark theme, tier cards, addons, financing calculator, signature block, sticky bottom bar) | **Complete** |
-| Phase 7.2 | Engagement tracking (page opens, option views, calculator use) | Not started |
+| Phase 7.2 | Engagement tracking (POST /api/proposals/[token]/engage, session timing, all event types wired into ProposalPage) | **Complete** |
 | Phase 7.3 | Signature + PDF generation | Not started |
 | Phase 7.4 | Proposal tracking in dashboard | Not started |
 | Phase 8 | Commission tracking (two-stage, QBO) | Not started |

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useMemo, useRef } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import ProposalHeader from "./ProposalHeader";
 import TierCards, { type TierData } from "./TierCards";
 import AddonCards, { type AddonData } from "./AddonCards";
@@ -66,10 +66,84 @@ export default function ProposalPage({
   );
 
   const [customerNameInput, setCustomerNameInput] = useState(initialCustomerName);
-  const [signatureData, setSignatureData] = useState<string | null>(null);
+  const [signatureData, setSignatureDataRaw] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const sigSectionRef = useRef<HTMLDivElement>(null);
+  const sessionStartRef = useRef<number>(Date.now());
+  const signatureTrackedRef = useRef(false);
+
+  // --- Engagement tracking ---
+  const trackEvent = useCallback(
+    (
+      eventType: string,
+      extra?: { option_group?: number; financing_plan?: string; session_seconds?: number }
+    ) => {
+      fetch(`/api/proposals/${proposalToken}/engage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ event_type: eventType, ...extra }),
+      }).catch(() => {
+        // Engagement tracking is best-effort — don't disrupt the user
+      });
+    },
+    [proposalToken]
+  );
+
+  // Track page_open on mount + session duration on unload
+  useEffect(() => {
+    trackEvent("page_open");
+
+    const sendSessionDuration = () => {
+      const seconds = Math.round((Date.now() - sessionStartRef.current) / 1000);
+      // Use sendBeacon for reliability on page close
+      navigator.sendBeacon(
+        `/api/proposals/${proposalToken}/engage`,
+        new Blob(
+          [JSON.stringify({ event_type: "page_open", session_seconds: seconds })],
+          { type: "application/json" }
+        )
+      );
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        sendSessionDuration();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("beforeunload", sendSessionDuration);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("beforeunload", sendSessionDuration);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Wrap signature setter to track first signature start
+  const setSignatureData = useCallback(
+    (data: string | null) => {
+      if (data && !signatureTrackedRef.current) {
+        signatureTrackedRef.current = true;
+        trackEvent("signature_started");
+      }
+      setSignatureDataRaw(data);
+    },
+    [trackEvent]
+  );
+
+  // Wrap financing plan setter to track plan changes
+  const handleSelectPlan = useCallback(
+    (plan: FinancingPlanData | null) => {
+      setSelectedPlan(plan);
+      if (plan) {
+        trackEvent("plan_selected", { financing_plan: plan.planCode });
+      }
+    },
+    [trackEvent]
+  );
 
   // --- Derived values ---
   const selectedTierData = useMemo(
@@ -123,19 +197,22 @@ export default function ProposalPage({
   // --- Handlers ---
   const handleSelectTier = useCallback((tierNumber: number) => {
     setSelectedTier(tierNumber);
-  }, []);
+    trackEvent("option_view", { option_group: tierNumber });
+  }, [trackEvent]);
 
   const handleToggleAddon = useCallback((addonId: string) => {
     setSelectedAddons((prev) => {
       const next = new Set(prev);
       if (next.has(addonId)) {
         next.delete(addonId);
+        trackEvent("addon_unchecked");
       } else {
         next.add(addonId);
+        trackEvent("addon_checked");
       }
       return next;
     });
-  }, []);
+  }, [trackEvent]);
 
   const handleAcceptClick = useCallback(() => {
     sigSectionRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -216,7 +293,7 @@ export default function ProposalPage({
       <FinancingCalculator
         plans={financingPlans}
         selectedPlan={selectedPlan}
-        onSelectPlan={setSelectedPlan}
+        onSelectPlan={handleSelectPlan}
         totalAmount={cashTotal}
       />
 

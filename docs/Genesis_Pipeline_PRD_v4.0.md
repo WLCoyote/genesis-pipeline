@@ -399,7 +399,7 @@ Agent skill examples: "How's the pipeline looking?" → /stats. "Which proposals
 | Phase 4 | Deployment, E2E testing | In progress — blocked on A2P approval |
 | Phase 5 | Team launch (onboard users, training) | Not started |
 | Phase 6 | Pricebook & pricing tools | **Complete.** 6.1–6.5 (CRUD, import, markup, bulk), 6.6A–6.6D (schema, templates, quote builder, financing), 6.7 (HCP sync), 6.8 (WA DOR tax lookup). |
-| Phase 7 | Proposal engine | 7.1 complete (interactive proposal page, dark theme, 8 components). 7.2–7.4 not started. |
+| Phase 7 | Proposal engine | 7.1 complete (interactive proposal page, dark theme, 8 components). 7.2 complete (engagement tracking API + client events). 7.3–7.4 not started. |
 | Phase 8 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
 
