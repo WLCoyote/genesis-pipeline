@@ -243,6 +243,7 @@ export interface PricebookItem {
   efficiency_rating: string | null;
   refrigerant_type: string | null;
   supplier_id: string | null;
+  manual_price: boolean;
   is_active: boolean;
   created_at: string;
   updated_at: string;

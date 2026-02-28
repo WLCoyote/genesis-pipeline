@@ -81,6 +81,7 @@
 | `/api/admin/pricebook/suppliers` | POST | Create new supplier (admin only) |
 | `/api/admin/markup-tiers` | GET | List all markup tiers ordered by tier_number (any authenticated user) |
 | `/api/admin/markup-tiers` | PUT | Replace all markup tiers (admin sends full array, delete + re-insert, admin only) |
+| `/api/admin/pricebook/recalculate` | POST | Recalculate prices from markup tiers for all non-manual-price items (admin only) |
 | `/api/admin/labor-calculator` | GET | Read saved labor calculator inputs from settings (any authenticated user) |
 | `/api/admin/labor-calculator` | PUT | Save labor calculator inputs to settings (admin only) |
 

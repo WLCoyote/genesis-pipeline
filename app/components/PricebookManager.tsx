@@ -56,6 +56,7 @@ const EMPTY_FORM = {
   rebate_amount: "",
   taxable: true,
   is_active: true,
+  manual_price: false,
   push_to_hcp: false,
 };
 
@@ -378,6 +379,7 @@ export default function PricebookManager({ initialItems, initialCategories, init
       rebate_amount: item.rebate_amount != null ? String(item.rebate_amount) : "",
       taxable: item.taxable,
       is_active: item.is_active,
+      manual_price: item.manual_price,
       push_to_hcp: false,
     });
     setEditingId(item.id);
@@ -407,6 +409,7 @@ export default function PricebookManager({ initialItems, initialCategories, init
       efficiency_rating: form.efficiency_rating.trim() || null,
       refrigerant_type: form.refrigerant_type || null,
       supplier_id: form.supplier_id || null,
+      manual_price: form.manual_price,
     };
 
     try {
@@ -1507,8 +1510,9 @@ export default function PricebookManager({ initialItems, initialCategories, init
                       onChange={(e) => {
                         const newCost = e.target.value;
                         const updates: Partial<typeof form> = { cost: newCost };
-                        // Auto-suggest price for markup-eligible categories
+                        // Auto-suggest price for markup-eligible categories (skip if manual price)
                         if (
+                          !form.manual_price &&
                           markupCategories.includes(form.category) &&
                           newCost &&
                           !form.unit_price
@@ -1526,8 +1530,9 @@ export default function PricebookManager({ initialItems, initialCategories, init
                     />
                   </div>
                 </div>
-                {/* Markup suggestion hint */}
-                {markupCategories.includes(form.category) &&
+                {/* Markup suggestion hint (hidden when manual price is on) */}
+                {!form.manual_price &&
+                  markupCategories.includes(form.category) &&
                   form.cost &&
                   (() => {
                     const costNum = parseFloat(form.cost);
@@ -1549,6 +1554,21 @@ export default function PricebookManager({ initialItems, initialCategories, init
                       </p>
                     );
                   })()}
+
+                {/* Manual price checkbox — shown only for markup-eligible categories */}
+                {markupCategories.includes(form.category) && (
+                  <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 -mt-1">
+                    <input
+                      type="checkbox"
+                      checked={form.manual_price}
+                      onChange={(e) =>
+                        setForm({ ...form, manual_price: e.target.checked })
+                      }
+                      className="rounded border-gray-300 dark:border-gray-600"
+                    />
+                    Manual price (skip tier recalculation)
+                  </label>
+                )}
 
                 {/* Manufacturer + Model */}
                 <div className="grid grid-cols-2 gap-3">

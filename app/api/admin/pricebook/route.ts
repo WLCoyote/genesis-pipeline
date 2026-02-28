@@ -101,6 +101,7 @@ export async function POST(request: NextRequest) {
     efficiency_rating: body.efficiency_rating || null,
     refrigerant_type: body.refrigerant_type || null,
     supplier_id: body.supplier_id || null,
+    manual_price: body.manual_price ?? false,
   };
 
   const { data, error } = await supabase

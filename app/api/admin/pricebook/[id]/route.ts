@@ -49,7 +49,7 @@ export async function PUT(
     "model_number", "part_number", "is_addon", "addon_default_checked",
     "applicable_system_types", "is_commissionable", "rebate_amount",
     "taxable", "is_active", "hcp_category_name",
-    "system_type", "efficiency_rating", "refrigerant_type", "supplier_id",
+    "system_type", "efficiency_rating", "refrigerant_type", "supplier_id", "manual_price",
   ];
 
   for (const field of allowedFields) {

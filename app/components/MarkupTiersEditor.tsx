@@ -28,6 +28,8 @@ export default function MarkupTiersEditor({ initialTiers }: MarkupTiersEditorPro
   const [rows, setRows] = useState<TierRow[]>(toRows(initialTiers));
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
+  const [recalculating, setRecalculating] = useState(false);
+  const [confirmRecalc, setConfirmRecalc] = useState(false);
 
   const updateRow = (index: number, field: keyof TierRow, value: string) => {
     setRows((prev) =>
@@ -87,6 +89,27 @@ export default function MarkupTiersEditor({ initialTiers }: MarkupTiersEditorPro
     }
   };
 
+  const handleRecalculate = async () => {
+    setRecalculating(true);
+    setStatus("");
+    try {
+      const res = await fetch("/api/admin/pricebook/recalculate", {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setStatus(`Error: ${data.error}`);
+      } else {
+        setStatus(`Recalculated ${data.updated} of ${data.total_eligible} eligible items`);
+      }
+    } catch {
+      setStatus("Recalculate failed — network error");
+    } finally {
+      setRecalculating(false);
+      setConfirmRecalc(false);
+    }
+  };
+
   // Derived calculations
   const calcMarkupPct = (multiplier: string) => {
     const m = parseFloat(multiplier);
@@ -135,6 +158,13 @@ export default function MarkupTiersEditor({ initialTiers }: MarkupTiersEditorPro
             className="px-3 py-1.5 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save All"}
+          </button>
+          <button
+            onClick={() => setConfirmRecalc(true)}
+            disabled={recalculating}
+            className="px-3 py-1.5 text-sm font-medium rounded-md bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50"
+          >
+            {recalculating ? "Recalculating..." : "Recalculate Pricebook"}
           </button>
         </div>
       </div>
@@ -237,6 +267,40 @@ export default function MarkupTiersEditor({ initialTiers }: MarkupTiersEditorPro
       <p className="text-xs text-gray-400 dark:text-gray-500 mt-3">
         Markup % = (multiplier - 1) x 100. Profit % = (1 - 1/multiplier) x 100. Leave Max Cost empty for the highest tier (no upper bound).
       </p>
+
+      {/* Recalculate confirmation modal */}
+      {confirmRecalc && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+              Recalculate Pricebook Prices
+            </h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              This will update the retail price on all active equipment, material, and addon items
+              based on the current markup tiers. Items with <strong>Manual price</strong> checked
+              will be skipped.
+            </p>
+            <p className="text-sm text-amber-600 dark:text-amber-400 mb-4">
+              This cannot be undone. Make sure your tiers are saved first.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setConfirmRecalc(false)}
+                className="px-4 py-2 text-sm font-medium rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRecalculate}
+                disabled={recalculating}
+                className="px-4 py-2 text-sm font-medium rounded-md bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50"
+              >
+                {recalculating ? "Recalculating..." : "Recalculate All"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
