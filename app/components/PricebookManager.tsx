@@ -163,8 +163,10 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
       if (!res.ok) {
         setImportResult(`Error: ${data.error}`);
       } else {
+        const skipped = (data.materials_skipped || 0) + (data.services_skipped || 0);
         setImportResult(
-          `Imported ${data.materials_imported} materials, ${data.services_imported} services`
+          `Imported ${data.materials_imported} materials, ${data.services_imported} services` +
+          (skipped > 0 ? ` (${skipped} already in Pipeline, skipped)` : "")
         );
         router.refresh();
       }
