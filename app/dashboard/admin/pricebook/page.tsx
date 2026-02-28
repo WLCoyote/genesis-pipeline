@@ -18,8 +18,8 @@ export default async function PricebookPage() {
 
   if (dbUser?.role !== "admin") redirect("/dashboard/estimates");
 
-  // Fetch all pricebook items and categories
-  const [{ data: items }, { data: categories }] = await Promise.all([
+  // Fetch all pricebook items, categories, and suppliers
+  const [{ data: items }, { data: categories }, { data: suppliers }] = await Promise.all([
     supabase
       .from("pricebook_items")
       .select("*")
@@ -29,6 +29,11 @@ export default async function PricebookPage() {
       .select("*")
       .eq("is_active", true)
       .order("display_order", { ascending: true }),
+    supabase
+      .from("pricebook_suppliers")
+      .select("*")
+      .eq("is_active", true)
+      .order("name", { ascending: true }),
   ]);
 
   return (
@@ -42,7 +47,7 @@ export default async function PricebookPage() {
         </p>
       </div>
 
-      <PricebookManager initialItems={items || []} initialCategories={categories || []} />
+      <PricebookManager initialItems={items || []} initialCategories={categories || []} initialSuppliers={suppliers || []} />
     </div>
   );
 }

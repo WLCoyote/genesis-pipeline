@@ -100,6 +100,7 @@ export async function POST(request: NextRequest) {
     system_type: body.system_type || null,
     efficiency_rating: body.efficiency_rating || null,
     refrigerant_type: body.refrigerant_type || null,
+    supplier_id: body.supplier_id || null,
   };
 
   const { data, error } = await supabase

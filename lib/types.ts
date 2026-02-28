@@ -204,6 +204,17 @@ export interface PricebookCategoryRow {
 
 export type RefrigerantType = "R-410A" | "R-22" | "R-454B" | "R-32" | "R-134A" | "R-404A" | "R-290";
 
+export interface PricebookSupplier {
+  id: string;
+  name: string;
+  slug: string;
+  api_type: string | null;
+  api_config: Record<string, unknown>;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface PricebookItem {
   id: string;
   category: PricebookCategory;
@@ -231,6 +242,7 @@ export interface PricebookItem {
   system_type: string | null;
   efficiency_rating: string | null;
   refrigerant_type: string | null;
+  supplier_id: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
