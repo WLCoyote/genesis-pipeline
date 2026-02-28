@@ -282,11 +282,16 @@ SQL migration `sql/018_quote_builder_schema.sql`:
 
 Templates are pre-built packages: 3 tiers (Good/Better/Best) each with equipment, labor, materials, and recommended add-ons. Any user can create templates. System images are per-tier (represent the package, not individual items).
 
-### Step 6.6C: Quote Builder — NOT STARTED
+### Step 6.6C: Quote Builder — COMPLETE (UX fixes + HCP sync improvements planned)
 
-New page: `/dashboard/quotes/new`
+New page: `/dashboard/quote-builder` — BUILT.
 
-Sections: customer lookup/create → template selector → 3 tier builders (name, tagline, feature bullets, image, pricebook items + quantities) → addon picker → tax section → financing selection → summary panel → "Create Estimate" button.
+Sections: customer lookup/create → template selector → 3 tier builders (name, tagline, feature bullets, pricebook items + quantities) → addon section → assignment → summary panel → "Create Quote" button. HCP sync runs non-blocking on quote creation.
+
+**Planned fixes (next session):**
+1. **Toggle UX**: Restyle Equipment/Add-ons toggle as segmented tabs (currently a small button, easy to miss)
+2. **Quantity in picker**: Add qty input next to "+ Add" in the item picker table
+3. **HCP sync restructure**: Restructure to match how Genesis manually creates HCP estimates — summary service line item with full price at top, labor at $0, equipment/materials at $0 for documentation, financing line item with origination fee as cost. Uses `pricebook_items.hcp_type` ('material'|'service') for categorization. See plan file for full details.
 
 **Workflow:** Pick a template to pre-populate tiers, or start from scratch. Everything editable. Prices snapshot from pricebook at creation time.
 
