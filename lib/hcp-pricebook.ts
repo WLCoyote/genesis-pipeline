@@ -64,40 +64,31 @@ const MAX_PAGES = 20;
 
 export async function fetchAllHcpMaterials(): Promise<HcpMaterial[]> {
   const { hcpBase, hcpToken } = getHcpConfig();
-  const all: HcpMaterial[] = [];
-  let page = 1;
-  let hasMore = true;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
-  while (hasMore && page <= MAX_PAGES) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+  const res = await fetch(
+    `${hcpBase}/api/price_book/materials`,
+    { headers: hcpHeaders(hcpToken), signal: controller.signal }
+  );
+  clearTimeout(timeout);
 
-    const res = await fetch(
-      `${hcpBase}/api/price_book/materials?page=${page}`,
-      { headers: hcpHeaders(hcpToken), signal: controller.signal }
-    );
-    clearTimeout(timeout);
-
-    if (!res.ok) {
-      const body = await res.text();
-      throw new Error(`HCP materials API ${res.status}: ${body}`);
-    }
-
-    const data = await res.json();
-    console.log(`[HCP Pricebook] Materials page ${page} response keys:`, Object.keys(data));
-
-    // HCP may nest items under "materials", "price_book_materials", or "data"
-    const items = (
-      data.materials || data.price_book_materials || data.data || []
-    ) as HcpMaterial[];
-    all.push(...items);
-    console.log(`[HCP Pricebook] Materials page ${page}: ${items.length} items`);
-
-    hasMore = items.length > 0;
-    page++;
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`HCP materials API ${res.status}: ${body}`);
   }
 
-  return all;
+  const data = await res.json();
+  console.log(`[HCP Pricebook] Materials response keys:`, Object.keys(data));
+  console.log(`[HCP Pricebook] Materials raw sample:`, JSON.stringify(data).slice(0, 500));
+
+  // Try common HCP response shapes
+  const items = (
+    data.materials || data.price_book_materials || data.data || (Array.isArray(data) ? data : [])
+  ) as HcpMaterial[];
+  console.log(`[HCP Pricebook] Materials found: ${items.length}`);
+
+  return items;
 }
 
 export async function createHcpMaterial(
@@ -151,37 +142,28 @@ export async function updateHcpMaterial(
 
 export async function fetchAllHcpServices(): Promise<HcpService[]> {
   const { hcpBase, hcpToken } = getHcpConfig();
-  const all: HcpService[] = [];
-  let page = 1;
-  let hasMore = true;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
-  while (hasMore && page <= MAX_PAGES) {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+  const res = await fetch(
+    `${hcpBase}/api/price_book/services`,
+    { headers: hcpHeaders(hcpToken), signal: controller.signal }
+  );
+  clearTimeout(timeout);
 
-    const res = await fetch(
-      `${hcpBase}/api/price_book/services?page=${page}`,
-      { headers: hcpHeaders(hcpToken), signal: controller.signal }
-    );
-    clearTimeout(timeout);
-
-    if (!res.ok) {
-      const body = await res.text();
-      throw new Error(`HCP services API ${res.status}: ${body}`);
-    }
-
-    const data = await res.json();
-    console.log(`[HCP Pricebook] Services page ${page} response keys:`, Object.keys(data));
-
-    const items = (
-      data.services || data.price_book_services || data.data || []
-    ) as HcpService[];
-    all.push(...items);
-    console.log(`[HCP Pricebook] Services page ${page}: ${items.length} items`);
-
-    hasMore = items.length > 0;
-    page++;
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`HCP services API ${res.status}: ${body}`);
   }
 
-  return all;
+  const data = await res.json();
+  console.log(`[HCP Pricebook] Services response keys:`, Object.keys(data));
+  console.log(`[HCP Pricebook] Services raw sample:`, JSON.stringify(data).slice(0, 500));
+
+  const items = (
+    data.services || data.price_book_services || data.data || (Array.isArray(data) ? data : [])
+  ) as HcpService[];
+  console.log(`[HCP Pricebook] Services found: ${items.length}`);
+
+  return items;
 }
