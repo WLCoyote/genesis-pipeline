@@ -677,7 +677,9 @@ Admin creates campaign, selects audience via tag/segment filters, sets "not cont
 | `/app/api/cron/` | All cron job routes. `CRON_SECRET` auth. |
 | `/app/api/webhooks/` | Twilio and Resend inbound webhooks. |
 | `/app/api/proposals/` | Sign and engage routes. Public — token-gated only. |
-| `/lib/hcp.ts` | HCP API client. `getEstimates()`, `createCustomer()`, `createEstimate()`, `declineOptions()`, `approveOption()`, `postNamedLink()`. Reusable by Command Layer. |
+| `/lib/hcp-pricebook.ts` | HCP Pricebook API client. `fetchAllHcpMaterials()`, `fetchAllHcpServices()`, `createHcpMaterial()`, `updateHcpMaterial()`, `buildHcpDescription()`. |
+| `/lib/hcp-estimate.ts` | HCP Estimate API client. `createHcpCustomer()`, `createHcpEstimate()`, `syncEstimateToHcp()`. Maps Pipeline tiers → HCP options, converts $ → cents. |
+| `/lib/hcp.ts` | HCP API client (planned). `getEstimates()`, `declineOptions()`, `approveOption()`, `postNamedLink()`. Reusable by Command Layer. |
 | `/lib/qbo.ts` | QBO client. `refreshToken()`, `getInvoiceByReference()`, `getInvoicePaidStatus()`, `getPreTaxTotal()`. Reusable by Command Layer. |
 | `/lib/tax.ts` | WA DOR API wrapper. `getTaxRate(address)` → rate. Falls back to 0.092 if API unavailable. |
 | `/lib/commission.ts` | Commission calculation logic. `getTierRate(userId, periodRevenue)`, `calculateEstimated()`, `calculateConfirmed()`. |

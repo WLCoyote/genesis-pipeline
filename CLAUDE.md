@@ -170,7 +170,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 (pricebook) complete. Quote builder schema + templates + financing plans built.
+Phases 0–3 complete. Phase 4 in progress. Phase 6 (pricebook) complete. Quote builder + HCP sync built through Phase 6.7.
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -183,9 +183,9 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 (pricebook) complete. Quote 
 | Phase 6.1–6.5 | Pricebook CRUD, HCP import/sync, markup tiers, labor calc, manual price flag, bulk recalculate from tiers, bulk actions, cascading nav, dynamic categories, suppliers, bulk edit, refrigerant indicators, rich HCP descriptions | **Complete** |
 | Phase 6.6A | Database migrations (quote templates, estimate line items, financing plans, proposal engagement, large job tags + estimate columns) | **Complete** |
 | Phase 6.6B | Quote templates CRUD (admin/user template management) | **Complete** |
-| Phase 6.6C | Quote builder page (customer lookup, template/item selection, tier builder, create estimate) | Not started |
+| Phase 6.6C | Quote builder page (customer lookup, template/item selection, tier builder, create estimate) | **Complete** |
 | Phase 6.6D | Financing plans CRUD | **Complete** |
-| Phase 6.7 | HCP sync on quote creation | Not started |
+| Phase 6.7 | HCP sync on quote creation (lib/hcp-estimate.ts, sync on quote create, manual retry endpoint) | **Complete** |
 | Phase 6.8 | WA DOR tax lookup | Not started |
 | Phase 7.1 | Proposal page (customer-facing interactive page, dark theme, tier cards, addons, financing calculator) | Not started |
 | Phase 7.2 | Engagement tracking (page opens, option views, calculator use) | Not started |

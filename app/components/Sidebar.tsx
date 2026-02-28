@@ -20,6 +20,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { href: "/dashboard/estimates", label: "Estimates", roles: ["admin", "comfort_pro", "csr"] },
+  { href: "/dashboard/quote-builder", label: "New Quote", roles: ["admin", "comfort_pro"] },
   { href: "/dashboard/leads", label: "Leads", roles: ["admin", "csr"] },
   { href: "/dashboard/inbox", label: "Inbox", roles: ["admin", "csr"] },
   { href: "/dashboard/admin", label: "Overview", roles: ["admin"] },
