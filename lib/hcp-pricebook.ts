@@ -1,19 +1,20 @@
 /**
  * HCP Pricebook API client
  *
- * Handles all Housecall Pro pricebook API calls (materials + services).
+ * HCP pricebook endpoints (from housecall.v1.yaml):
+ *   GET  /api/price_book/material_categories          — list categories (paginated, data[])
+ *   GET  /api/price_book/materials?material_category_uuid=  — list materials in category (paginated, data[])
+ *   POST /api/price_book/materials                    — create material (requires material_category_uuid in body)
+ *   PUT  /api/price_book/materials/{uuid}             — update material
+ *   GET  /api/price_book/services                     — list services (paginated, services[])
  *
- * HCP pricebook endpoints:
- *   GET  /api/price_book/material_categories — list categories
- *   GET  /api/price_book/material_categories/{uuid}/materials — list materials in category
- *   POST /api/price_book/materials — create material
- *   PUT  /api/price_book/materials/{uuid} — update material
- *   GET  /api/price_book/services — list services
- *
- * Materials MUST be fetched per-category (no "list all" endpoint).
+ * Pagination: page (default 1), page_size (default 10), sort_by, sort_direction
+ * Materials response: { data: [], page, page_size, total_pages_count, total_count }
+ * Services response: { services: [] } (no pagination metadata in response)
+ * Prices/costs in cents.
  */
 
-// ---------- HCP response types (match actual HCP schema) ----------
+// ---------- HCP response types (from housecall.v1.yaml) ----------
 
 export interface HcpMaterialCategory {
   uuid: string;
@@ -67,7 +68,8 @@ function hcpHeaders(token: string) {
 }
 
 const FETCH_TIMEOUT = 30_000;
-const MAX_PAGES = 20;
+const MAX_PAGES = 50;
+const PAGE_SIZE = 200;
 
 // ---------- Material Categories ----------
 
@@ -75,14 +77,14 @@ async function fetchMaterialCategories(): Promise<HcpMaterialCategory[]> {
   const { hcpBase, hcpToken } = getHcpConfig();
   const all: HcpMaterialCategory[] = [];
   let page = 1;
-  let hasMore = true;
 
-  while (hasMore && page <= MAX_PAGES) {
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
     const res = await fetch(
-      `${hcpBase}/api/price_book/material_categories?page=${page}`,
+      `${hcpBase}/api/price_book/material_categories?page=${page}&page_size=${PAGE_SIZE}`,
       { headers: hcpHeaders(hcpToken), signal: controller.signal }
     );
     clearTimeout(timeout);
@@ -95,11 +97,10 @@ async function fetchMaterialCategories(): Promise<HcpMaterialCategory[]> {
     const data = await res.json();
     const items = (data.data || []) as HcpMaterialCategory[];
     all.push(...items);
-    console.log(`[HCP Pricebook] Categories page ${page}: ${items.length} categories`);
+    console.log(`[HCP Pricebook] Categories page ${page}: ${items.length} (total so far: ${all.length}/${data.total_count || "?"})`);
 
-    // Check if there are more pages
-    const totalPages = data.total_pages || 1;
-    hasMore = page < totalPages;
+    // Stop when we've fetched all items
+    if (all.length >= (data.total_count || 0) || items.length === 0 || page >= MAX_PAGES) break;
     page++;
   }
 
@@ -118,27 +119,27 @@ export async function fetchAllHcpMaterials(): Promise<HcpMaterial[]> {
     return [];
   }
 
-  // Step 2: Fetch materials from each category
+  // Step 2: Fetch materials from each category using required query param
   const { hcpBase, hcpToken } = getHcpConfig();
   const all: HcpMaterial[] = [];
 
   for (const cat of categories) {
     let page = 1;
-    let hasMore = true;
 
-    while (hasMore && page <= MAX_PAGES) {
+    // eslint-disable-next-line no-constant-condition
+    while (true) {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
       const res = await fetch(
-        `${hcpBase}/api/price_book/material_categories/${cat.uuid}/materials?page=${page}`,
+        `${hcpBase}/api/price_book/materials?material_category_uuid=${cat.uuid}&page=${page}&page_size=${PAGE_SIZE}`,
         { headers: hcpHeaders(hcpToken), signal: controller.signal }
       );
       clearTimeout(timeout);
 
       if (!res.ok) {
         const body = await res.text();
-        console.error(`[HCP Pricebook] Materials for category ${cat.name} (${cat.uuid}) failed: ${res.status} ${body}`);
+        console.error(`[HCP Pricebook] Materials for "${cat.name}" failed: ${res.status} ${body}`);
         break;
       }
 
@@ -146,20 +147,20 @@ export async function fetchAllHcpMaterials(): Promise<HcpMaterial[]> {
       const items = (data.data || []) as HcpMaterial[];
       all.push(...items);
 
-      const totalPages = data.total_pages || 1;
-      hasMore = page < totalPages;
+      const totalInCategory = data.total_count || 0;
+      const fetchedInCategory = (page - 1) * PAGE_SIZE + items.length;
+
+      if (fetchedInCategory >= totalInCategory || items.length === 0 || page >= MAX_PAGES) break;
       page++;
     }
-
-    console.log(`[HCP Pricebook] Category "${cat.name}": fetched materials (total so far: ${all.length})`);
   }
 
-  console.log(`[HCP Pricebook] Total materials: ${all.length}`);
+  console.log(`[HCP Pricebook] Total materials across all categories: ${all.length}`);
   return all;
 }
 
 export async function createHcpMaterial(
-  material: { name: string; description?: string; price: number; cost?: number; taxable?: boolean; unit_of_measure?: string; part_number?: string }
+  material: { name: string; material_category_uuid?: string; description?: string; price: number; cost?: number; taxable?: boolean; unit_of_measure?: string; part_number?: string }
 ): Promise<HcpMaterial> {
   const { hcpBase, hcpToken } = getHcpConfig();
   const controller = new AbortController();
@@ -211,14 +212,14 @@ export async function fetchAllHcpServices(): Promise<HcpService[]> {
   const { hcpBase, hcpToken } = getHcpConfig();
   const all: HcpService[] = [];
   let page = 1;
-  let hasMore = true;
 
-  while (hasMore && page <= MAX_PAGES) {
+  // Services response has NO pagination metadata — stop when empty page
+  while (page <= MAX_PAGES) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
     const res = await fetch(
-      `${hcpBase}/api/price_book/services?page=${page}`,
+      `${hcpBase}/api/price_book/services?page=${page}&page_size=${PAGE_SIZE}`,
       { headers: hcpHeaders(hcpToken), signal: controller.signal }
     );
     clearTimeout(timeout);
@@ -229,11 +230,12 @@ export async function fetchAllHcpServices(): Promise<HcpService[]> {
     }
 
     const data = await res.json();
-    const items = (data.data || []) as HcpService[];
+    // Services use "services" key, NOT "data"
+    const items = (data.services || data.data || []) as HcpService[];
     all.push(...items);
+    console.log(`[HCP Pricebook] Services page ${page}: ${items.length} items`);
 
-    const totalPages = data.total_pages || 1;
-    hasMore = page < totalPages;
+    if (items.length === 0) break;
     page++;
   }
 
