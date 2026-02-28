@@ -73,7 +73,7 @@ const PAGE_SIZE = 200;
 
 // ---------- Material Categories ----------
 
-async function fetchMaterialCategories(): Promise<HcpMaterialCategory[]> {
+async function fetchCategoriesAtLevel(parentUuid?: string): Promise<HcpMaterialCategory[]> {
   const { hcpBase, hcpToken } = getHcpConfig();
   const all: HcpMaterialCategory[] = [];
   let page = 1;
@@ -83,10 +83,13 @@ async function fetchMaterialCategories(): Promise<HcpMaterialCategory[]> {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
-    const res = await fetch(
-      `${hcpBase}/api/price_book/material_categories?page=${page}&page_size=${PAGE_SIZE}`,
-      { headers: hcpHeaders(hcpToken), signal: controller.signal }
-    );
+    let url = `${hcpBase}/api/price_book/material_categories?page=${page}&page_size=${PAGE_SIZE}`;
+    if (parentUuid) url += `&parent_uuid=${parentUuid}`;
+
+    const res = await fetch(url, {
+      headers: hcpHeaders(hcpToken),
+      signal: controller.signal,
+    });
     clearTimeout(timeout);
 
     if (!res.ok) {
@@ -97,22 +100,44 @@ async function fetchMaterialCategories(): Promise<HcpMaterialCategory[]> {
     const data = await res.json();
     const items = (data.data || []) as HcpMaterialCategory[];
     all.push(...items);
-    console.log(`[HCP Pricebook] Categories page ${page}: ${items.length} (total so far: ${all.length}/${data.total_count || "?"})`);
 
-    // Stop when we've fetched all items
     if (all.length >= (data.total_count || 0) || items.length === 0 || page >= MAX_PAGES) break;
     page++;
   }
 
-  console.log(`[HCP Pricebook] Total categories: ${all.length}`);
+  return all;
+}
+
+// Recursively fetch all categories at every nesting level
+async function fetchAllMaterialCategories(): Promise<HcpMaterialCategory[]> {
+  const all: HcpMaterialCategory[] = [];
+
+  // Start with root categories (no parent_uuid)
+  const roots = await fetchCategoriesAtLevel();
+  all.push(...roots);
+  console.log(`[HCP Pricebook] Root categories: ${roots.length}`);
+
+  // BFS through subcategories
+  const queue = [...roots];
+  while (queue.length > 0) {
+    const parent = queue.shift()!;
+    const children = await fetchCategoriesAtLevel(parent.uuid);
+    if (children.length > 0) {
+      all.push(...children);
+      queue.push(...children);
+      console.log(`[HCP Pricebook] "${parent.name}" has ${children.length} subcategories`);
+    }
+  }
+
+  console.log(`[HCP Pricebook] Total categories (all levels): ${all.length}`);
   return all;
 }
 
 // ---------- Materials ----------
 
 export async function fetchAllHcpMaterials(): Promise<HcpMaterial[]> {
-  // Step 1: Get all material categories
-  const categories = await fetchMaterialCategories();
+  // Step 1: Get all material categories (recursively, all nesting levels)
+  const categories = await fetchAllMaterialCategories();
 
   if (categories.length === 0) {
     console.log("[HCP Pricebook] No material categories found");
