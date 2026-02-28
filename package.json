@@ -11,10 +11,12 @@
   "dependencies": {
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.95.3",
+    "@types/react-signature-canvas": "^1.0.7",
     "next": "16.1.6",
     "papaparse": "^5.5.3",
     "react": "19.2.3",
     "react-dom": "19.2.3",
+    "react-signature-canvas": "^1.1.0-alpha.2",
     "recharts": "^3.7.0",
     "resend": "^6.9.2",
     "twilio": "^5.12.1"
