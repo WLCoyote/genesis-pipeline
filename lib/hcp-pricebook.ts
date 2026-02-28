@@ -2,38 +2,41 @@
  * HCP Pricebook API client
  *
  * Handles all Housecall Pro pricebook API calls (materials + services).
- * Follows the same env var / auth / pagination pattern as lib/hcp-polling.ts.
+ * Follows the same env var / auth pattern as lib/hcp-polling.ts.
  *
  * HCP API coverage:
  *   Materials — GET (list), POST (create), PUT (update)
  *   Services  — GET (list) only (read-only in HCP API)
+ *
+ * HCP pricebook endpoints: /api/price_book/materials, /api/price_book/services
  */
 
-// ---------- HCP response types ----------
+// ---------- HCP response types (match actual HCP schema) ----------
 
 export interface HcpMaterial {
-  id: string;
+  uuid: string;
   name: string;
   description: string | null;
   price: number; // cents
   cost: number; // cents
   taxable: boolean;
-  active: boolean;
   unit_of_measure: string | null;
   part_number: string | null;
-  category: { id: string; name: string } | null;
+  material_category_uuid: string | null;
+  material_category_name: string | null;
+  flat_rate_enabled: boolean;
+  image: string | null;
 }
 
 export interface HcpService {
-  id: string;
+  uuid: string;
   name: string;
   description: string | null;
   price: number; // cents
   cost: number; // cents
   taxable: boolean;
-  active: boolean;
   unit_of_measure: string | null;
-  category: { id: string; name: string } | null;
+  category: { id: number; name: string } | null;
 }
 
 // ---------- Helpers ----------
@@ -55,7 +58,7 @@ function hcpHeaders(token: string) {
 }
 
 const FETCH_TIMEOUT = 30_000;
-const MAX_PAGES = 20; // pricebook can be large
+const MAX_PAGES = 20;
 
 // ---------- Materials ----------
 
@@ -63,14 +66,14 @@ export async function fetchAllHcpMaterials(): Promise<HcpMaterial[]> {
   const { hcpBase, hcpToken } = getHcpConfig();
   const all: HcpMaterial[] = [];
   let page = 1;
-  let totalPages = 1;
+  let hasMore = true;
 
-  while (page <= totalPages && page <= MAX_PAGES) {
+  while (hasMore && page <= MAX_PAGES) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
     const res = await fetch(
-      `${hcpBase}/api/price_book/materials?page=${page}&page_size=200`,
+      `${hcpBase}/api/price_book/materials?page=${page}`,
       { headers: hcpHeaders(hcpToken), signal: controller.signal }
     );
     clearTimeout(timeout);
@@ -81,10 +84,16 @@ export async function fetchAllHcpMaterials(): Promise<HcpMaterial[]> {
     }
 
     const data = await res.json();
-    totalPages = data.total_pages || 1;
-    const items = (data.materials || []) as HcpMaterial[];
+    console.log(`[HCP Pricebook] Materials page ${page} response keys:`, Object.keys(data));
+
+    // HCP may nest items under "materials", "price_book_materials", or "data"
+    const items = (
+      data.materials || data.price_book_materials || data.data || []
+    ) as HcpMaterial[];
     all.push(...items);
-    console.log(`[HCP Pricebook] Materials page ${page}/${totalPages}: ${items.length} items`);
+    console.log(`[HCP Pricebook] Materials page ${page}: ${items.length} items`);
+
+    hasMore = items.length > 0;
     page++;
   }
 
@@ -144,14 +153,14 @@ export async function fetchAllHcpServices(): Promise<HcpService[]> {
   const { hcpBase, hcpToken } = getHcpConfig();
   const all: HcpService[] = [];
   let page = 1;
-  let totalPages = 1;
+  let hasMore = true;
 
-  while (page <= totalPages && page <= MAX_PAGES) {
+  while (hasMore && page <= MAX_PAGES) {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
     const res = await fetch(
-      `${hcpBase}/api/price_book/services?page=${page}&page_size=200`,
+      `${hcpBase}/api/price_book/services?page=${page}`,
       { headers: hcpHeaders(hcpToken), signal: controller.signal }
     );
     clearTimeout(timeout);
@@ -162,10 +171,15 @@ export async function fetchAllHcpServices(): Promise<HcpService[]> {
     }
 
     const data = await res.json();
-    totalPages = data.total_pages || 1;
-    const items = (data.services || []) as HcpService[];
+    console.log(`[HCP Pricebook] Services page ${page} response keys:`, Object.keys(data));
+
+    const items = (
+      data.services || data.price_book_services || data.data || []
+    ) as HcpService[];
     all.push(...items);
-    console.log(`[HCP Pricebook] Services page ${page}/${totalPages}: ${items.length} items`);
+    console.log(`[HCP Pricebook] Services page ${page}: ${items.length} items`);
+
+    hasMore = items.length > 0;
     page++;
   }
 

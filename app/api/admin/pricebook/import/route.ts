@@ -38,7 +38,7 @@ export async function POST() {
     let materialsImported = 0;
     if (materials.length > 0) {
       const materialRows = materials.map((m: HcpMaterial) => ({
-        hcp_uuid: m.id,
+        hcp_uuid: m.uuid,
         hcp_type: "material" as const,
         display_name: m.name || "Unnamed Material",
         description: m.description || null,
@@ -47,10 +47,10 @@ export async function POST() {
         taxable: m.taxable ?? true,
         unit_of_measure: m.unit_of_measure || null,
         part_number: m.part_number || null,
-        hcp_category_uuid: m.category?.id || null,
-        hcp_category_name: m.category?.name || null,
+        hcp_category_uuid: m.material_category_uuid || null,
+        hcp_category_name: m.material_category_name || null,
         category: "material", // default — admin recategorizes later
-        is_active: m.active ?? true,
+        is_active: true,
       }));
 
       const { error } = await serviceClient
@@ -68,7 +68,7 @@ export async function POST() {
     let servicesImported = 0;
     if (services.length > 0) {
       const serviceRows = services.map((s: HcpService) => ({
-        hcp_uuid: s.id,
+        hcp_uuid: s.uuid,
         hcp_type: "service" as const,
         display_name: s.name || "Unnamed Service",
         description: s.description || null,
@@ -76,10 +76,10 @@ export async function POST() {
         cost: s.cost != null ? s.cost / 100 : null,
         taxable: s.taxable ?? true,
         unit_of_measure: s.unit_of_measure || null,
-        hcp_category_uuid: s.category?.id || null,
+        hcp_category_uuid: s.category?.id != null ? String(s.category.id) : null,
         hcp_category_name: s.category?.name || null,
         category: "labor", // default for services
-        is_active: s.active ?? true,
+        is_active: true,
       }));
 
       const { error } = await serviceClient

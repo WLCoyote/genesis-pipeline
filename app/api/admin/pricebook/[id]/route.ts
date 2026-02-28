@@ -122,13 +122,13 @@ export async function PUT(
       // Store the new HCP uuid back
       await supabase
         .from("pricebook_items")
-        .update({ hcp_uuid: created.id, hcp_type: "material" })
+        .update({ hcp_uuid: created.uuid, hcp_type: "material" })
         .eq("id", id);
 
-      updatedItem.hcp_uuid = created.id;
+      updatedItem.hcp_uuid = created.uuid;
       updatedItem.hcp_type = "material";
       hcpSync = "created_in_hcp";
-      console.log(`[Pricebook] Created HCP material ${created.id} for item ${id}`);
+      console.log(`[Pricebook] Created HCP material ${created.uuid} for item ${id}`);
     }
   } catch (err) {
     // Sync failures are logged but don't fail the Pipeline save
