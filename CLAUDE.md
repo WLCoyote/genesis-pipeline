@@ -180,7 +180,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 (pricebook) partially comple
 | Phase 3 | Frontend dashboard + dark mode | Complete |
 | Phase 4 | Deployment & E2E testing | In progress — blocked on A2P campaign approval for outbound SMS |
 | Phase 5 | Team launch | Not started |
-| Phase 6.1–6.5 | Pricebook CRUD, HCP import/sync, markup tiers, labor calc, bulk actions, cascading nav, dynamic categories, suppliers, bulk edit, refrigerant indicators, rich HCP descriptions | **Complete** |
+| Phase 6.1–6.5 | Pricebook CRUD, HCP import/sync, markup tiers, labor calc, manual price flag, bulk recalculate from tiers, bulk actions, cascading nav, dynamic categories, suppliers, bulk edit, refrigerant indicators, rich HCP descriptions | **Complete** |
 | Phase 6.6+ | Quote builder, HCP sync on quote, WA DOR tax | Not started |
 | Phase 7 | Proposal engine (branded pages, signatures) | Not started |
 | Phase 8 | Commission tracking (two-stage, QBO) | Not started |

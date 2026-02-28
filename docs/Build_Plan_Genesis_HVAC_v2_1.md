@@ -222,7 +222,9 @@ SQL migration `012_pricebook_items.sql`:
 SQL migration `013_markup_tiers.sql`:
 - `markup_tiers` table with 11 default cost-based multiplier tiers, RLS
 - Admin editor at `/dashboard/admin/pricebook/markup-tiers` — editable table with derived markup % and profit %
-- **Auto-suggest** price in create/edit modal when cost is entered (equipment/material/addon only, not labor/service_plan)
+- **Auto-fill price** from markup tier in real time when cost is typed in create/edit modal (equipment/material/addon only, not labor/service_plan)
+- **Manual price flag** (`manual_price` column, sql/017): per-item opt-out from auto-pricing and bulk recalculation. Checkbox in create/edit modal.
+- **Recalculate Pricebook** button on markup tiers page: bulk-updates unit_price for all active non-manual material-type items using current tiers. Confirmation dialog before running. (`POST /api/admin/pricebook/recalculate`)
 - **Labor calculator** at `/dashboard/admin/pricebook/labor-calculator` — inputs saved as JSONB in settings table
 - Live calculations: overhead/hr, direct loaded rate, fully loaded labor cost, target $/hr
 - Quick reference panel at 20%, 25%, 30% profit

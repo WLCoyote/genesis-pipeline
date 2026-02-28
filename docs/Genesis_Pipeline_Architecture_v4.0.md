@@ -248,6 +248,7 @@ Also stores QBO OAuth tokens (encrypted) and HCP lead source cache.
 | efficiency_rating | TEXT | Efficiency rating for equipment (e.g., 14 SEER2, 16 SEER2). |
 | refrigerant_type | TEXT | Refrigerant type (e.g., R-410A, R-22, R-454B). Used for colored indicator dots. |
 | supplier_id | UUID FK → pricebook_suppliers | Which distributor/vendor this item comes from. NULL = unassigned. |
+| manual_price | BOOLEAN | Default false. When true, item is skipped by markup tier auto-fill and bulk recalculation. |
 
 #### pricebook_categories
 
