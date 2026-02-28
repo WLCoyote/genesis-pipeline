@@ -76,13 +76,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const validCategories = ["equipment", "labor", "material", "addon", "service_plan"];
-  if (!validCategories.includes(body.category)) {
-    return NextResponse.json(
-      { error: `Invalid category. Must be one of: ${validCategories.join(", ")}` },
-      { status: 400 }
-    );
-  }
+  // Category is now dynamic (from pricebook_categories table) — no hardcoded validation
 
   const row = {
     category: body.category,
@@ -105,6 +99,7 @@ export async function POST(request: NextRequest) {
     hcp_category_name: body.hcp_category_name || null,
     system_type: body.system_type || null,
     efficiency_rating: body.efficiency_rating || null,
+    refrigerant_type: body.refrigerant_type || null,
   };
 
   const { data, error } = await supabase

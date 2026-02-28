@@ -18,11 +18,18 @@ export default async function PricebookPage() {
 
   if (dbUser?.role !== "admin") redirect("/dashboard/estimates");
 
-  // Fetch all pricebook items (including inactive for the toggle)
-  const { data: items } = await supabase
-    .from("pricebook_items")
-    .select("*")
-    .order("display_name", { ascending: true });
+  // Fetch all pricebook items and categories
+  const [{ data: items }, { data: categories }] = await Promise.all([
+    supabase
+      .from("pricebook_items")
+      .select("*")
+      .order("display_name", { ascending: true }),
+    supabase
+      .from("pricebook_categories")
+      .select("*")
+      .eq("is_active", true)
+      .order("display_order", { ascending: true }),
+  ]);
 
   return (
     <div>
@@ -35,7 +42,7 @@ export default async function PricebookPage() {
         </p>
       </div>
 
-      <PricebookManager initialItems={items || []} />
+      <PricebookManager initialItems={items || []} initialCategories={categories || []} />
     </div>
   );
 }

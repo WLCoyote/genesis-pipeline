@@ -2,15 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { updateHcpMaterial } from "@/lib/hcp-pricebook";
 
-// PUT /api/admin/pricebook/bulk — Bulk update category for selected items (admin only)
-export async function PUT(request: NextRequest) {
-  const supabase = await createClient();
+// Helper: admin auth check
+async function requireAdmin(supabase: Awaited<ReturnType<typeof createClient>>) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!user) return { error: "Unauthorized", status: 401 };
 
   const { data: dbUser } = await supabase
     .from("users")
@@ -18,57 +15,126 @@ export async function PUT(request: NextRequest) {
     .eq("id", user.id)
     .single();
 
-  if (dbUser?.role !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  if (dbUser?.role !== "admin") return { error: "Forbidden", status: 403 };
+  return null;
+}
+
+// PUT /api/admin/pricebook/bulk — Bulk update: category change, activate, deactivate, price adjust
+export async function PUT(request: NextRequest) {
+  const supabase = await createClient();
+  const authErr = await requireAdmin(supabase);
+  if (authErr) return NextResponse.json({ error: authErr.error }, { status: authErr.status });
 
   const body = await request.json();
-  const { ids, category } = body as { ids: string[]; category: string };
+  const { ids, action } = body as { ids: string[]; action: string };
 
   if (!ids || !Array.isArray(ids) || ids.length === 0) {
     return NextResponse.json({ error: "ids array is required" }, { status: 400 });
   }
 
-  const validCategories = ["equipment", "labor", "material", "addon", "service_plan"];
-  if (!category || !validCategories.includes(category)) {
-    return NextResponse.json(
-      { error: `Invalid category. Must be one of: ${validCategories.join(", ")}` },
-      { status: 400 }
-    );
+  // Route by action type
+  if (action === "category") {
+    const { category } = body as { category: string };
+    if (!category) {
+      return NextResponse.json({ error: "category is required" }, { status: 400 });
+    }
+
+    const { data, error } = await supabase
+      .from("pricebook_items")
+      .update({ category })
+      .in("id", ids)
+      .select();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ updated: data?.length || 0, items: data });
   }
 
-  const { data, error } = await supabase
-    .from("pricebook_items")
-    .update({ category })
-    .in("id", ids)
-    .select();
+  if (action === "activate") {
+    const { data, error } = await supabase
+      .from("pricebook_items")
+      .update({ is_active: true })
+      .in("id", ids)
+      .select();
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ updated: data?.length || 0 });
   }
 
-  return NextResponse.json({ updated: data?.length || 0, items: data });
+  if (action === "deactivate") {
+    const { data, error } = await supabase
+      .from("pricebook_items")
+      .update({ is_active: false })
+      .in("id", ids)
+      .select();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ updated: data?.length || 0 });
+  }
+
+  if (action === "price_adjust") {
+    const { percent } = body as { percent: number };
+    if (percent == null || typeof percent !== "number") {
+      return NextResponse.json({ error: "percent is required (number)" }, { status: 400 });
+    }
+
+    // Fetch items to calculate new prices
+    const { data: items, error: fetchErr } = await supabase
+      .from("pricebook_items")
+      .select("id, cost, unit_price")
+      .in("id", ids);
+
+    if (fetchErr) return NextResponse.json({ error: fetchErr.message }, { status: 500 });
+    if (!items || items.length === 0) {
+      return NextResponse.json({ error: "No items found" }, { status: 404 });
+    }
+
+    const multiplier = 1 + percent / 100;
+    let updated = 0;
+
+    for (const item of items) {
+      const updates: Record<string, number | null> = {};
+
+      if (item.cost != null) {
+        updates.cost = Math.round(item.cost * multiplier * 100) / 100;
+      }
+      if (item.unit_price != null) {
+        updates.unit_price = Math.round(item.unit_price * multiplier * 100) / 100;
+      }
+
+      if (Object.keys(updates).length > 0) {
+        const { error } = await supabase
+          .from("pricebook_items")
+          .update(updates)
+          .eq("id", item.id);
+
+        if (!error) updated++;
+      }
+    }
+
+    return NextResponse.json({ updated, total: items.length, percent });
+  }
+
+  // Legacy: if no action specified, treat as category change (backward compat)
+  const { category } = body as { category: string };
+  if (category) {
+    const { data, error } = await supabase
+      .from("pricebook_items")
+      .update({ category })
+      .in("id", ids)
+      .select();
+
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ updated: data?.length || 0, items: data });
+  }
+
+  return NextResponse.json({ error: "Unknown action" }, { status: 400 });
 }
 
 // POST /api/admin/pricebook/bulk — Bulk sync selected items to HCP (admin only)
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (dbUser?.role !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const authErr = await requireAdmin(supabase);
+  if (authErr) return NextResponse.json({ error: authErr.error }, { status: authErr.status });
 
   const body = await request.json();
   const { ids } = body as { ids: string[] };
@@ -77,17 +143,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "ids array is required" }, { status: 400 });
   }
 
-  // Fetch the items
   const { data: items, error: fetchErr } = await supabase
     .from("pricebook_items")
     .select("*")
     .in("id", ids)
     .eq("is_active", true);
 
-  if (fetchErr) {
-    return NextResponse.json({ error: fetchErr.message }, { status: 500 });
-  }
-
+  if (fetchErr) return NextResponse.json({ error: fetchErr.message }, { status: 500 });
   if (!items || items.length === 0) {
     return NextResponse.json({ error: "No active items found" }, { status: 404 });
   }
@@ -98,13 +160,7 @@ export async function POST(request: NextRequest) {
   const errors: string[] = [];
 
   for (const item of items) {
-    // Only sync materials that have an HCP uuid — services are read-only in HCP
-    if (item.hcp_type === "service") {
-      skipped++;
-      continue;
-    }
-
-    if (!item.hcp_uuid || item.hcp_type !== "material") {
+    if (item.hcp_type === "service" || !item.hcp_uuid || item.hcp_type !== "material") {
       skipped++;
       continue;
     }

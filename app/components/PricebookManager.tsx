@@ -3,28 +3,35 @@
 import { useState, useMemo, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import type { PricebookItem, PricebookCategory, MarkupTier } from "@/lib/types";
+import type { PricebookItem, PricebookCategory, PricebookCategoryRow, MarkupTier } from "@/lib/types";
 
 interface PricebookManagerProps {
   initialItems: PricebookItem[];
+  initialCategories: PricebookCategoryRow[];
 }
 
-const CATEGORIES: { value: PricebookCategory | "all"; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "equipment", label: "Equipment" },
-  { value: "labor", label: "Labor" },
-  { value: "material", label: "Material" },
-  { value: "addon", label: "Add-On" },
-  { value: "service_plan", label: "Service Plan" },
+// Refrigerant colors
+const REFRIGERANT_OPTIONS = [
+  { value: "R-410A", label: "R-410A", color: "bg-pink-400" },
+  { value: "R-22", label: "R-22", color: "bg-green-500" },
+  { value: "R-454B", label: "R-454B", color: "bg-gray-400 ring-2 ring-red-400" },
+  { value: "R-32", label: "R-32", color: "bg-blue-400 ring-2 ring-green-400" },
+  { value: "R-134A", label: "R-134A", color: "bg-sky-300" },
+  { value: "R-404A", label: "R-404A", color: "bg-orange-400" },
+  { value: "R-290", label: "R-290", color: "bg-gray-300 ring-2 ring-red-400" },
 ];
 
-const CATEGORY_OPTIONS: { value: PricebookCategory; label: string }[] = [
-  { value: "equipment", label: "Equipment" },
-  { value: "labor", label: "Labor" },
-  { value: "material", label: "Material" },
-  { value: "addon", label: "Add-On" },
-  { value: "service_plan", label: "Service Plan" },
-];
+function refrigerantDot(type: string | null) {
+  if (!type) return null;
+  const ref = REFRIGERANT_OPTIONS.find((r) => r.value === type);
+  if (!ref) return null;
+  return (
+    <span
+      title={ref.label}
+      className={`inline-block w-3 h-3 rounded-full ${ref.color} flex-shrink-0`}
+    />
+  );
+}
 
 const EMPTY_FORM = {
   display_name: "",
@@ -32,6 +39,7 @@ const EMPTY_FORM = {
   hcp_category_name: "",
   system_type: "",
   efficiency_rating: "",
+  refrigerant_type: "",
   spec_line: "",
   description: "",
   unit_price: "",
@@ -49,13 +57,17 @@ const EMPTY_FORM = {
   push_to_hcp: false,
 };
 
-// Categories that support markup auto-suggest (not labor or service_plan)
-const MARKUP_CATEGORIES: PricebookCategory[] = ["equipment", "material", "addon"];
-
-export default function PricebookManager({ initialItems }: PricebookManagerProps) {
+export default function PricebookManager({ initialItems, initialCategories }: PricebookManagerProps) {
   const router = useRouter();
   const [items, setItems] = useState(initialItems);
+  const [categories, setCategories] = useState(initialCategories);
   const [categoryFilter, setCategoryFilter] = useState<PricebookCategory | "all">("all");
+
+  // Categories that support markup auto-suggest (material-type, not service-type)
+  const markupCategories = useMemo(
+    () => categories.filter((c) => c.hcp_type === "material").map((c) => c.slug),
+    [categories]
+  );
   const [subcategoryFilter, setSubcategoryFilter] = useState<string>("all");
   const [manufacturerFilter, setManufacturerFilter] = useState<string>("all");
   const [systemTypeFilter, setSystemTypeFilter] = useState<string>("all");
@@ -98,10 +110,16 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
 
   // Selection state (for bulk actions)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [bulkAction, setBulkAction] = useState<"category" | "hcp" | null>(null);
   const [bulkCategory, setBulkCategory] = useState<PricebookCategory>("equipment");
+  const [bulkPricePercent, setBulkPricePercent] = useState("");
   const [bulkLoading, setBulkLoading] = useState(false);
   const [bulkResult, setBulkResult] = useState("");
+
+  // Category management modal
+  const [catModalOpen, setCatModalOpen] = useState(false);
+  const [newCatName, setNewCatName] = useState("");
+  const [newCatHcpType, setNewCatHcpType] = useState<"material" | "service">("material");
+  const [catSaving, setCatSaving] = useState(false);
 
   // Import state
   const [importing, setImporting] = useState(false);
@@ -312,6 +330,7 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
       hcp_category_name: item.hcp_category_name || "",
       system_type: item.system_type || "",
       efficiency_rating: item.efficiency_rating || "",
+      refrigerant_type: item.refrigerant_type || "",
       spec_line: item.spec_line || "",
       description: item.description || "",
       unit_price: item.unit_price != null ? String(item.unit_price) : "",
@@ -353,6 +372,7 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
       hcp_category_name: form.hcp_category_name.trim() || null,
       system_type: form.system_type.trim() || null,
       efficiency_rating: form.efficiency_rating.trim() || null,
+      refrigerant_type: form.refrigerant_type || null,
     };
 
     try {
@@ -458,7 +478,6 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
 
   const clearSelection = () => {
     setSelectedIds(new Set());
-    setBulkAction(null);
     setBulkResult("");
   };
 
@@ -471,13 +490,14 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
       const res = await fetch("/api/admin/pricebook/bulk", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: Array.from(selectedIds), category: bulkCategory }),
+        body: JSON.stringify({ ids: Array.from(selectedIds), action: "category", category: bulkCategory }),
       });
       const data = await res.json();
       if (!res.ok) {
         setBulkResult(`Error: ${data.error}`);
       } else {
-        setBulkResult(`Updated ${data.updated} items to ${bulkCategory.replace("_", " ")}`);
+        const catLabel = categories.find((c) => c.slug === bulkCategory)?.name || bulkCategory;
+        setBulkResult(`Updated ${data.updated} items to ${catLabel}`);
         setItems((prev) =>
           prev.map((i) => (selectedIds.has(i.id) ? { ...i, category: bulkCategory } : i))
         );
@@ -488,6 +508,90 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
       setBulkResult("Bulk update failed — network error");
     } finally {
       setBulkLoading(false);
+    }
+  };
+
+  // Bulk activate/deactivate
+  const handleBulkActivate = async (activate: boolean) => {
+    if (selectedIds.size === 0) return;
+    setBulkLoading(true);
+    setBulkResult("");
+    try {
+      const res = await fetch("/api/admin/pricebook/bulk", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), action: activate ? "activate" : "deactivate" }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBulkResult(`Error: ${data.error}`);
+      } else {
+        setBulkResult(`${activate ? "Activated" : "Deactivated"} ${data.updated} items`);
+        setItems((prev) =>
+          prev.map((i) => (selectedIds.has(i.id) ? { ...i, is_active: activate } : i))
+        );
+        clearSelection();
+        router.refresh();
+      }
+    } catch {
+      setBulkResult("Bulk update failed — network error");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  // Bulk price adjust
+  const handleBulkPriceAdjust = async () => {
+    const pct = parseFloat(bulkPricePercent);
+    if (isNaN(pct) || pct === 0 || selectedIds.size === 0) return;
+    setBulkLoading(true);
+    setBulkResult("");
+    try {
+      const res = await fetch("/api/admin/pricebook/bulk", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selectedIds), action: "price_adjust", percent: pct }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBulkResult(`Error: ${data.error}`);
+      } else {
+        setBulkResult(`Adjusted prices by ${pct > 0 ? "+" : ""}${pct}% on ${data.updated} items`);
+        clearSelection();
+        setBulkPricePercent("");
+        router.refresh();
+        // Refresh items from server since prices changed
+        const itemsRes = await fetch("/api/admin/pricebook?active=");
+        const itemsData = await itemsRes.json();
+        if (itemsData.items) setItems(itemsData.items);
+      }
+    } catch {
+      setBulkResult("Price adjust failed — network error");
+    } finally {
+      setBulkLoading(false);
+    }
+  };
+
+  // Add category
+  const handleAddCategory = async () => {
+    if (!newCatName.trim()) return;
+    setCatSaving(true);
+    try {
+      const res = await fetch("/api/admin/pricebook/categories", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newCatName.trim(), hcp_type: newCatHcpType }),
+      });
+      const data = await res.json();
+      if (res.ok && data.category) {
+        setCategories((prev) => [...prev, data.category]);
+        setNewCatName("");
+        setCatModalOpen(false);
+      }
+    } catch {
+      // Silent fail
+    } finally {
+      setCatSaving(false);
     }
   };
 
@@ -545,8 +649,8 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
               onChange={(e) => setBulkCategory(e.target.value as PricebookCategory)}
               className="px-2 py-1 text-sm rounded border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
             >
-              {CATEGORY_OPTIONS.map((c) => (
-                <option key={c.value} value={c.value}>{c.label}</option>
+              {categories.map((c) => (
+                <option key={c.slug} value={c.slug}>{c.name}</option>
               ))}
             </select>
             <button
@@ -554,17 +658,52 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
               disabled={bulkLoading}
               className="px-3 py-1 text-sm font-medium rounded bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
             >
-              Change Category
+              Category
             </button>
           </div>
+
+          {/* Price Adjust */}
+          <div className="flex items-center gap-1.5">
+            <input
+              type="number"
+              step="0.1"
+              value={bulkPricePercent}
+              onChange={(e) => setBulkPricePercent(e.target.value)}
+              placeholder="%"
+              className="w-16 px-2 py-1 text-sm rounded border border-blue-300 dark:border-blue-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+            />
+            <button
+              onClick={handleBulkPriceAdjust}
+              disabled={bulkLoading || !bulkPricePercent}
+              className="px-3 py-1 text-sm font-medium rounded bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50"
+            >
+              Price %
+            </button>
+          </div>
+
+          {/* Activate / Deactivate */}
+          <button
+            onClick={() => handleBulkActivate(true)}
+            disabled={bulkLoading}
+            className="px-3 py-1 text-sm font-medium rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+          >
+            Activate
+          </button>
+          <button
+            onClick={() => handleBulkActivate(false)}
+            disabled={bulkLoading}
+            className="px-3 py-1 text-sm font-medium rounded bg-red-600 text-white hover:bg-red-700 disabled:opacity-50"
+          >
+            Deactivate
+          </button>
 
           {/* Update HCP */}
           <button
             onClick={handleBulkHcpSync}
             disabled={bulkLoading}
-            className="px-3 py-1 text-sm font-medium rounded bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+            className="px-3 py-1 text-sm font-medium rounded bg-gray-600 text-white hover:bg-gray-700 disabled:opacity-50"
           >
-            {bulkLoading ? "Syncing..." : "Update HCP"}
+            {bulkLoading ? "Working..." : "Update HCP"}
           </button>
 
           <button
@@ -619,26 +758,49 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Category pills */}
-          {CATEGORIES.map((cat) => (
+          {/* Category pills — dynamic from pricebook_categories */}
+          <button
+            onClick={() => {
+              setCategoryFilter("all");
+              setSubcategoryFilter("all");
+              setManufacturerFilter("all");
+              setSystemTypeFilter("all");
+              setEfficiencyFilter("all");
+            }}
+            className={`px-3 py-1 text-sm rounded-full transition-colors ${
+              categoryFilter === "all"
+                ? "bg-blue-600 text-white"
+                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+            }`}
+          >
+            All
+          </button>
+          {categories.map((cat) => (
             <button
-              key={cat.value}
+              key={cat.slug}
               onClick={() => {
-                setCategoryFilter(cat.value);
+                setCategoryFilter(cat.slug);
                 setSubcategoryFilter("all");
                 setManufacturerFilter("all");
                 setSystemTypeFilter("all");
                 setEfficiencyFilter("all");
               }}
               className={`px-3 py-1 text-sm rounded-full transition-colors ${
-                categoryFilter === cat.value
+                categoryFilter === cat.slug
                   ? "bg-blue-600 text-white"
                   : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
               }`}
             >
-              {cat.label}
+              {cat.name}
             </button>
           ))}
+          <button
+            onClick={() => setCatModalOpen(true)}
+            className="px-2 py-1 text-sm rounded-full bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-gray-600"
+            title="Add category"
+          >
+            +
+          </button>
 
           {/* Search */}
           <input
@@ -781,7 +943,7 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
                     Name
                   </th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">
-                    Category
+                    Brand
                   </th>
                   <th className="text-right px-4 py-3 font-medium text-gray-600 dark:text-gray-400">
                     Price
@@ -820,8 +982,11 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
                         />
                       </td>
                       <td className="px-4 py-3">
-                        <div className="font-medium text-gray-900 dark:text-gray-100">
-                          {item.display_name}
+                        <div className="flex items-center gap-1.5">
+                          {refrigerantDot(item.refrigerant_type)}
+                          <span className="font-medium text-gray-900 dark:text-gray-100">
+                            {item.display_name}
+                          </span>
                         </div>
                         {item.spec_line && (
                           <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
@@ -830,8 +995,8 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <span className="capitalize text-gray-600 dark:text-gray-400">
-                          {item.category.replace("_", " ")}
+                        <span className="text-gray-600 dark:text-gray-400">
+                          {item.manufacturer || "—"}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-right text-gray-700 dark:text-gray-300">
@@ -921,11 +1086,12 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
                         className="rounded mt-1"
                       />
                       <div>
-                        <div className="font-medium text-gray-900 dark:text-gray-100">
+                        <div className="flex items-center gap-1.5 font-medium text-gray-900 dark:text-gray-100">
+                          {refrigerantDot(item.refrigerant_type)}
                           {item.display_name}
                         </div>
-                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 capitalize">
-                          {item.category.replace("_", " ")}
+                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                          {item.manufacturer || item.category.replace("_", " ")}
                         </div>
                       </div>
                     </div>
@@ -1036,9 +1202,9 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
                     }
                     className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                   >
-                    {CATEGORY_OPTIONS.map((c) => (
-                      <option key={c.value} value={c.value}>
-                        {c.label}
+                    {categories.map((c) => (
+                      <option key={c.slug} value={c.slug}>
+                        {c.name}
                       </option>
                     ))}
                   </select>
@@ -1114,6 +1280,27 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
                   </div>
                 )}
 
+                {/* Refrigerant Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Refrigerant Type
+                  </label>
+                  <select
+                    value={form.refrigerant_type}
+                    onChange={(e) =>
+                      setForm({ ...form, refrigerant_type: e.target.value })
+                    }
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  >
+                    <option value="">None</option>
+                    {REFRIGERANT_OPTIONS.map((r) => (
+                      <option key={r.value} value={r.value}>
+                        {r.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Spec Line */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -1176,7 +1363,7 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
                         const updates: Partial<typeof form> = { cost: newCost };
                         // Auto-suggest price for markup-eligible categories
                         if (
-                          MARKUP_CATEGORIES.includes(form.category) &&
+                          markupCategories.includes(form.category) &&
                           newCost &&
                           !form.unit_price
                         ) {
@@ -1194,7 +1381,7 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
                   </div>
                 </div>
                 {/* Markup suggestion hint */}
-                {MARKUP_CATEGORIES.includes(form.category) &&
+                {markupCategories.includes(form.category) &&
                   form.cost &&
                   (() => {
                     const costNum = parseFloat(form.cost);
@@ -1392,6 +1579,64 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
                   className="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
                 >
                   {saving ? "Saving..." : editingId ? "Save Changes" : "Create Item"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Add Category Modal */}
+      {catModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div
+            className="absolute inset-0 bg-black/40 dark:bg-black/60"
+            onClick={() => setCatModalOpen(false)}
+          />
+          <div className="relative bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-sm mx-4">
+            <div className="p-6">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">
+                Add Category
+              </h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Category Name
+                  </label>
+                  <input
+                    type="text"
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                    placeholder="e.g., Accessory"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    HCP Type
+                  </label>
+                  <select
+                    value={newCatHcpType}
+                    onChange={(e) => setNewCatHcpType(e.target.value as "material" | "service")}
+                    className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  >
+                    <option value="material">Material (physical items, syncs to HCP)</option>
+                    <option value="service">Service (labor/plans, read-only in HCP)</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <button
+                  onClick={() => setCatModalOpen(false)}
+                  className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddCategory}
+                  disabled={catSaving || !newCatName.trim()}
+                  className="px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {catSaving ? "Adding..." : "Add Category"}
                 </button>
               </div>
             </div>

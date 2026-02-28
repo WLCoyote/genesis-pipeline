@@ -187,9 +187,22 @@ export interface UserInvite {
 }
 
 // Pricebook types
-export type PricebookCategory = "equipment" | "labor" | "material" | "addon" | "service_plan";
+export type PricebookCategory = string;
 
 export type HcpEntityType = "material" | "service";
+
+export interface PricebookCategoryRow {
+  id: string;
+  name: string;
+  slug: string;
+  hcp_type: "material" | "service";
+  display_order: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type RefrigerantType = "R-410A" | "R-22" | "R-454B" | "R-32" | "R-134A" | "R-404A" | "R-290";
 
 export interface PricebookItem {
   id: string;
@@ -217,6 +230,7 @@ export interface PricebookItem {
   hcp_category_name: string | null;
   system_type: string | null;
   efficiency_rating: string | null;
+  refrigerant_type: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;

@@ -28,16 +28,7 @@ export async function PUT(
 
   const body = await request.json();
 
-  // Validate category if provided
-  if (body.category) {
-    const validCategories = ["equipment", "labor", "material", "addon", "service_plan"];
-    if (!validCategories.includes(body.category)) {
-      return NextResponse.json(
-        { error: `Invalid category. Must be one of: ${validCategories.join(", ")}` },
-        { status: 400 }
-      );
-    }
-  }
+  // Category is now dynamic (from pricebook_categories table) — no hardcoded validation
 
   // Fetch current item to know HCP sync status
   const { data: existing, error: fetchErr } = await supabase
@@ -58,7 +49,7 @@ export async function PUT(
     "model_number", "part_number", "is_addon", "addon_default_checked",
     "applicable_system_types", "is_commissionable", "rebate_amount",
     "taxable", "is_active", "hcp_category_name",
-    "system_type", "efficiency_rating",
+    "system_type", "efficiency_rating", "refrigerant_type",
   ];
 
   for (const field of allowedFields) {
