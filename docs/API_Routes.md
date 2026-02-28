@@ -68,12 +68,27 @@
 | `/api/admin/users` | GET/PATCH | List users, update roles, activate/deactivate |
 | `/api/admin/invites` | GET/POST/DELETE | Manage team invites |
 | `/api/admin/hcp-lead-sources` | GET | Sync lead source options from HCP API |
+| `/api/admin/pricebook` | GET | List pricebook items (filters: `?category=`, `?search=`, `?active=`) |
+| `/api/admin/pricebook` | POST | Create pricebook item (admin only) |
+| `/api/admin/pricebook/[id]` | PUT | Update item + HCP sync (admin only) |
+| `/api/admin/pricebook/[id]` | DELETE | Soft-delete item (set inactive, admin only) |
+| `/api/admin/pricebook/import` | POST | Bootstrap import all materials + services from HCP (admin only) |
+| `/api/admin/markup-tiers` | GET | List all markup tiers ordered by tier_number (any authenticated user) |
+| `/api/admin/markup-tiers` | PUT | Replace all markup tiers (admin sends full array, delete + re-insert, admin only) |
+| `/api/admin/labor-calculator` | GET | Read saved labor calculator inputs from settings (any authenticated user) |
+| `/api/admin/labor-calculator` | PUT | Save labor calculator inputs to settings (admin only) |
 
 ### Data Import
 
 | Route | Method | Purpose |
 |-------|--------|---------|
 | `/api/import/csv` | POST | CSV estimate import from HCP export |
+
+## Cross-App API (Command Layer / inter-app)
+
+| Route | Method | Auth | Purpose |
+|-------|--------|------|---------|
+| `/api/v1/pricebook` | GET | `GENESIS_INTERNAL_API_KEY` | Read-only pricebook (omits cost/HCP fields). Filters: `?category=`, `?search=` |
 
 ## Auth Summary
 
@@ -83,7 +98,7 @@
 
 ## Key Integration Points
 
-- **Outbound to HCP:** POST /customers, POST /estimates, POST /estimates/options/decline (called from internal routes, not exposed)
+- **Outbound to HCP:** POST /customers, POST /estimates, POST /estimates/options/decline, GET /materials, POST /materials, PUT /materials/{uuid}, GET /services (called from internal routes, not exposed)
 - **Outbound to Twilio:** All SMS via Messaging Service SID `MGd102dd6d19268d0e867c30f9457caf2f`
 - **Outbound to Resend:** Transactional email from `marketing@genesishvacr.com`
 - **Database:** Supabase PostgreSQL with RLS. Realtime subscriptions for notifications and messages.

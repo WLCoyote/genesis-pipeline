@@ -216,6 +216,8 @@ Also stores QBO OAuth tokens (encrypted) and HCP lead source cache.
 
 #### pricebook_items
 
+*Built in Phase 6.1. Schema adapted from original spec to support bidirectional HCP sync (materials push, services read-only).*
+
 | Column | Type | Notes |
 |--------|------|-------|
 | id | UUID PK | |
@@ -224,8 +226,11 @@ Also stores QBO OAuth tokens (encrypted) and HCP lead source cache.
 | spec_line | TEXT | Technical detail. e.g., "3 Ton SVZ \| Hyper Heat \| -13°F Rated" |
 | description | TEXT | 2-sentence value statement. Default on proposal. Comfort pro can override per estimate. |
 | unit_price | DECIMAL(10,2) | Installed price in USD. For equipment: full install price including labor unless separate. |
+| cost | DECIMAL(10,2) | What we pay (from HCP import). Separate from unit_price for margin visibility. |
+| unit_of_measure | TEXT | e.g., "each", "ft", "hr". From HCP. |
 | manufacturer | TEXT | e.g., "Mitsubishi", "Carrier", "RunTru by Trane" |
 | model_number | TEXT | Manufacturer model number. For HCP line item sync. |
+| part_number | TEXT | Supplier part number. From HCP materials. |
 | gensco_sku | TEXT | Gensco supplier SKU. NULL until Phase 2 price feed integration. |
 | last_price_sync | TIMESTAMPTZ | When Gensco last updated this price. NULL until Phase 2. |
 | is_addon | BOOLEAN | True = shown as checkbox on proposal. False = line item only. |
@@ -233,8 +238,12 @@ Also stores QBO OAuth tokens (encrypted) and HCP lead source cache.
 | applicable_system_types | TEXT[] | Which system types show this add-on. e.g., `["heat_pump","ac","furnace"]`. NULL = all. |
 | is_commissionable | BOOLEAN | Default true. All items commissionable including add-ons and PM plan. |
 | rebate_amount | DECIMAL(10,2) | Manufacturer rebate if applicable. NULL = no rebate. Shown as badge on proposal card. |
+| taxable | BOOLEAN | Default true. From HCP. |
 | is_active | BOOLEAN | Inactive items hidden from quote builder. Historical estimates unaffected. |
-| hcp_service_id | TEXT | HCP pricebook service ID for line item sync. Set on first HCP sync. |
+| hcp_uuid | TEXT UNIQUE | HCP material or service UUID. Replaces original `hcp_service_id`. Used as upsert key for import. |
+| hcp_type | ENUM | `material` \| `service`. Determines sync behavior — materials can push, services read-only. |
+| hcp_category_uuid | TEXT | HCP category ID for reference. |
+| hcp_category_name | TEXT | HCP category display name. |
 
 #### estimates
 
@@ -263,6 +272,20 @@ Also stores QBO OAuth tokens (encrypted) and HCP lead source cache.
 | selected_financing_plan | TEXT | Which Synchrony plan customer selected at signing. e.g., "930" |
 | payment_schedule_type | ENUM | `standard` \| `large_job`. Determined by HCP tags at estimate creation. |
 | online_estimate_url | TEXT | HCP customer-facing URL if manually set. Not auto-populated (HCP API does not expose it). |
+
+#### markup_tiers
+
+*Built in Phase 6. Cost-based multiplier table for auto-suggesting retail price from cost on equipment, materials, and add-ons.*
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| tier_number | INTEGER UNIQUE | Sort order (1–11 default). |
+| min_cost | DECIMAL(10,2) NOT NULL | Range floor. |
+| max_cost | DECIMAL(10,2) | NULL = no upper bound (last tier). |
+| multiplier | DECIMAL(5,2) NOT NULL | e.g., 7.00, 2.25, 1.75. Markup % = (multiplier - 1) x 100. Profit % = (1 - 1/multiplier) x 100. |
+
+RLS: all authenticated can SELECT, admin only for write. Seeded with 11 default tiers. Labor calculator inputs stored in `settings` table as JSONB (key: `labor_calculator`).
 
 #### estimate_line_items
 

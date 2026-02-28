@@ -29,8 +29,9 @@
 | `/api/v1/leads` | GET | 🔴 Planned | List open leads | `leads_list` |
 | `/api/v1/leads/{id}/move-to-hcp` | POST | 🔴 Planned | Push lead to Housecall Pro | `lead_move_to_hcp` |
 | `/api/v1/commission/summary` | GET | 🔴 Planned | Commission by comfort pro, current period | `commission_summary` |
+| `/api/v1/pricebook` | GET | 🟢 Live | Read-only pricebook items (omits internal cost/HCP fields) | `pricebook_list` |
 
-**Query params supported:** `start_date`, `end_date` (ISO 8601) on stats and summary endpoints.
+**Query params supported:** `start_date`, `end_date` (ISO 8601) on stats and summary endpoints. `category`, `search` on pricebook endpoint.
 
 **Notes:** Pipeline is live but v1 cross-app endpoints need to be built. Internal app endpoints exist but don't follow the conventions envelope yet.
 

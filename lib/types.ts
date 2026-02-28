@@ -186,6 +186,62 @@ export interface UserInvite {
   created_at: string;
 }
 
+// Pricebook types
+export type PricebookCategory = "equipment" | "labor" | "material" | "addon" | "service_plan";
+
+export type HcpEntityType = "material" | "service";
+
+export interface PricebookItem {
+  id: string;
+  category: PricebookCategory;
+  display_name: string;
+  spec_line: string | null;
+  description: string | null;
+  unit_price: number | null;
+  cost: number | null;
+  unit_of_measure: string | null;
+  manufacturer: string | null;
+  model_number: string | null;
+  part_number: string | null;
+  is_addon: boolean;
+  addon_default_checked: boolean;
+  applicable_system_types: string[] | null;
+  is_commissionable: boolean;
+  rebate_amount: number | null;
+  taxable: boolean;
+  gensco_sku: string | null;
+  last_price_sync: string | null;
+  hcp_uuid: string | null;
+  hcp_type: HcpEntityType | null;
+  hcp_category_uuid: string | null;
+  hcp_category_name: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Markup tier for auto-suggesting retail price from cost
+export interface MarkupTier {
+  id: string;
+  tier_number: number;
+  min_cost: number;
+  max_cost: number | null;
+  multiplier: number;
+  created_at: string;
+  updated_at: string;
+}
+
+// Labor calculator inputs (stored as JSONB in settings table, key: "labor_calculator")
+export interface LaborCalculatorInputs {
+  annual_overhead: number;
+  num_installers: number;
+  num_service_techs: number;
+  highest_tech_wage: number;
+  tax_benefits_multiplier: number;
+  days_per_month: number;
+  desired_profit_pct: number;
+}
+
 // Joined types used in UI queries
 export interface EstimateWithRelations extends Estimate {
   customers: Customer;
