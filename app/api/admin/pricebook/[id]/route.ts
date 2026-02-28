@@ -57,7 +57,7 @@ export async function PUT(
     "unit_price", "cost", "unit_of_measure", "manufacturer",
     "model_number", "part_number", "is_addon", "addon_default_checked",
     "applicable_system_types", "is_commissionable", "rebate_amount",
-    "taxable", "is_active",
+    "taxable", "is_active", "hcp_category_name",
   ];
 
   for (const field of allowedFields) {

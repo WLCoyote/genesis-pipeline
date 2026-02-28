@@ -29,6 +29,7 @@ const CATEGORY_OPTIONS: { value: PricebookCategory; label: string }[] = [
 const EMPTY_FORM = {
   display_name: "",
   category: "equipment" as PricebookCategory,
+  hcp_category_name: "",
   spec_line: "",
   description: "",
   unit_price: "",
@@ -101,7 +102,7 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState("");
 
-  // Compute subcategories for the selected category
+  // Compute subcategories for the selected filter category
   const subcategories = useMemo(() => {
     if (categoryFilter === "all") return [];
     const names = new Set<string>();
@@ -112,6 +113,17 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
     }
     return Array.from(names).sort();
   }, [items, categoryFilter]);
+
+  // Compute subcategories for the modal form's selected category
+  const formSubcategories = useMemo(() => {
+    const names = new Set<string>();
+    for (const item of items) {
+      if (item.category === form.category && item.hcp_category_name) {
+        names.add(item.hcp_category_name);
+      }
+    }
+    return Array.from(names).sort();
+  }, [items, form.category]);
 
   // Filter items
   const filtered = useMemo(() => {
@@ -215,6 +227,7 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
     setForm({
       display_name: item.display_name,
       category: item.category,
+      hcp_category_name: item.hcp_category_name || "",
       spec_line: item.spec_line || "",
       description: item.description || "",
       unit_price: item.unit_price != null ? String(item.unit_price) : "",
@@ -253,6 +266,7 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
       unit_price: form.unit_price ? parseFloat(form.unit_price) : null,
       cost: form.cost ? parseFloat(form.cost) : null,
       rebate_amount: form.rebate_amount ? parseFloat(form.rebate_amount) : null,
+      hcp_category_name: form.hcp_category_name.trim() || null,
     };
 
     try {
@@ -486,17 +500,17 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
       <div className="flex flex-col gap-3 mb-4">
         <div className="flex flex-wrap items-center gap-2">
           <button
+            onClick={openCreate}
+            className="px-3 py-1.5 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700"
+          >
+            + Add Item
+          </button>
+          <button
             onClick={handleImport}
             disabled={importing}
             className="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50"
           >
             {importing ? "Importing..." : "Import from HCP"}
-          </button>
-          <button
-            onClick={openCreate}
-            className="px-3 py-1.5 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700"
-          >
-            + Add Item
           </button>
           <Link
             href="/dashboard/admin/pricebook/markup-tiers"
@@ -537,20 +551,6 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
             </button>
           ))}
 
-          {/* Subcategory dropdown — only when a specific category is selected and subcategories exist */}
-          {categoryFilter !== "all" && subcategories.length > 0 && (
-            <select
-              value={subcategoryFilter}
-              onChange={(e) => setSubcategoryFilter(e.target.value)}
-              className="px-2 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-            >
-              <option value="all">All subcategories ({subcategories.length})</option>
-              {subcategories.map((sub) => (
-                <option key={sub} value={sub}>{sub}</option>
-              ))}
-            </select>
-          )}
-
           {/* Search */}
           <input
             type="text"
@@ -571,6 +571,36 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
             Show inactive
           </label>
         </div>
+
+        {/* Subcategory pills — only when a specific category is selected and subcategories exist */}
+        {categoryFilter !== "all" && subcategories.length > 0 && (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs text-gray-400 dark:text-gray-500 mr-1">Sub:</span>
+            <button
+              onClick={() => setSubcategoryFilter("all")}
+              className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                subcategoryFilter === "all"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+              }`}
+            >
+              All ({subcategories.length})
+            </button>
+            {subcategories.map((sub) => (
+              <button
+                key={sub}
+                onClick={() => setSubcategoryFilter(sub)}
+                className={`px-3 py-1 text-sm rounded-full transition-colors ${
+                  subcategoryFilter === sub
+                    ? "bg-blue-600 text-white"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                }`}
+              >
+                {sub}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Count */}
@@ -862,6 +892,30 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
                       </option>
                     ))}
                   </select>
+                </div>
+
+                {/* Subcategory */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                    Subcategory
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      list="subcategory-options"
+                      value={form.hcp_category_name}
+                      onChange={(e) =>
+                        setForm({ ...form, hcp_category_name: e.target.value })
+                      }
+                      className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                      placeholder="Select or type a new subcategory"
+                    />
+                    <datalist id="subcategory-options">
+                      {formSubcategories.map((sub) => (
+                        <option key={sub} value={sub} />
+                      ))}
+                    </datalist>
+                  </div>
                 </div>
 
                 {/* Spec Line */}

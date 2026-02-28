@@ -102,6 +102,7 @@ export async function POST(request: NextRequest) {
     rebate_amount: body.rebate_amount ?? null,
     taxable: body.taxable ?? true,
     is_active: body.is_active ?? true,
+    hcp_category_name: body.hcp_category_name || null,
   };
 
   const { data, error } = await supabase
