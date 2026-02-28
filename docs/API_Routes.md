@@ -72,7 +72,9 @@
 | `/api/admin/pricebook` | POST | Create pricebook item (admin only) |
 | `/api/admin/pricebook/[id]` | PUT | Update item + HCP sync (admin only) |
 | `/api/admin/pricebook/[id]` | DELETE | Soft-delete item (set inactive, admin only) |
-| `/api/admin/pricebook/import` | POST | Bootstrap import all materials + services from HCP (admin only) |
+| `/api/admin/pricebook/import` | POST | Bootstrap import all materials + services from HCP (additive only, admin) |
+| `/api/admin/pricebook/bulk` | PUT | Bulk update category for selected items (admin only) |
+| `/api/admin/pricebook/bulk` | POST | Bulk sync selected active materials to HCP (admin only) |
 | `/api/admin/markup-tiers` | GET | List all markup tiers ordered by tier_number (any authenticated user) |
 | `/api/admin/markup-tiers` | PUT | Replace all markup tiers (admin sends full array, delete + re-insert, admin only) |
 | `/api/admin/labor-calculator` | GET | Read saved labor calculator inputs from settings (any authenticated user) |

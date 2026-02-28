@@ -448,6 +448,16 @@ These routes are called by the dashboard UI. They require an authenticated Supab
 | `/api/admin/team/invite` | POST | Create user invite. Admin only. |
 | `/api/admin/team/[id]` | PUT | Update user role/status. Admin only. |
 
+| `/api/admin/pricebook` | GET | List pricebook items (filters: `?category=`, `?search=`, `?active=`). |
+| `/api/admin/pricebook` | POST | Create pricebook item. Admin only. |
+| `/api/admin/pricebook/[id]` | PUT | Update item + auto-sync to HCP (materials). Admin only. |
+| `/api/admin/pricebook/[id]` | DELETE | Soft-delete (set inactive). Admin only. |
+| `/api/admin/pricebook/import` | POST | Import all materials + services from HCP (additive only). Admin only. |
+| `/api/admin/pricebook/bulk` | PUT | Bulk update category for selected items. Admin only. |
+| `/api/admin/pricebook/bulk` | POST | Bulk sync selected active materials to HCP. Admin only. |
+| `/api/admin/markup-tiers` | GET/PUT | Read/replace markup tier table. Admin write, any auth read. |
+| `/api/admin/labor-calculator` | GET/PUT | Read/save labor calculator inputs (settings JSONB). Admin write. |
+
 See `docs/API_Routes.md` for the complete route map with auth methods and additional detail.
 
 ### 3.4 Cron Jobs

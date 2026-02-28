@@ -126,7 +126,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. v4.0 features (pricebook, proposals, commission, Command Layer API) are specced but not started.
+Phases 0–3 complete. Phase 4 in progress. Phase 6 (pricebook) partially complete — CRUD, HCP sync, pricing tools, bulk actions all live.
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -136,7 +136,11 @@ Phases 0–3 complete. Phase 4 in progress. v4.0 features (pricebook, proposals,
 | Phase 3 | Frontend dashboard + dark mode | Complete |
 | Phase 4 | Deployment & E2E testing | In progress — blocked on A2P campaign approval for outbound SMS |
 | Phase 5 | Team launch | Not started |
-| **v4.0** | **Pricebook, proposals, commission, Command Layer API** | **Specced — not started** |
+| Phase 6.1–6.4 | Pricebook CRUD, HCP import/sync, markup tiers, labor calc, bulk actions, cascading nav | **Complete** |
+| Phase 6.5+ | Quote builder, HCP sync on quote, WA DOR tax | Not started |
+| Phase 7 | Proposal engine (branded pages, signatures) | Not started |
+| Phase 8 | Commission tracking (two-stage, QBO) | Not started |
+| Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
 | v0.2 | HCP webhooks, analytics | Future |
 | Phase 2+ | Campaigns & segmentation | Future |
 | Phase 3+ | AI, weather triggers | Future |

@@ -195,34 +195,49 @@ Depends on Phase 4 E2E checklist passing.
 
 ---
 
-## PHASE 6: Pricebook & Quote Builder — NOT STARTED
+## PHASE 6: Pricebook & Pricing Tools
 
 Pipeline becomes the quoting tool. HCP becomes the record-keeper. See PRD v4.0 Section 3.
 
-### Step 6.1: Database — Pricebook Tables
+### Step 6.1: Database — Pricebook Table ✅ COMPLETE
 
-Create SQL migrations for:
-- `pricebook_items` — equipment, labor, materials, add-ons, service plans. Fields: category, display_name, spec_line, description, unit_price, manufacturer, model_number, gensco_sku, is_addon, addon_default_checked, applicable_system_types, is_commissionable, rebate_amount, is_active, hcp_service_id.
-- `estimate_line_items` — replaces `estimate_options` for pricebook-built estimates. Fields: estimate_id, pricebook_item_id, option_group (1/2/3), display_name, spec_line, description, quantity, unit_price, line_total, is_addon, is_selected, hcp_option_id.
-- Add columns to `estimates`: tax_rate, tax_amount, show_tax_on_proposal, proposal_token, proposal_signed_at, proposal_signed_ip, proposal_pdf_url, selected_financing_plan, payment_schedule_type.
-- `financing_plans` — plan_code, label, fee_pct, months, apr, is_default, is_active, synchrony_url, display_order.
-- `large_job_tags` — tag_name, is_active.
+SQL migration `012_pricebook_items.sql`:
+- `pricebook_items` table with full schema, RLS policies (admin write, authenticated read)
+- Categories: equipment, labor, material, addon, service_plan
+- HCP fields: `hcp_uuid` (unique), `hcp_type`, `hcp_category_uuid`, `hcp_category_name`
+- Equipment fields: `manufacturer`, `model_number`, `system_type`, `efficiency_rating` (sql/014)
+- Future-proofed: `gensco_sku`, `last_price_sync` for Gensco price feed integration
 
-**Note:** Keep `estimate_options` table for backward compatibility with HCP-imported estimates that don't go through the pricebook. New pricebook estimates use `estimate_line_items`.
+### Step 6.2: Pricebook Admin UI + HCP Import/Sync ✅ COMPLETE
 
-RLS on all new tables. Admin full access. Comfort pro read on pricebook, read/write on their estimates' line items.
+- Admin page at `/dashboard/admin/pricebook` — full CRUD, category filter, search, active/inactive toggle
+- **HCP Import** (`POST /api/admin/pricebook/import`): fetches all materials (recursive 3-level subcategory BFS) + services from HCP API. Import is **additive only** — never overwrites existing Pipeline items.
+- **HCP Sync**: edits to materials auto-push to HCP on save. Services are read-only in HCP API.
+- **Push to HCP**: Pipeline-only items can be pushed to create new HCP materials.
+- **Deactivate/Reactivate**: soft-delete with reactivate option.
+- Cross-app endpoint: `GET /api/v1/pricebook` (read-only, omits cost/HCP fields).
 
-**VERIFY:** Tables created. RLS policies working. Seed data for Synchrony financing plans (930, 980, 943).
+### Step 6.3: Markup Tiers & Labor Calculator ✅ COMPLETE
 
-### Step 6.2: Pricebook Admin UI
+SQL migration `013_markup_tiers.sql`:
+- `markup_tiers` table with 11 default cost-based multiplier tiers, RLS
+- Admin editor at `/dashboard/admin/pricebook/markup-tiers` — editable table with derived markup % and profit %
+- **Auto-suggest** price in create/edit modal when cost is entered (equipment/material/addon only, not labor/service_plan)
+- **Labor calculator** at `/dashboard/admin/pricebook/labor-calculator` — inputs saved as JSONB in settings table
+- Live calculations: overhead/hr, direct loaded rate, fully loaded labor cost, target $/hr
+- Quick reference panel at 20%, 25%, 30% profit
 
-- Settings page section: Admin manages pricebook items (CRUD). Filter by category. Toggle active/inactive.
-- Settings page section: Admin manages financing plans. Set default plan.
-- Settings page section: Admin manages large-job tags.
+### Step 6.4: Bulk Actions & Cascading Navigation ✅ COMPLETE
 
-**VERIFY:** Admin can add equipment, labor, materials, add-ons, PM plan. Items appear in pricebook. Financing plans editable.
+- **Bulk select**: checkbox per row + select all. Sticky action bar when items selected.
+- **Bulk category change** (`PUT /api/admin/pricebook/bulk`): reassign selected items to a new category.
+- **Bulk HCP sync** (`POST /api/admin/pricebook/bulk`): push selected active materials to HCP. Skips services (read-only) and deactivated items.
+- **Cascading drill-down navigation**:
+  - Equipment: Manufacturer → System Type → Efficiency Rating (cascading dropdowns)
+  - Material/Labor/Addon/Service Plan: Subcategory dropdown (from `hcp_category_name`)
+- Modal supports subcategory, system_type, and efficiency_rating combo fields (select existing or type new)
 
-### Step 6.3: Quote Builder Page
+### Step 6.5: Quote Builder — NOT STARTED
 
 New page: `/dashboard/quotes/new`
 
@@ -233,30 +248,21 @@ New page: `/dashboard/quotes/new`
 - Real-time total calculation per option group
 - "Create Estimate" button: saves to `estimates` + `estimate_line_items`, generates `proposal_token`
 
-**VERIFY:** Comfort pro can build a multi-option estimate from pricebook. Totals calculate correctly. Estimate saved with line items.
+Requires new tables: `estimate_line_items`, `financing_plans`, `large_job_tags`. Add columns to `estimates` for proposal/tax/financing fields.
 
-### Step 6.4: HCP Sync on Quote Creation
+### Step 6.6: HCP Sync on Quote Creation — NOT STARTED
 
 When estimate is created in Pipeline:
 1. POST to HCP API to create customer (if new)
 2. POST to HCP API to create estimate with line items from pricebook
 3. Store `hcp_estimate_id` and `hcp_option_id` on local records
 
-Reuse existing HCP API client in `lib/hcp-polling.ts` or create `lib/hcp.ts`.
-
-**VERIFY:** Estimate created in Pipeline appears in HCP with correct line items and amounts.
-
-### Step 6.5: WA DOR Tax Lookup
+### Step 6.7: WA DOR Tax Lookup — NOT STARTED
 
 Create `lib/tax.ts`:
-- `getTaxRate(address)` calls `https://webgis.dor.wa.gov/webapi/addressrates.aspx`
-- Returns rate as decimal (e.g., 0.092)
-- Fallback: 9.2% with "Estimated tax rate" disclaimer if API unavailable
-- Cache rate on estimate record (`tax_rate`, `tax_amount`)
-
-Called at proposal generation time.
-
-**VERIFY:** Tax rate fetched for Monroe, WA address. Cached on estimate. Fallback works when API is down.
+- `getTaxRate(address)` calls WA DOR API
+- Fallback: 9.2% if API unavailable
+- Cache rate on estimate record
 
 ---
 
