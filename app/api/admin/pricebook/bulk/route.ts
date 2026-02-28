@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { updateHcpMaterial } from "@/lib/hcp-pricebook";
+import { updateHcpMaterial, buildHcpDescription } from "@/lib/hcp-pricebook";
 
 // Helper: admin auth check
 async function requireAdmin(supabase: Awaited<ReturnType<typeof createClient>>) {
@@ -168,7 +168,7 @@ export async function POST(request: NextRequest) {
     try {
       await updateHcpMaterial(item.hcp_uuid, {
         name: item.display_name,
-        description: item.description || undefined,
+        description: buildHcpDescription(item),
         price: item.unit_price != null ? Math.round(item.unit_price * 100) : undefined,
         cost: item.cost != null ? Math.round(item.cost * 100) : undefined,
         taxable: item.taxable,

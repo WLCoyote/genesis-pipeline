@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { updateHcpMaterial, createHcpMaterial } from "@/lib/hcp-pricebook";
+import { updateHcpMaterial, createHcpMaterial, buildHcpDescription } from "@/lib/hcp-pricebook";
 
 // PUT /api/admin/pricebook/[id] — Update item + optional HCP sync (admin only)
 export async function PUT(
@@ -87,10 +87,10 @@ export async function PUT(
       hcpSync = "skipped_service_readonly";
       console.log(`[Pricebook] HCP sync skipped for service item ${id} (read-only)`);
     } else if (updatedItem.hcp_uuid && updatedItem.hcp_type === "material") {
-      // Existing material — push update to HCP
+      // Existing material — push update to HCP with rich description
       await updateHcpMaterial(updatedItem.hcp_uuid, {
         name: updatedItem.display_name,
-        description: updatedItem.description || undefined,
+        description: buildHcpDescription(updatedItem),
         price: updatedItem.unit_price != null ? Math.round(updatedItem.unit_price * 100) : undefined,
         cost: updatedItem.cost != null ? Math.round(updatedItem.cost * 100) : undefined,
         taxable: updatedItem.taxable,
@@ -100,10 +100,10 @@ export async function PUT(
       hcpSync = "updated";
       console.log(`[Pricebook] HCP material ${updatedItem.hcp_uuid} updated`);
     } else if (!updatedItem.hcp_uuid && body.push_to_hcp) {
-      // Pipeline-only item — create in HCP
+      // Pipeline-only item — create in HCP with rich description
       const created = await createHcpMaterial({
         name: updatedItem.display_name,
-        description: updatedItem.description || undefined,
+        description: buildHcpDescription(updatedItem),
         price: updatedItem.unit_price != null ? Math.round(updatedItem.unit_price * 100) : 0,
         cost: updatedItem.cost != null ? Math.round(updatedItem.cost * 100) : undefined,
         taxable: updatedItem.taxable,

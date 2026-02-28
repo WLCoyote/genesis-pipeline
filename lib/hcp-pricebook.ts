@@ -49,6 +49,40 @@ export interface HcpService {
   category: { id: number; name: string } | null;
 }
 
+// ---------- HCP Description Builder ----------
+
+/** Build a rich description for HCP from Pipeline item fields.
+ *  Format: Description first, then spec details underneath. */
+export function buildHcpDescription(item: {
+  description?: string | null;
+  manufacturer?: string | null;
+  model_number?: string | null;
+  system_type?: string | null;
+  efficiency_rating?: string | null;
+  refrigerant_type?: string | null;
+  spec_line?: string | null;
+}): string | undefined {
+  const lines: string[] = [];
+
+  // Description on top
+  if (item.description) lines.push(item.description);
+
+  // Spec details line: Manufacturer | System Type | Efficiency | Refrigerant
+  const specParts = [
+    item.manufacturer,
+    item.model_number,
+    item.system_type,
+    item.efficiency_rating,
+    item.refrigerant_type,
+  ].filter(Boolean);
+  if (specParts.length > 0) lines.push(specParts.join(" | "));
+
+  // Spec line
+  if (item.spec_line) lines.push(item.spec_line);
+
+  return lines.length > 0 ? lines.join("\n") : undefined;
+}
+
 // ---------- Helpers ----------
 
 function getHcpConfig() {
