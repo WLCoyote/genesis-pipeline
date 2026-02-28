@@ -70,7 +70,7 @@ export async function fetchAllHcpMaterials(): Promise<HcpMaterial[]> {
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
     const res = await fetch(
-      `${hcpBase}/materials?page=${page}&page_size=200`,
+      `${hcpBase}/api/price_book/materials?page=${page}&page_size=200`,
       { headers: hcpHeaders(hcpToken), signal: controller.signal }
     );
     clearTimeout(timeout);
@@ -98,7 +98,7 @@ export async function createHcpMaterial(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
-  const res = await fetch(`${hcpBase}/materials`, {
+  const res = await fetch(`${hcpBase}/api/price_book/materials`, {
     method: "POST",
     headers: hcpHeaders(hcpToken),
     body: JSON.stringify(material),
@@ -122,7 +122,7 @@ export async function updateHcpMaterial(
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
-  const res = await fetch(`${hcpBase}/materials/${uuid}`, {
+  const res = await fetch(`${hcpBase}/api/price_book/materials/${uuid}`, {
     method: "PUT",
     headers: hcpHeaders(hcpToken),
     body: JSON.stringify(updates),
@@ -151,7 +151,7 @@ export async function fetchAllHcpServices(): Promise<HcpService[]> {
     const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
 
     const res = await fetch(
-      `${hcpBase}/services?page=${page}&page_size=200`,
+      `${hcpBase}/api/price_book/services?page=${page}&page_size=200`,
       { headers: hcpHeaders(hcpToken), signal: controller.signal }
     );
     clearTimeout(timeout);
