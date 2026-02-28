@@ -12,7 +12,7 @@ export default function PrivacyPage() {
           Privacy Policy
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
-          Genesis Heating, Cooling & Refrigeration — Last updated February 18,
+          Genesis Heating, Cooling & Refrigeration — Last updated February 26,
           2026
         </p>
 
@@ -63,21 +63,35 @@ export default function PrivacyPage() {
               SMS Messaging
             </h2>
             <p>
-              By providing your phone number and requesting an estimate, you
-              consent to receive SMS messages from Genesis related to your
-              estimate, appointment scheduling, and service follow-ups. Message
-              frequency varies. Message and data rates may apply.
+              By providing your mobile phone number and requesting an estimate
+              or service, you consent to receive SMS text messages from Genesis
+              Heating, Cooling &amp; Refrigeration at the number you provided.
+              Messages may include estimate notifications, appointment
+              reminders, service follow-ups, and responses to your inquiries.
             </p>
+            <ul className="list-disc list-inside mt-2 space-y-1">
+              <li>Message frequency varies based on your service interactions (typically 2–8 messages per estimate).</li>
+              <li>Message and data rates may apply. Check with your carrier for details.</li>
+              <li>Reply <strong>STOP</strong> to any message to opt out of SMS communications at any time.</li>
+              <li>Reply <strong>HELP</strong> for assistance or contact us at (425) 261-9095.</li>
+              <li>Consent to receive SMS is not required as a condition of purchasing any goods or services.</li>
+            </ul>
             <p className="mt-2">
-              <strong>To opt out</strong> of SMS messages at any time, reply
-              STOP to any message. You may also call us at{" "}
+              You may also opt out by calling{" "}
               <a
                 href="tel:+14252619095"
                 className="text-blue-600 dark:text-blue-400 underline"
               >
                 (425) 261-9095
               </a>{" "}
-              to request removal.
+              or emailing{" "}
+              <a
+                href="mailto:wylee@genesisservices.com"
+                className="text-blue-600 dark:text-blue-400 underline"
+              >
+                wylee@genesisservices.com
+              </a>
+              .
             </p>
           </section>
 
@@ -86,11 +100,15 @@ export default function PrivacyPage() {
               Data Sharing
             </h2>
             <p>
-              We do not sell your personal information. We may share your
-              information with trusted service providers solely to deliver our
-              services (e.g., SMS delivery, email delivery, scheduling
-              platforms). These providers are bound to use your information only
-              as needed to perform services on our behalf.
+              We do not sell, rent, or share your personal information,
+              including your mobile phone number, with third parties for
+              marketing or promotional purposes. We may share your information
+              with trusted service providers solely to deliver our services
+              (e.g., SMS delivery via Twilio, email delivery via Resend,
+              scheduling via Housecall Pro). These providers are contractually
+              bound to use your information only as needed to perform services
+              on our behalf and are prohibited from using it for their own
+              marketing.
             </p>
           </section>
 

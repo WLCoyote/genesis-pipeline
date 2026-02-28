@@ -13,7 +13,7 @@ export default function TermsPage() {
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
           Genesis Heating, Cooling &amp; Refrigeration — Last updated February
-          18, 2026
+          26, 2026
         </p>
 
         <div className="space-y-6 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
@@ -54,19 +54,40 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              SMS Communications
+              SMS Communications &amp; Consent
             </h2>
             <p>
-              By providing your phone number, you consent to receive SMS
-              messages from Genesis regarding your estimates, appointments, and
-              service follow-ups. You may opt out at any time by replying STOP
-              to any message. Message and data rates may apply. Message
-              frequency varies based on your service interactions.
+              By providing your mobile phone number to Genesis Heating, Cooling
+              &amp; Refrigeration — whether by phone, in person, or through a
+              web form — you expressly consent to receive SMS text messages at
+              the number you provided. These messages are related to the
+              services you requested and may include:
             </p>
-            <p className="mt-2">
-              We will not use your phone number for unrelated marketing without
-              your explicit consent.
+            <ul className="list-disc list-inside mt-2 space-y-1">
+              <li>Estimate and proposal notifications</li>
+              <li>Appointment scheduling and reminders</li>
+              <li>Service follow-up messages</li>
+              <li>Responses to your questions</li>
+            </ul>
+            <p className="mt-3 font-semibold text-gray-900 dark:text-gray-100">
+              Important SMS Disclosures:
             </p>
+            <ul className="list-disc list-inside mt-1 space-y-1">
+              <li>Message frequency varies (typically 2–8 messages per estimate).</li>
+              <li>Message and data rates may apply.</li>
+              <li>Consent to receive SMS is not a condition of purchase.</li>
+              <li>Reply <strong>STOP</strong> to cancel messages at any time.</li>
+              <li>Reply <strong>HELP</strong> for help. You may also call (425) 261-9095.</li>
+              <li>Your mobile phone number will not be shared with third parties for marketing purposes. See our{" "}
+                <a
+                  href="/privacy"
+                  className="text-blue-600 dark:text-blue-400 underline"
+                >
+                  Privacy Policy
+                </a>{" "}
+                for details.
+              </li>
+            </ul>
           </section>
 
           <section>
