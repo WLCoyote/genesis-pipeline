@@ -295,6 +295,25 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
     }
   };
 
+  // Reactivate
+  const handleReactivate = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/pricebook/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_active: true }),
+      });
+      if (res.ok) {
+        setItems((prev) =>
+          prev.map((i) => (i.id === id ? { ...i, is_active: true } : i))
+        );
+        router.refresh();
+      }
+    } catch {
+      // Silently fail — user can retry
+    }
+  };
+
   return (
     <div>
       {/* Toolbar */}
@@ -481,12 +500,19 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
                           >
                             Edit
                           </button>
-                          {item.is_active && (
+                          {item.is_active ? (
                             <button
                               onClick={() => handleDeactivate(item.id)}
                               className="text-red-500 dark:text-red-400 hover:underline text-sm"
                             >
                               Deactivate
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleReactivate(item.id)}
+                              className="text-green-600 dark:text-green-400 hover:underline text-sm"
+                            >
+                              Reactivate
                             </button>
                           )}
                         </div>
@@ -543,12 +569,19 @@ export default function PricebookManager({ initialItems }: PricebookManagerProps
                     >
                       Edit
                     </button>
-                    {item.is_active && (
+                    {item.is_active ? (
                       <button
                         onClick={() => handleDeactivate(item.id)}
                         className="text-red-500 dark:text-red-400 text-sm hover:underline"
                       >
                         Deactivate
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleReactivate(item.id)}
+                        className="text-green-600 dark:text-green-400 text-sm hover:underline"
+                      >
+                        Reactivate
                       </button>
                     )}
                   </div>
