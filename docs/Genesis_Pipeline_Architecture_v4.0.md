@@ -672,7 +672,9 @@ Admin creates campaign, selects audience via tag/segment filters, sets "not cont
 | `/app/(dashboard)/leads` | CSR lead management. List, edit, move to HCP, archive. |
 | `/app/(dashboard)/inbox` | Unmatched SMS threads. Reply, convert to lead, dismiss. |
 | `/app/(dashboard)/settings` | Admin settings: sequences, pricebook, financing plans, large-job tags, commission tiers, team, QBO connection. |
-| `/app/proposals/[token]/page.tsx` | Customer-facing proposal page. Light theme. No auth required. Token-gated. |
+| `/app/proposals/[token]/layout.tsx` | Standalone dark layout for proposals. Barlow Condensed + Lato fonts. No dashboard chrome. |
+| `/app/proposals/[token]/page.tsx` | Server component. Fetches estimate by token, handles signed/expired/inactive states. No auth — token-gated. |
+| `/app/components/proposal/` | 8 client components: ProposalPage (state), ProposalHeader, TierCards, AddonCards, FinancingCalculator, PaymentSchedule, SignatureBlock, StickyBottomBar, WhyGenesis. |
 | `/app/api/v1/` | Command Layer endpoints. `GENESIS_INTERNAL_API_KEY` auth. Standard response envelope. |
 | `/app/api/cron/` | All cron job routes. `CRON_SECRET` auth. |
 | `/app/api/webhooks/` | Twilio and Resend inbound webhooks. |
@@ -681,7 +683,7 @@ Admin creates campaign, selects audience via tag/segment filters, sets "not cont
 | `/lib/hcp-estimate.ts` | HCP Estimate API client. `createHcpCustomer()`, `createHcpEstimate()`, `syncEstimateToHcp()`. Maps Pipeline tiers → HCP options, converts $ → cents. |
 | `/lib/hcp.ts` | HCP API client (planned). `getEstimates()`, `declineOptions()`, `approveOption()`, `postNamedLink()`. Reusable by Command Layer. |
 | `/lib/qbo.ts` | QBO client. `refreshToken()`, `getInvoiceByReference()`, `getInvoicePaidStatus()`, `getPreTaxTotal()`. Reusable by Command Layer. |
-| `/lib/tax.ts` | WA DOR API wrapper. `getTaxRate(address)` → rate. Falls back to 0.092 if API unavailable. |
+| `/lib/tax.ts` | WA DOR API wrapper. `getTaxRate({address, city?, zip?})` → `{rate, source}`. 5s timeout, falls back to 0.092 (Monroe default). Built. |
 | `/lib/commission.ts` | Commission calculation logic. `getTierRate(userId, periodRevenue)`, `calculateEstimated()`, `calculateConfirmed()`. |
 | `/lib/proposal.ts` | Proposal generation. `generateToken()`, `buildProposalData()`, `generateSignedPdf()`. |
 | `/lib/supabase.ts` | Supabase client (anon + service role). Pipeline-specific query helpers. |
