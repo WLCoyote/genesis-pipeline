@@ -173,7 +173,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023 + sql/024 run in Supabase. Pushed to GitHub — Vercel deploy triggered.
+Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates page UI overhaul). E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023 + sql/024 run in Supabase. Pushed to GitHub — Vercel deploy triggered.
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -200,7 +200,8 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 7.7 | Quote builder QA fixes + proposal polish — cost/margin display, tier metadata persistence, feature bullets, draft restoration, preview flow, proposal terms gating, PDF URL fix, HCP sync fix | **Complete** — sql/024 migration, 6 sub-phases, 15 files modified |
 | Phase 7.8 | UI polish + rebates — removed redundant totals bar, dark navy sidebar, expanded pricebook search (all fields), pricebook-managed rebates per tier (picker, stored in tier_metadata, subtracted from totals, shown on proposal) | **Complete** |
 | Phase 7.9 | UI design system + pricebook overhaul — Barlow Condensed + Lato fonts, ds- color tokens, sidebar 200px, PricebookManager decomposed to 8 components + orchestrator, stat cards, margin alerts, source/margin filters, pagination | **Complete** |
-| Phase 8 | Commission tracking (two-stage, QBO) | Not started |
+| Phase 8.0 | Estimates page UI overhaul — stat cards, pill tabs (Pipeline/Unsent/Won/Lost), grid table with avatars + urgency chips + hover actions, pagination, rep/time/status filters, EstimateTable decomposed to 4 components | **Complete** |
+| Phase 8.1 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
 | v0.2 | HCP webhooks, analytics | Future |
 | Phase 2+ | Campaigns & segmentation | Future |
@@ -218,6 +219,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | ~~Rebates on proposals~~ | **Done** (Phase 7.8) — pricebook "Rebate" category, per-tier picker, subtracted from totals, green discount lines on proposal |
 | ~~Adaptive pricebook form fields~~ | **Done** (Phase 6.5) — form adapts to category: Equipment shows all specs, Parts hides system type, Labor/Service/Warranty/Exclusion/Rebate show minimal fields. Universal: name, category, description, cost, price, subcategory, manual price, push to HCP, active. |
 | ~~Pricebook UI overhaul~~ | **Done** (Phase 7.9) — decomposed 2187-line monolith to 8 components, added stat cards, margin alerts, source/margin filters, pagination, design system tokens, Barlow Condensed + Lato fonts |
+| ~~Estimates page UI overhaul~~ | **Done** (Phase 8.0) — decomposed 471-line EstimateTable to 4 components, stat cards, pill tabs, grid table with avatars/urgency/hover actions, pagination, rep/time filters |
 | Install materials builder | Pricebook tool to bundle install materials |
 | Maintenance plan builder | Service plans, subscriptions |
 | Configurable payment terms | 50/50 default, 4-payment option, configurable in quote builder |

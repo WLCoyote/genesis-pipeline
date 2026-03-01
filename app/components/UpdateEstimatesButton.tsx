@@ -56,16 +56,16 @@ export default function UpdateEstimatesButton() {
       <button
         onClick={handleUpdate}
         disabled={loading}
-        className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors cursor-pointer"
+        className="px-4 py-[7px] rounded-[7px] text-[13px] font-bold bg-ds-orange text-white shadow-[0_3px_10px_rgba(230,81,0,0.25)] hover:bg-[#ff6d00] disabled:opacity-50 transition-colors cursor-pointer border-none"
       >
         {loading ? "Updating..." : "Update Estimates"}
       </button>
       {result && (
         <span
-          className={`text-sm ${
-            result.includes("Failed") || result.includes("failed")
-              ? "text-red-600"
-              : "text-green-600 dark:text-green-400"
+          className={`text-xs ${
+            result.includes("Failed") || result.includes("failed") || result.includes("Timed")
+              ? "text-ds-red"
+              : "text-ds-green dark:text-green-400"
           }`}
         >
           {result}

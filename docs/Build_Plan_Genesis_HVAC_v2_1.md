@@ -562,7 +562,37 @@ Unified design system (Barlow Condensed + Lato typography, ds- color tokens, ref
 
 ---
 
-## PHASE 8: Commission Tracking — NOT STARTED
+## PHASE 8.0: Estimates Page UI Overhaul ✅ COMPLETE
+
+Applied the design system (fonts, ds- tokens, component decomposition pattern) from Phase 7.9 to the estimates page. Matches the HTML mockup at `docs/genesis-estimates-ui.html`.
+
+### Component Decomposition
+`EstimateTable.tsx` (471 lines) → orchestrator (185 lines) + 4 new components in `app/components/estimates/`:
+
+| Component | Lines | Purpose |
+|---|---|---|
+| `EstimateStats.tsx` | 80 | 5 stat cards: Pipeline Value, Unsent Quotes, Won This Month, Avg Quote Value, Close Rate |
+| `EstimateToolbar.tsx` | 177 | Pill tabs (Pipeline/Unsent/Won/Lost) + search + status/rep/time filters + result count |
+| `EstimateTable.tsx` | 356 | Grid-based table (CSS grid, not `<table>`), pagination (10/page), mobile card fallbacks |
+| `EstimateTableRow.tsx` | 269 | Pipeline + Unsent rows with gradient avatars, follow-up urgency chips, hover-reveal View/Resend actions |
+
+### Key Features
+- **Stat cards**: Real-time computed from estimate data (pipeline value, close rate over 90 days, avg quote value, won this month)
+- **4 tab filters**: Pipeline (non-draft/won/lost), Unsent (draft), Won, Lost — acts as macro-filters
+- **3 dropdown filters**: Status (admin), Rep (admin only), Time period (All Time/This Week/This Month/Last 90 Days)
+- **Customer avatars**: Deterministic gradient colors from name hash (6 color options)
+- **Follow-up urgency chips**: Overdue (red, >3 days), Today (orange, 3 days), Soon (yellow, 1-2 days), OK (green, <1 day or closed)
+- **Hover-reveal actions**: View + Resend buttons on pipeline rows, Build Quote on unsent rows
+- **Pagination**: 10 items/page with numbered pages, ellipsis, prev/next, auto-reset on filter change
+- **StatusBadge updated**: ds- colors with status dot indicator (was pill-only)
+- **UpdateEstimatesButton restyled**: ds-orange button with shadow
+
+### Files Modified
+`EstimateTable.tsx` (rewritten as orchestrator), `page.tsx` (topbar added), `StatusBadge.tsx` (ds- colors + dot), `UpdateEstimatesButton.tsx` (ds- styling). `EstimateFilters.tsx` deleted (replaced by EstimateToolbar). 4 new files in `app/components/estimates/`.
+
+---
+
+## PHASE 8.1: Commission Tracking — NOT STARTED
 
 Two-stage commission from close to confirmed payout. See PRD v4.0 Section 6.
 

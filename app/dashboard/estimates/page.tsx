@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { UserRole } from "@/lib/types";
 import EstimateTable from "@/app/components/EstimateTable";
@@ -43,15 +44,12 @@ export default async function EstimatesPage() {
     )
     .order("sent_date", { ascending: false });
 
-  // RLS handles row-level filtering, but comfort_pro only sees their own
-  // (enforced by RLS policy on estimates table)
-
   const { data: estimates, error } = await query;
 
   if (error) {
     console.error("Error fetching estimates:", error);
     return (
-      <div className="text-center py-12 text-red-500 text-sm">
+      <div className="text-center py-12 text-ds-red text-sm">
         Failed to load estimates.
       </div>
     );
@@ -74,7 +72,6 @@ export default async function EstimatesPage() {
       (e: any) => e.channel === "email" && e.status === "opened"
     ).length;
 
-    // Last contacted = most recent sent_at across all sent/completed events
     const contactDates = events
       .filter(
         (e: any) =>
@@ -84,7 +81,6 @@ export default async function EstimatesPage() {
       .sort()
       .reverse();
 
-    // Has pending action = any scheduled call tasks or pending_review events
     const hasPendingAction = events.some(
       (e: any) =>
         e.status === "scheduled" ||
@@ -112,17 +108,29 @@ export default async function EstimatesPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-start justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Estimates</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+      {/* Topbar */}
+      <div className="bg-ds-card dark:bg-gray-800 border-b border-ds-border dark:border-gray-700 px-7 flex items-center justify-between h-14 -mx-6 -mt-6 mb-5">
+        <div className="flex items-center gap-4">
+          <h1 className="font-display text-2xl font-black tracking-[1px] uppercase text-ds-text dark:text-gray-100">
+            Estimates
+          </h1>
+          <span className="text-xs text-ds-gray dark:text-gray-500">
             {role === "admin"
               ? "All estimates across your team"
               : "Your assigned estimates"}
-          </p>
+          </span>
         </div>
-        {["admin", "csr", "comfort_pro"].includes(role) && <UpdateEstimatesButton />}
+        <div className="flex items-center gap-2.5">
+          <Link
+            href="/dashboard/quote-builder"
+            className="px-4 py-[7px] rounded-[7px] text-[13px] font-bold bg-ds-blue text-white shadow-[0_3px_10px_rgba(21,101,192,0.3)] hover:bg-ds-blue-lt transition-colors no-underline"
+          >
+            New Quote
+          </Link>
+          {["admin", "csr", "comfort_pro"].includes(role) && <UpdateEstimatesButton />}
+        </div>
       </div>
+
       <EstimateTable estimates={rows} role={role} />
     </div>
   );
