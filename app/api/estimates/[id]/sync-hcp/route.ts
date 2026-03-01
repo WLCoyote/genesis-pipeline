@@ -147,6 +147,18 @@ export async function POST(
         .eq("id", customer.id);
     }
 
+    // Store hcp_option_ids on estimate_line_items by option_group
+    const tierGroups = Array.from(tierMap.keys()).sort((a, b) => a - b);
+    for (let i = 0; i < result.hcp_option_ids.length; i++) {
+      if (tierGroups[i] != null) {
+        await supabase
+          .from("estimate_line_items")
+          .update({ hcp_option_id: result.hcp_option_ids[i] })
+          .eq("estimate_id", id)
+          .eq("option_group", tierGroups[i]);
+      }
+    }
+
     return NextResponse.json({
       success: true,
       hcp_customer_id: result.hcp_customer_id,

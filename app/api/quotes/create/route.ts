@@ -413,6 +413,21 @@ export async function POST(request: NextRequest) {
         .eq("id", customerId);
     }
 
+    // Store hcp_option_ids on estimate_line_items by option_group
+    const tierNumbers = hcpTiers
+      .filter((t: { items: unknown[] }) => t.items.length > 0)
+      .map((_: unknown, i: number) => body.tiers[i]?.tier_number as number);
+
+    for (let i = 0; i < result.hcp_option_ids.length; i++) {
+      if (tierNumbers[i] != null) {
+        await supabase
+          .from("estimate_line_items")
+          .update({ hcp_option_id: result.hcp_option_ids[i] })
+          .eq("estimate_id", estimate.id)
+          .eq("option_group", tierNumbers[i]);
+      }
+    }
+
     console.log(
       `[HCP Sync] Success: customer=${result.hcp_customer_id}, estimate=${result.hcp_estimate_id}`
     );

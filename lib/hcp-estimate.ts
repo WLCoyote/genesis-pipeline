@@ -5,6 +5,10 @@
  *   POST /customers              — create customer
  *   GET  /customers?q=           — search customers
  *   POST /estimates              — create estimate with options + line items
+ *   POST /estimates/options/approve    — approve option(s)
+ *   POST /estimates/options/decline    — decline option(s)
+ *   POST /estimates/{id}/options/{oid}/attachments — upload attachment
+ *   POST /estimates/{id}/options/{oid}/notes       — add note
  *
  * Prices in cents. Addresses use E.164 phone format.
  */
@@ -363,4 +367,134 @@ export async function syncEstimateToHcp(data: {
     hcp_estimate_id: hcpEstimate.id,
     hcp_option_ids: hcpEstimate.options.map((o) => o.id),
   };
+}
+
+// ---------- HCP Writeback (post-sign) ----------
+
+/**
+ * Approve a single HCP estimate option.
+ * Returns the job ID if HCP auto-creates one on approval.
+ */
+export async function approveHcpOption(
+  optionId: string
+): Promise<{ status: number; jobId?: string }> {
+  const { hcpBase, hcpToken } = getHcpConfig();
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+  const res = await fetch(`${hcpBase}/estimates/options/approve`, {
+    method: "POST",
+    headers: hcpHeaders(hcpToken),
+    body: JSON.stringify({ option_ids: [optionId] }),
+    signal: controller.signal,
+  });
+  clearTimeout(timeout);
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`HCP approve option ${res.status}: ${body}`);
+  }
+
+  const data = await res.json();
+  const jobId = data?.copied_on_approval_to_job_id;
+  if (jobId) {
+    console.log(`[HCP] Option ${optionId} approved → job created: ${jobId}`);
+  }
+
+  return { status: res.status, jobId };
+}
+
+/**
+ * Decline one or more HCP estimate options.
+ */
+export async function declineHcpOptions(optionIds: string[]): Promise<void> {
+  if (optionIds.length === 0) return;
+
+  const { hcpBase, hcpToken } = getHcpConfig();
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+  const res = await fetch(`${hcpBase}/estimates/options/decline`, {
+    method: "POST",
+    headers: hcpHeaders(hcpToken),
+    body: JSON.stringify({ option_ids: optionIds }),
+    signal: controller.signal,
+  });
+  clearTimeout(timeout);
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`HCP decline options ${res.status}: ${body}`);
+  }
+}
+
+/**
+ * Upload a PDF attachment to an HCP estimate option.
+ * Uses multipart/form-data — do NOT set Content-Type manually (fetch sets boundary).
+ */
+export async function uploadHcpAttachment(
+  hcpEstimateId: string,
+  hcpOptionId: string,
+  pdfBuffer: Buffer,
+  filename: string
+): Promise<void> {
+  const { hcpBase, hcpToken } = getHcpConfig();
+
+  const formData = new FormData();
+  const blob = new Blob([new Uint8Array(pdfBuffer)], { type: "application/pdf" });
+  formData.append("file", blob, filename);
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+  const res = await fetch(
+    `${hcpBase}/estimates/${hcpEstimateId}/options/${hcpOptionId}/attachments`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${hcpToken}`,
+        Accept: "application/json",
+      },
+      body: formData,
+      signal: controller.signal,
+    }
+  );
+  clearTimeout(timeout);
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`HCP upload attachment ${res.status}: ${body}`);
+  }
+}
+
+/**
+ * Add a note to an HCP estimate option.
+ */
+export async function addHcpOptionNote(
+  hcpEstimateId: string,
+  hcpOptionId: string,
+  content: string
+): Promise<void> {
+  const { hcpBase, hcpToken } = getHcpConfig();
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+
+  const res = await fetch(
+    `${hcpBase}/estimates/${hcpEstimateId}/options/${hcpOptionId}/notes`,
+    {
+      method: "POST",
+      headers: hcpHeaders(hcpToken),
+      body: JSON.stringify({ content }),
+      signal: controller.signal,
+    }
+  );
+  clearTimeout(timeout);
+
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`HCP add note ${res.status}: ${body}`);
+  }
 }

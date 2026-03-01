@@ -15,7 +15,7 @@ export default async function ProposalPageRoute({ params }: Props) {
     .select(
       `
       id, estimate_number, status, total_amount, subtotal, tax_rate, tax_amount,
-      proposal_token, proposal_signed_at, proposal_signed_name,
+      proposal_token, proposal_signed_at, proposal_signed_name, proposal_pdf_url,
       payment_schedule_type, sent_date, auto_decline_date,
       customers ( id, name, email, phone, address ),
       users!estimates_assigned_to_fkey ( id, name, phone ),
@@ -102,6 +102,27 @@ export default async function ProposalPageRoute({ params }: Props) {
             Thank you for choosing Genesis! We&apos;ll be in touch to schedule
             your installation.
           </p>
+          {estimate.proposal_pdf_url && (
+            <a
+              href={estimate.proposal_pdf_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "inline-block",
+                marginTop: 20,
+                padding: "10px 24px",
+                backgroundColor: "#e65100",
+                color: "#fff",
+                borderRadius: 6,
+                textDecoration: "none",
+                fontSize: 14,
+                fontWeight: 600,
+                letterSpacing: 0.5,
+              }}
+            >
+              Download Signed Proposal (PDF)
+            </a>
+          )}
         </div>
       </div>
     );
