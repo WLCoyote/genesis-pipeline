@@ -282,16 +282,17 @@ SQL migration `sql/018_quote_builder_schema.sql`:
 
 Templates are pre-built packages: 3 tiers (Good/Better/Best) each with equipment, labor, materials, and recommended add-ons. Any user can create templates. System images are per-tier (represent the package, not individual items).
 
-### Step 6.6C: Quote Builder — COMPLETE (UX fixes + HCP sync improvements planned)
+### Step 6.6C: Quote Builder — COMPLETE
 
 New page: `/dashboard/quote-builder` — BUILT.
 
 Sections: customer lookup/create → template selector → 3 tier builders (name, tagline, feature bullets, pricebook items + quantities) → addon section → assignment → summary panel → "Create Quote" button. HCP sync runs non-blocking on quote creation.
 
-**Planned fixes (next session):**
-1. **Toggle UX**: Restyle Equipment/Add-ons toggle as segmented tabs (currently a small button, easy to miss)
-2. **Quantity in picker**: Add qty input next to "+ Add" in the item picker table
-3. **HCP sync restructure**: Restructure to match how Genesis manually creates HCP estimates — summary service line item with full price at top, labor at $0, equipment/materials at $0 for documentation, financing line item with origination fee as cost. Uses `pricebook_items.hcp_type` ('material'|'service') for categorization. See plan file for full details.
+**UX fixes + HCP sync restructure (completed Feb 28):**
+1. **Toggle UX**: Restyled Equipment/Add-ons toggle as segmented tabs
+2. **Quantity in picker**: Added qty input next to "+ Add" in the item picker table
+3. **HCP sync restructure**: Summary service line item with full price at top, labor at $0, equipment/materials at $0 for documentation, financing line item with origination fee as cost. Uses `pricebook_items.hcp_type` for categorization.
+4. **Tier names**: Defaults renamed to Standard Comfort / Enhanced Efficiency / Premium Performance (matching HTML reference)
 
 **Workflow:** Pick a template to pre-populate tiers, or start from scratch. Everything editable. Prices snapshot from pricebook at creation time.
 
@@ -299,48 +300,49 @@ Sections: customer lookup/create → template selector → 3 tier builders (name
 - `GET /api/customers/search?q=` — search customers by name/email/phone
 - `POST /api/quotes/create` — creates estimate + estimate_line_items + generates proposal_token (crypto.randomBytes 32 hex). Estimate number format: `GEN-{sequential}`
 
-### Step 6.6D: Financing Plans CRUD — NOT STARTED
+### Step 6.6D: Financing Plans CRUD — COMPLETE
 
 **API routes:** `GET/POST /api/admin/financing-plans`, `PUT/DELETE /api/admin/financing-plans/[id]` — admin CRUD, editable table (MarkupTiersEditor pattern). Monthly payment formula: `financed_total = invoice / (1 - fee_pct)`, `monthly = financed_total / months`.
 
-### Step 6.7: HCP Sync on Quote Creation — NOT STARTED
+### Step 6.7: HCP Sync on Quote Creation — COMPLETE
 
-New `lib/hcp-estimate.ts`: `createHcpCustomer()`, `createHcpEstimate()`. Called at end of quote creation. If sync fails, Pipeline estimate still created — show warning, allow manual retry via `POST /api/estimates/[id]/sync-hcp`.
+`lib/hcp-estimate.ts`: `createHcpCustomer()`, `createHcpEstimate()`, `syncEstimateToHcp()`. Called at end of quote creation. If sync fails, Pipeline estimate still created — warning shown, manual retry via `POST /api/estimates/[id]/sync-hcp`. Structured format: summary service line item at top with full price, labor/materials at $0, financing line item with origination fee as cost.
 
-### Step 6.8: WA DOR Tax Lookup — NOT STARTED
+### Step 6.8: WA DOR Tax Lookup — COMPLETE
 
-New `lib/tax.ts`: `getTaxRate(address, city, zip)` calls WA DOR API at `webgis.dor.wa.gov/webapi/addressrates.aspx?output=json`. Fallback: 9.2%. Timeout: 5s. New API route: `GET /api/tax/lookup?address=&city=&zip=`.
+`lib/tax.ts`: `getTaxRate(address, city, zip)` calls WA DOR API. Fallback: 9.2%. Timeout: 5s. API route: `GET /api/tax/lookup?address=&city=&zip=`.
 
 ---
 
-## PHASE 7: Proposal Engine — NOT STARTED
+## PHASE 7: Proposal Engine — IN PROGRESS
 
 Interactive customer-facing proposal page. Design defined in `docs/genesis-proposal-interactive.html`. Dark navy/blue/orange theme with Barlow Condensed + Lato fonts.
 
-### Step 7.1: Proposal Page
+### Step 7.1: Proposal Page — COMPLETE
 
-New page: `app/proposals/[token]/page.tsx` — **no auth**, token-gated. Standalone layout (no DashboardShell). Dark theme always (explicit Tailwind colors, no `dark:` prefix).
+New page: `app/proposals/[token]/page.tsx` — **no auth**, token-gated. Standalone layout (no DashboardShell). Dark theme always.
 
-**Component directory: `app/components/proposal/`**
-- `ProposalPage.tsx` — main wrapper, state: selectedTier, selectedAddons, selectedPlan, priceMode (monthly/full/cash), customerName, signatureData
-- `ProposalHeader.tsx` — logo, customer info, price guarantee badge
-- `TierCards.tsx` — Good/Better/Best cards with system image, brand/model, SEER, feature bullets, cash price, monthly, select button. "Most Popular" badge on is_recommended tier.
-- `AddonCards.tsx` — checkbox cards with prices, pre-checked from template config
-- `FinancingCalculator.tsx` — plan dropdown, live monthly recalculation: `financed = total / (1 - fee_pct)`, `monthly = financed / months`
-- `PaymentSchedule.tsx` — visual timeline (50/50 standard or 50/25/25/1000 large_job)
-- `WhyGenesis.tsx` — reviews + company story (from settings table JSONB: `proposal_reviews`, `proposal_company_story`)
-- `SignatureBlock.tsx` — name input + drawn signature canvas (react-signature-canvas) + "Approve Proposal"
-- `StickyBottomBar.tsx` — selected package, addon tags, running total, CTA
-
-**Dependencies to add:** `react-signature-canvas`, `@react-pdf/renderer`
+**Component directory: `app/components/proposal/`** — 8 components: ProposalPage, ProposalHeader, TierCards, AddonCards, FinancingCalculator, PaymentSchedule, WhyGenesis, SignatureBlock, StickyBottomBar. Tier names: Standard Comfort / Enhanced Efficiency / Premium Performance.
 
 ### Step 7.2: Engagement Tracking — **COMPLETE**
 
 `POST /api/proposals/[token]/engage` — public, no auth. Events: page_open, option_view, calculator_open, plan_selected, addon_checked/unchecked, signature_started, signed. Session timing via visibilitychange + beforeunload using navigator.sendBeacon. Device type auto-detected from user-agent. All events wired into ProposalPage client component. Best-effort tracking — never blocks the customer experience.
 
-### Step 7.3: Signature + PDF Generation
+### Step 7.3: Signature + PDF Generation + HCP Writeback — NOT STARTED
 
-`POST /api/proposals/[token]/sign` — public, no auth. Body: customer_name, signature_data, selected_tier, selected_addon_ids, financing_plan_id. Steps: validate token → record signature → update line items is_selected → set estimate status=won → generate PDF via `@react-pdf/renderer` (`lib/proposal-pdf.ts`) → upload to Supabase Storage → HCP sync (approve/decline options) → send confirmation email with PDF → fire notifications.
+**Sign API:** `POST /api/proposals/[token]/sign` — public, no auth. Body: customer_name, signature_data, selected_tier, selected_addon_ids, financing_plan_id. Steps: validate token → record signature → update line items is_selected → set estimate status=won → generate PDF → upload to Supabase Storage → HCP writeback → send confirmation email with PDF → fire notifications.
+
+**PDF generation:** `@react-pdf/renderer` in `lib/proposal-pdf.ts`. Branded PDF of the signed proposal matching the proposal page design.
+
+**HCP writeback (post-sign):**
+- Push full structured estimate to HCP (line items with summary service pattern)
+- Upload signed PDF as HCP estimate attachment
+- Add private note to HCP estimate ("Proposal signed by {name} on {date}")
+- Update HCP estimate status
+
+**HCP writeback (post-send, Phase 7.3b):**
+- When proposal is sent: add private note to HCP ("Proposal sent via Genesis Pipeline on {date}")
+- Update HCP estimate status to reflect sent state
 
 ### Step 7.4: Proposal Tracking in Dashboard
 

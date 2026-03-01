@@ -183,13 +183,13 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7.1–7.2 co
 | Phase 6.1–6.5 | Pricebook CRUD, HCP import/sync, markup tiers, labor calc, manual price flag, bulk recalculate from tiers, bulk actions, cascading nav, dynamic categories, suppliers, bulk edit, refrigerant indicators, rich HCP descriptions | **Complete** |
 | Phase 6.6A | Database migrations (quote templates, estimate line items, financing plans, proposal engagement, large job tags + estimate columns) | **Complete** |
 | Phase 6.6B | Quote templates CRUD (admin/user template management) | **Complete** |
-| Phase 6.6C | Quote builder page (customer lookup, template/item selection, tier builder, create estimate) | **Complete** — UX fixes + HCP sync restructure planned (see plan file) |
+| Phase 6.6C | Quote builder page (customer lookup, template/item selection, tier builder, create estimate) | **Complete** — segmented tabs, qty picker, HCP sync restructure done |
 | Phase 6.6D | Financing plans CRUD | **Complete** |
 | Phase 6.7 | HCP sync on quote creation (lib/hcp-estimate.ts, sync on quote create, manual retry endpoint) | **Complete** |
 | Phase 6.8 | WA DOR tax lookup (lib/tax.ts, GET /api/tax/lookup) | **Complete** |
 | Phase 7.1 | Proposal page (token-gated public page, dark theme, tier cards, addons, financing calculator, signature block, sticky bottom bar) | **Complete** |
 | Phase 7.2 | Engagement tracking (POST /api/proposals/[token]/engage, session timing, all event types wired into ProposalPage) | **Complete** |
-| Phase 7.3 | Signature + PDF generation | Not started |
+| Phase 7.3 | Signature + PDF generation + HCP writeback (post-sign: push estimate, attach PDF, note, status; post-send: note + status) | Not started |
 | Phase 7.4 | Proposal tracking in dashboard | Not started |
 | Phase 8 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
