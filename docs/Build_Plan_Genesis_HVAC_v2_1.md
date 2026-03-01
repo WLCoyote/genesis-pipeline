@@ -375,13 +375,20 @@ New page: `app/proposals/[token]/page.tsx` — **no auth**, token-gated. Standal
 - **Build Quote flow:** Button navigates to `/dashboard/quote-builder?estimate_id=xxx`. Server page fetches draft estimate + customer data, passes as `draftEstimate` prop. Customer fields pre-filled, assigned_to preserved.
 - **Quote creation from draft:** `POST /api/quotes/create` detects `existing_estimate_id`, updates the existing draft (status→active, adds line items + proposal token) instead of creating a new estimate. Keeps the original HCP estimate number and `hcp_estimate_id`. Skips HCP sync (estimate already exists in HCP).
 
-### Step 7.4: Proposal Tracking in Dashboard
+### Step 7.4: Proposal Tracking in Dashboard — ✅ COMPLETE
 
 **New components:**
-- `ProposalEngagementPanel.tsx` — shows on estimate detail when proposal_token exists: total opens, last opened, time on page, most viewed option, financing interactions, addon changes, timeline
-- `LineItemsView.tsx` — displays estimate_line_items grouped by option_group (replaces OptionsList for Pipeline-built estimates)
+- `ProposalEngagementPanel.tsx` — shows on estimate detail when proposal_token exists: total opens, time on page, most viewed tier, device type, financing interactions, addon toggles, incomplete signature alert, signed banner with PDF download, chronological event timeline
+- `LineItemsView.tsx` — displays estimate_line_items grouped by option_group/tier (Standard Comfort / Enhanced Efficiency / Premium Performance). Shows addons separately with selected/not-selected state. Subtotal, tax, total breakdown.
 
-**Modified:** estimate detail page (dual data model: line_items for Pipeline-built, options for HCP-polled), EstimateActions (add "View Proposal" + "Resend Proposal" buttons)
+**Modified:**
+- Estimate detail page (`app/dashboard/estimates/[id]/page.tsx`):
+  - Query fetches `estimate_line_items` and `proposal_engagement`
+  - Dual data model: `LineItemsView` for Pipeline-built estimates, `OptionsList` for HCP-polled
+  - `ProposalEngagementPanel` renders when `proposal_token` exists
+  - "View Proposal" button in header (opens in new tab)
+- Sequence template variables: replaced `{{estimate_link}}` with `{{proposal_link}}`, added `{{estimate_number}}`, `{{total_amount}}`, `{{customer_address}}`. Updated both `execute-sequences` cron and `send-next` routes. SQL migration `020` updates default templates.
+- `SequenceEditor.tsx` insert buttons updated to match new variables
 
 ---
 

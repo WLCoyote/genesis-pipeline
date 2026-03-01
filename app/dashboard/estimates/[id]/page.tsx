@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import StatusBadge from "@/app/components/StatusBadge";
 import CustomerInfo from "@/app/components/CustomerInfo";
 import OptionsList from "@/app/components/OptionsList";
+import LineItemsView from "@/app/components/LineItemsView";
+import ProposalEngagementPanel from "@/app/components/ProposalEngagementPanel";
 import FollowUpTimeline from "@/app/components/FollowUpTimeline";
 import EstimateActions from "@/app/components/EstimateActions";
 import ConversationThread from "@/app/components/ConversationThread";
@@ -38,8 +40,10 @@ export default async function EstimateDetailPage({
       customers (*),
       users!estimates_assigned_to_fkey ( id, name, email ),
       estimate_options (*),
+      estimate_line_items (*),
       follow_up_events (*),
-      follow_up_sequences (steps, is_active)
+      follow_up_sequences (steps, is_active),
+      proposal_engagement (*)
     `
     )
     .eq("id", id)
@@ -59,7 +63,10 @@ export default async function EstimateDetailPage({
   const est = estimate as any;
   const customer = est.customers;
   const options = est.estimate_options || [];
+  const lineItems = est.estimate_line_items || [];
   const events = est.follow_up_events || [];
+  const engagements = est.proposal_engagement || [];
+  const hasPipelineLineItems = lineItems.length > 0;
 
   // Find the next pending_review event (editable message)
   const pendingEvent =
@@ -195,7 +202,25 @@ export default async function EstimateDetailPage({
             options={options}
           />
           <CustomerInfo customer={customer} />
-          <OptionsList options={options} totalAmount={est.total_amount} />
+          {hasPipelineLineItems ? (
+            <LineItemsView
+              lineItems={lineItems}
+              totalAmount={est.total_amount}
+              subtotal={est.subtotal}
+              taxAmount={est.tax_amount}
+              taxRate={est.tax_rate}
+            />
+          ) : (
+            <OptionsList options={options} totalAmount={est.total_amount} />
+          )}
+          {est.proposal_token && (
+            <ProposalEngagementPanel
+              engagements={engagements}
+              proposalSignedAt={est.proposal_signed_at}
+              proposalSignedName={est.proposal_signed_name}
+              proposalPdfUrl={est.proposal_pdf_url}
+            />
+          )}
         </div>
       </div>
     </div>

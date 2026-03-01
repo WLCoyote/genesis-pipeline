@@ -170,7 +170,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7.1–7.3 complete.
+Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete.
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -191,7 +191,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7.1–7.3 co
 | Phase 7.2 | Engagement tracking (POST /api/proposals/[token]/engage, session timing, all event types wired into ProposalPage) | **Complete** |
 | Phase 7.3 | Signature + PDF generation + HCP writeback (sign endpoint, PDF via @react-pdf/renderer, Supabase Storage, HCP approve/decline/attach/note, confirmation email, notifications, skip follow-ups) | **Complete** |
 | Phase 7.3b | Unsent estimates — HCP polling pulls drafts, Pipeline/Unsent tabs on estimates page, Build Quote button pre-loads customer into quote builder, draft→active on quote creation | **Complete** |
-| Phase 7.4 | Proposal tracking in dashboard | Not started |
+| Phase 7.4 | Proposal tracking in dashboard (ProposalEngagementPanel, LineItemsView, dual data model, View Proposal button, sequence template variables updated) | **Complete** |
 | Phase 8 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
 | v0.2 | HCP webhooks, analytics | Future |

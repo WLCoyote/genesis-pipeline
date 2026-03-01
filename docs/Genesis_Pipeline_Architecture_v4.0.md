@@ -676,6 +676,8 @@ Admin creates campaign, selects audience via tag/segment filters, sets "not cont
 | `/app/proposals/[token]/layout.tsx` | Standalone dark layout for proposals. Barlow Condensed + Lato fonts. No dashboard chrome. |
 | `/app/proposals/[token]/page.tsx` | Server component. Fetches estimate by token, handles signed/expired/inactive states. No auth — token-gated. |
 | `/app/components/proposal/` | 8 client components: ProposalPage (state), ProposalHeader, TierCards, AddonCards, FinancingCalculator, PaymentSchedule, SignatureBlock, StickyBottomBar, WhyGenesis. |
+| `/app/components/ProposalEngagementPanel.tsx` | Shows proposal engagement stats on estimate detail: opens, time on page, most viewed tier, device, financing/addon interactions, signature status, event timeline. |
+| `/app/components/LineItemsView.tsx` | Displays estimate_line_items grouped by tier for Pipeline-built estimates (replaces OptionsList). Shows addons, subtotal/tax/total breakdown. |
 | `/app/api/v1/` | Command Layer endpoints. `GENESIS_INTERNAL_API_KEY` auth. Standard response envelope. |
 | `/app/api/cron/` | All cron job routes. `CRON_SECRET` auth. |
 | `/app/api/webhooks/` | Twilio and Resend inbound webhooks. |
