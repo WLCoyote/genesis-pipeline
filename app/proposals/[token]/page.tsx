@@ -16,7 +16,7 @@ export default async function ProposalPageRoute({ params }: Props) {
       `
       id, estimate_number, status, total_amount, subtotal, tax_rate, tax_amount,
       proposal_token, proposal_signed_at, proposal_signed_name, proposal_pdf_url,
-      payment_schedule_type, sent_date, auto_decline_date,
+      payment_schedule_type, sent_date, auto_decline_date, tier_metadata,
       customers ( id, name, email, phone, address ),
       users!estimates_assigned_to_fkey ( id, name, phone ),
       estimate_line_items (
@@ -280,12 +280,21 @@ export default async function ProposalPageRoute({ params }: Props) {
     tierMap.set(item.option_group, existing);
   }
 
-  const tierNames: Record<number, string> = {
+  // Use saved tier_metadata if available, otherwise fall back to defaults
+  const savedTierMetadata = (estimate as Record<string, unknown>).tier_metadata as Array<{
+    tier_number: number;
+    tier_name: string;
+    tagline: string;
+    feature_bullets: string[];
+    is_recommended: boolean;
+  }> | null;
+
+  const defaultTierNames: Record<number, string> = {
     1: "Standard Comfort",
     2: "Enhanced Efficiency",
     3: "Premium Performance",
   };
-  const tierTaglines: Record<number, string> = {
+  const defaultTierTaglines: Record<number, string> = {
     1: "Reliable performance at an honest price",
     2: "The sweet spot of comfort & savings",
     3: "Maximum comfort, minimum energy bill",
@@ -293,14 +302,18 @@ export default async function ProposalPageRoute({ params }: Props) {
 
   const tiers = Array.from(tierMap.entries())
     .sort(([a], [b]) => a - b)
-    .map(([group, data]) => ({
-      tierNumber: group,
-      tierName: tierNames[group] || `Option ${group}`,
-      tagline: tierTaglines[group] || "",
-      items: data.items.sort((a, b) => a.sort_order - b.sort_order),
-      subtotal: data.subtotal,
-      isRecommended: group === 2,
-    }));
+    .map(([group, data]) => {
+      const meta = savedTierMetadata?.find((m) => m.tier_number === group);
+      return {
+        tierNumber: group,
+        tierName: meta?.tier_name || defaultTierNames[group] || `Option ${group}`,
+        tagline: meta?.tagline || defaultTierTaglines[group] || "",
+        featureBullets: meta?.feature_bullets || [],
+        items: data.items.sort((a, b) => a.sort_order - b.sort_order),
+        subtotal: data.subtotal,
+        isRecommended: meta?.is_recommended ?? group === 2,
+      };
+    });
 
   // Collect all addon items across tiers (deduplicated by display_name)
   const allAddons: typeof lineItems = [];

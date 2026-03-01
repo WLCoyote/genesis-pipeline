@@ -30,6 +30,9 @@ export const CATEGORY_ORDER: Record<string, { order: number; label: string; dotC
   addon:               { order: 10, label: "Add-On",             dotColor: "#e65100" },
   service_plan:        { order: 11, label: "Service Plan",        dotColor: "#00897b" },
   accessory:           { order: 12, label: "Accessory",           dotColor: "#f9a825" },
+  electrical:          { order: 13, label: "Electrical",          dotColor: "#ffa726" },
+  exclusion:           { order: 14, label: "Exclusion",           dotColor: "#ef5350" },
+  controls:            { order: 15, label: "Controls",            dotColor: "#26c6da" },
 };
 
 // Pricebook panel category tabs (condensed labels mapping to slugs)
@@ -41,7 +44,9 @@ export const CATEGORY_TABS = [
   { key: "outdoor",   label: "Outdoor",   match: ["outdoor"] },
   { key: "materials", label: "Materials",  match: ["material", "equipment", "accessory"] },
   { key: "warranty",  label: "Warranty",   match: ["equipment_warranty", "labor_warranty"] },
+  { key: "controls",  label: "Controls",  match: ["controls", "accessory"] },
   { key: "addons",    label: "Add-Ons",   match: ["addon", "service_plan", "maintenance_plan"] },
+  { key: "other",     label: "Other",     match: ["electrical", "exclusion"] },
 ];
 
 // ---- Helpers ----
@@ -95,6 +100,14 @@ export function calculateTierTotals(tiers: TierForm[]): TierTotals[] {
       itemCount: nonAddonItems.length + checkedAddons.length,
     };
   });
+}
+
+/** Calculate total cost for a tier (non-addon + checked addon items). */
+export function calculateTierCost(tier: TierForm): number {
+  return tier.items.reduce((sum, item) => {
+    if (item.is_addon && !item.addon_default_checked) return sum;
+    return sum + (item.cost ?? 0) * item.quantity;
+  }, 0);
 }
 
 /**

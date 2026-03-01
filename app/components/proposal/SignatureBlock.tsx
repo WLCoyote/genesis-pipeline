@@ -16,6 +16,7 @@ interface SignatureBlockProps {
   onSubmit: () => void;
   isSubmitting: boolean;
   hasFinancing: boolean;
+  onDisclosuresChange?: (complete: boolean) => void;
 }
 
 export default function SignatureBlock({
@@ -31,6 +32,7 @@ export default function SignatureBlock({
   onSubmit,
   isSubmitting,
   hasFinancing,
+  onDisclosuresChange,
 }: SignatureBlockProps) {
   const sigRef = useRef<SignatureCanvas>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -41,6 +43,10 @@ export default function SignatureBlock({
 
   const disclosuresComplete = termsAccepted && warrantyAccepted && (!hasFinancing || financingAccepted);
   const canSubmit = canSign && disclosuresComplete;
+
+  useEffect(() => {
+    onDisclosuresChange?.(disclosuresComplete);
+  }, [disclosuresComplete, onDisclosuresChange]);
 
   // Sync canvas intrinsic width with container width to prevent pointer offset
   useEffect(() => {

@@ -6,6 +6,7 @@ interface StickyBottomBarProps {
   cashTotal: number;
   monthlyTotal: number | null;
   hasSelection: boolean;
+  disclosuresComplete: boolean;
   onAcceptClick: () => void;
 }
 
@@ -15,8 +16,10 @@ export default function StickyBottomBar({
   cashTotal,
   monthlyTotal,
   hasSelection,
+  disclosuresComplete,
   onAcceptClick,
 }: StickyBottomBarProps) {
+  const ctaEnabled = hasSelection && disclosuresComplete;
   return (
     <div
       style={{
@@ -186,13 +189,13 @@ export default function StickyBottomBar({
         {/* CTA */}
         <button
           onClick={onAcceptClick}
-          disabled={!hasSelection}
+          disabled={!ctaEnabled}
           style={{
-            background: hasSelection
+            background: ctaEnabled
               ? "linear-gradient(135deg, #e65100, #ff6d00)"
               : "rgba(120,144,156,0.12)",
-            color: hasSelection ? "#fff" : "#7a8fa8",
-            border: hasSelection ? "none" : "1.5px solid rgba(120,144,156,0.3)",
+            color: ctaEnabled ? "#fff" : "#7a8fa8",
+            border: ctaEnabled ? "none" : "1.5px solid rgba(120,144,156,0.3)",
             borderRadius: 10,
             padding: "14px 28px",
             fontFamily: "'Barlow Condensed', sans-serif",
@@ -200,8 +203,8 @@ export default function StickyBottomBar({
             fontWeight: 800,
             letterSpacing: 2,
             textTransform: "uppercase" as const,
-            cursor: hasSelection ? "pointer" : "not-allowed",
-            boxShadow: hasSelection
+            cursor: ctaEnabled ? "pointer" : "not-allowed",
+            boxShadow: ctaEnabled
               ? "0 6px 20px rgba(255,109,0,0.35)"
               : "none",
             transition: "all 0.2s",

@@ -46,6 +46,7 @@ export default function QuoteBuilderPricebookPanel({
           !item.display_name.toLowerCase().includes(q) &&
           !item.manufacturer?.toLowerCase().includes(q) &&
           !item.model_number?.toLowerCase().includes(q) &&
+          !item.part_number?.toLowerCase().includes(q) &&
           !item.spec_line?.toLowerCase().includes(q)
         )
           return false;
@@ -146,12 +147,11 @@ export default function QuoteBuilderPricebookPanel({
                   className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate">
+                    <div className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate" title={item.display_name}>
                       {item.display_name}
                     </div>
-                    <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
-                      {CATEGORY_ORDER[item.category]?.label ?? item.category}
-                      {item.manufacturer ? ` · ${item.manufacturer}` : ""}
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+                      {item.model_number || item.part_number || item.spec_line || CATEGORY_ORDER[item.category]?.label || item.category}
                     </div>
                   </div>
                   <div className="text-sm font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">

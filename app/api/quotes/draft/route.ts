@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import crypto from "crypto";
 
 // POST /api/quotes/draft — Save or update a draft estimate (no proposal token, no HCP sync)
 export async function POST(request: NextRequest) {
@@ -130,22 +131,34 @@ export async function POST(request: NextRequest) {
   const taxAmount = taxRate !== null ? Math.round(defaultTierTotal * taxRate * 100) / 100 : null;
   const totalAmount = taxAmount !== null ? defaultTierTotal + taxAmount : defaultTierTotal;
 
+  // Build tier_metadata from the tiers payload
+  const tierMetadata = (body.tiers || []).map((tier: { tier_number: number; tier_name?: string; tagline?: string; feature_bullets?: string[]; is_recommended?: boolean }) => ({
+    tier_number: tier.tier_number,
+    tier_name: tier.tier_name || `Tier ${tier.tier_number}`,
+    tagline: tier.tagline || "",
+    feature_bullets: tier.feature_bullets || [],
+    is_recommended: tier.is_recommended || false,
+  }));
+
   // --- 3. Create or update draft estimate ---
   const assignedTo = body.assigned_to || user.id;
   let estimateId: string;
   let estimateNumber: string;
 
+  let savedProposalToken: string | null = null;
+
   if (body.existing_estimate_id) {
     // Update existing draft
     const { data: existing } = await supabase
       .from("estimates")
-      .select("id, estimate_number")
+      .select("id, estimate_number, proposal_token")
       .eq("id", body.existing_estimate_id)
       .single();
 
     if (existing) {
       estimateId = existing.id;
       estimateNumber = existing.estimate_number;
+      savedProposalToken = (existing as Record<string, unknown>).proposal_token as string | null;
 
       await supabase
         .from("estimates")
@@ -158,6 +171,7 @@ export async function POST(request: NextRequest) {
           tax_amount: taxAmount !== null ? Math.round(taxAmount * 100) / 100 : null,
           template_id: body.template_id || null,
           selected_financing_plan_id: body.selected_financing_plan_id || null,
+          tier_metadata: tierMetadata.length > 0 ? tierMetadata : null,
         })
         .eq("id", estimateId);
 
@@ -186,6 +200,9 @@ export async function POST(request: NextRequest) {
     }
     estimateNumber = `GEN-${nextNum}`;
 
+    // Generate proposal_token for preview
+    const proposalToken = crypto.randomBytes(32).toString("hex");
+
     const { data: newEst, error: estErr } = await supabase
       .from("estimates")
       .insert({
@@ -199,6 +216,8 @@ export async function POST(request: NextRequest) {
         tax_amount: taxAmount !== null ? Math.round(taxAmount * 100) / 100 : null,
         template_id: body.template_id || null,
         selected_financing_plan_id: body.selected_financing_plan_id || null,
+        tier_metadata: tierMetadata.length > 0 ? tierMetadata : null,
+        proposal_token: proposalToken,
       })
       .select("id")
       .single();
@@ -210,6 +229,7 @@ export async function POST(request: NextRequest) {
       );
     }
     estimateId = newEst.id;
+    savedProposalToken = proposalToken;
   }
 
   // --- 4. Insert line items ---
@@ -267,5 +287,6 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({
     estimate_id: estimateId,
     estimate_number: estimateNumber,
+    proposal_token: savedProposalToken || null,
   });
 }

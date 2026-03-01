@@ -68,6 +68,7 @@ export default function ProposalPage({
   const [customerNameInput, setCustomerNameInput] = useState(initialCustomerName);
   const [signatureData, setSignatureDataRaw] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [disclosuresComplete, setDisclosuresComplete] = useState(false);
 
   const sigSectionRef = useRef<HTMLDivElement>(null);
   const sessionStartRef = useRef<number>(Date.now());
@@ -316,6 +317,7 @@ export default function ProposalPage({
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           hasFinancing={selectedPlan !== null}
+          onDisclosuresChange={setDisclosuresComplete}
         />
       </div>
 
@@ -325,6 +327,7 @@ export default function ProposalPage({
         cashTotal={cashTotal}
         monthlyTotal={monthlyTotal}
         hasSelection={selectedTier !== null}
+        disclosuresComplete={disclosuresComplete}
         onAcceptClick={handleAcceptClick}
       />
 

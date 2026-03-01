@@ -68,7 +68,7 @@ export async function POST(
       `
       id, estimate_number, status, hcp_estimate_id, tax_rate, subtotal,
       proposal_signed_at, auto_decline_date, payment_schedule_type,
-      assigned_to, sequence_id,
+      assigned_to, sequence_id, tier_metadata,
       customers ( id, name, email, phone, address ),
       users!estimates_assigned_to_fkey ( id, name ),
       estimate_line_items (
@@ -231,45 +231,207 @@ export async function POST(
     );
   }
 
-  // --- 7. Return success immediately ---
-  // Post-sign tasks run in after() — fire-and-forget
+  // --- 7. Build shared context for post-sign tasks ---
+  const postSignCtx = {
+    supabase,
+    estimateId: estimate.id,
+    estimateNumber: estimate.estimate_number,
+    hcpEstimateId: estimate.hcp_estimate_id,
+    selectedTier,
+    lineItems,
+    addonItems,
+    selectedAddonSet,
+    customer,
+    technician,
+    signedName: body.customer_name.trim(),
+    signedAt: now,
+    signedIp: clientIp,
+    signatureDataUrl: body.signature_data,
+    subtotal,
+    taxRate,
+    taxAmount,
+    totalAmount,
+    financingPlan,
+    paymentScheduleType:
+      estimate.payment_schedule_type || "standard",
+    assignedTo: estimate.assigned_to,
+    sequenceId: estimate.sequence_id,
+    proposalToken: token,
+    tierMetadata: (estimate as Record<string, unknown>).tier_metadata as Array<{
+      tier_number: number;
+      tier_name: string;
+    }> | null,
+  };
+
+  // --- 8. Generate PDF synchronously (so URL is available immediately) ---
+  let pdfUrl: string | null = null;
+  let pdfBuffer: Buffer | null = null;
+  try {
+    const result = await generatePdfAndUpload(postSignCtx);
+    pdfUrl = result.pdfUrl;
+    pdfBuffer = result.pdfBuffer;
+  } catch (err) {
+    console.error("[Sign] PDF generation before response failed:", err);
+  }
+
+  // --- 9. Fire remaining post-sign tasks in after() ---
   after(async () => {
     try {
-      await runPostSignTasks({
-        supabase,
-        estimateId: estimate.id,
-        estimateNumber: estimate.estimate_number,
-        hcpEstimateId: estimate.hcp_estimate_id,
-        selectedTier,
-        lineItems,
-        addonItems,
-        selectedAddonSet,
-        customer,
-        technician,
-        signedName: body.customer_name.trim(),
-        signedAt: now,
-        signedIp: clientIp,
-        signatureDataUrl: body.signature_data,
-        subtotal,
-        taxRate,
-        taxAmount,
-        totalAmount,
-        financingPlan,
-        paymentScheduleType:
-          estimate.payment_schedule_type || "standard",
-        assignedTo: estimate.assigned_to,
-        sequenceId: estimate.sequence_id,
-        proposalToken: token,
-      });
+      await runPostSignTasks(postSignCtx, pdfBuffer);
     } catch (err) {
       console.error("[Sign after()] Unexpected error:", err);
     }
   });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, proposal_pdf_url: pdfUrl });
 }
 
-// ---------- Post-sign tasks (fire-and-forget) ----------
+// ---------- PDF Generation (synchronous) ----------
+
+async function generatePdfAndUpload(ctx: {
+  supabase: ReturnType<typeof createServiceClient>;
+  estimateId: string;
+  estimateNumber: string;
+  selectedTier: number;
+  lineItems: Array<{
+    id: string;
+    option_group: number;
+    display_name: string;
+    spec_line: string | null;
+    description: string | null;
+    quantity: number;
+    unit_price: number;
+    line_total: number;
+    is_addon: boolean;
+    is_selected: boolean;
+    sort_order: number;
+    hcp_option_id: string | null;
+  }>;
+  addonItems: Array<{
+    id: string;
+    display_name: string;
+    spec_line: string | null;
+    quantity: number;
+    unit_price: number;
+    line_total: number;
+    is_addon: boolean;
+    is_selected: boolean;
+    hcp_option_id: string | null;
+  }>;
+  selectedAddonSet: Set<string>;
+  customer: { id: string; name: string; email: string | null; phone: string | null; address: string | null } | null;
+  technician: { id: string; name: string } | null;
+  signedName: string;
+  signedAt: string;
+  signedIp: string;
+  signatureDataUrl: string;
+  subtotal: number;
+  taxRate: number | null;
+  taxAmount: number | null;
+  totalAmount: number;
+  financingPlan: { id: string; label: string; fee_pct: number; months: number } | null;
+  paymentScheduleType: string;
+  tierMetadata: Array<{ tier_number: number; tier_name: string }> | null;
+}): Promise<{ pdfBuffer: Buffer | null; pdfUrl: string | null }> {
+  const { supabase } = ctx;
+
+  const defaultTierNames: Record<number, string> = {
+    1: "Standard Comfort",
+    2: "Enhanced Efficiency",
+    3: "Premium Performance",
+  };
+  const tierNames: Record<number, string> = { ...defaultTierNames };
+  if (ctx.tierMetadata) {
+    for (const meta of ctx.tierMetadata) {
+      tierNames[meta.tier_number] = meta.tier_name;
+    }
+  }
+
+  const tierItems = ctx.lineItems.filter(
+    (li) => li.option_group === ctx.selectedTier && !li.is_addon
+  );
+  const selectedAddons = ctx.addonItems.filter((li) =>
+    ctx.selectedAddonSet.has(li.id)
+  );
+
+  let financingMonthly: number | null = null;
+  if (ctx.financingPlan) {
+    const financed = ctx.totalAmount / (1 - ctx.financingPlan.fee_pct);
+    financingMonthly = Math.round((financed / ctx.financingPlan.months) * 100) / 100;
+  }
+
+  const [companyInfo, proposalTerms] = await Promise.all([
+    getCompanyInfo(),
+    getProposalTerms(),
+  ]);
+
+  const pdfData: ProposalPdfData = {
+    estimateNumber: ctx.estimateNumber,
+    customerName: ctx.customer?.name || ctx.signedName,
+    customerAddress: ctx.customer?.address || null,
+    technicianName: ctx.technician?.name || "Genesis HVAC",
+    signedAt: ctx.signedAt,
+    signedName: ctx.signedName,
+    signedIp: ctx.signedIp,
+    signatureDataUrl: ctx.signatureDataUrl,
+    selectedTierName: tierNames[ctx.selectedTier] || `Option ${ctx.selectedTier}`,
+    tierItems: tierItems.map((li) => ({
+      displayName: li.display_name,
+      specLine: li.spec_line,
+      quantity: li.quantity,
+      unitPrice: li.unit_price,
+      lineTotal: li.line_total,
+    })),
+    addonItems: selectedAddons.map((li) => ({
+      displayName: li.display_name,
+      specLine: li.spec_line,
+      quantity: li.quantity,
+      unitPrice: li.unit_price,
+      lineTotal: li.line_total,
+    })),
+    subtotal: ctx.subtotal,
+    taxRate: ctx.taxRate,
+    taxAmount: ctx.taxAmount,
+    totalAmount: ctx.totalAmount,
+    financingLabel: ctx.financingPlan?.label || null,
+    financingMonthly,
+    financingMonths: ctx.financingPlan?.months || null,
+    paymentScheduleType: ctx.paymentScheduleType,
+    companyInfo,
+    proposalTerms,
+  };
+
+  const pdfBuffer = await generateProposalPdf(pdfData);
+  console.log(`[Sign] PDF generated: ${pdfBuffer.length} bytes for ${ctx.estimateNumber}`);
+
+  // Upload to Supabase Storage
+  const pdfPath = `${ctx.estimateId}/${ctx.estimateNumber}-signed.pdf`;
+  const { error: uploadError } = await supabase.storage
+    .from("proposal-pdfs")
+    .upload(pdfPath, pdfBuffer, { contentType: "application/pdf", upsert: true });
+
+  let pdfUrl: string | null = null;
+  if (uploadError) {
+    console.error("[Sign] PDF upload failed:", uploadError);
+  } else {
+    const { data: urlData } = await supabase.storage
+      .from("proposal-pdfs")
+      .createSignedUrl(pdfPath, 60 * 60 * 24 * 365 * 10);
+
+    if (urlData?.signedUrl) {
+      pdfUrl = urlData.signedUrl;
+      await supabase
+        .from("estimates")
+        .update({ proposal_pdf_url: pdfUrl })
+        .eq("id", ctx.estimateId);
+      console.log(`[Sign] PDF URL stored for ${ctx.estimateNumber}`);
+    }
+  }
+
+  return { pdfBuffer, pdfUrl };
+}
+
+// ---------- Post-sign tasks (fire-and-forget, PDF already generated) ----------
 
 async function runPostSignTasks(ctx: {
   supabase: ReturnType<typeof createServiceClient>;
@@ -332,7 +494,8 @@ async function runPostSignTasks(ctx: {
   assignedTo: string | null;
   sequenceId: string | null;
   proposalToken: string;
-}) {
+  tierMetadata: Array<{ tier_number: number; tier_name: string }> | null;
+}, pdfBuffer: Buffer | null) {
   const { supabase } = ctx;
 
   // a. Record 'signed' engagement event
@@ -346,109 +509,20 @@ async function runPostSignTasks(ctx: {
     console.error("[Sign] Failed to record engagement:", err);
   }
 
-  // b. Generate PDF
-  const tierNames: Record<number, string> = {
+  // Tier names for email/HCP
+  const defaultTierNames: Record<number, string> = {
     1: "Standard Comfort",
     2: "Enhanced Efficiency",
     3: "Premium Performance",
   };
-
-  const tierItems = ctx.lineItems.filter(
-    (li) => li.option_group === ctx.selectedTier && !li.is_addon
-  );
-  const selectedAddons = ctx.addonItems.filter((li) =>
-    ctx.selectedAddonSet.has(li.id)
-  );
-
-  let financingMonthly: number | null = null;
-  if (ctx.financingPlan) {
-    const financed = ctx.totalAmount / (1 - ctx.financingPlan.fee_pct);
-    financingMonthly =
-      Math.round((financed / ctx.financingPlan.months) * 100) / 100;
-  }
-
-  // Fetch company info and terms from settings
-  const [companyInfo, proposalTerms] = await Promise.all([
-    getCompanyInfo(),
-    getProposalTerms(),
-  ]);
-
-  const pdfData: ProposalPdfData = {
-    estimateNumber: ctx.estimateNumber,
-    customerName: ctx.customer?.name || ctx.signedName,
-    customerAddress: ctx.customer?.address || null,
-    technicianName: ctx.technician?.name || "Genesis HVAC",
-    signedAt: ctx.signedAt,
-    signedName: ctx.signedName,
-    signedIp: ctx.signedIp,
-    signatureDataUrl: ctx.signatureDataUrl,
-    selectedTierName:
-      tierNames[ctx.selectedTier] || `Option ${ctx.selectedTier}`,
-    tierItems: tierItems.map((li) => ({
-      displayName: li.display_name,
-      specLine: li.spec_line,
-      quantity: li.quantity,
-      unitPrice: li.unit_price,
-      lineTotal: li.line_total,
-    })),
-    addonItems: selectedAddons.map((li) => ({
-      displayName: li.display_name,
-      specLine: li.spec_line,
-      quantity: li.quantity,
-      unitPrice: li.unit_price,
-      lineTotal: li.line_total,
-    })),
-    subtotal: ctx.subtotal,
-    taxRate: ctx.taxRate,
-    taxAmount: ctx.taxAmount,
-    totalAmount: ctx.totalAmount,
-    financingLabel: ctx.financingPlan?.label || null,
-    financingMonthly,
-    financingMonths: ctx.financingPlan?.months || null,
-    paymentScheduleType: ctx.paymentScheduleType,
-    companyInfo,
-    proposalTerms,
-  };
-
-  let pdfBuffer: Buffer | null = null;
-
-  try {
-    pdfBuffer = await generateProposalPdf(pdfData);
-    console.log(
-      `[Sign] PDF generated: ${pdfBuffer.length} bytes for ${ctx.estimateNumber}`
-    );
-
-    // Upload to Supabase Storage
-    const pdfPath = `${ctx.estimateId}/${ctx.estimateNumber}-signed.pdf`;
-    const { error: uploadError } = await supabase.storage
-      .from("proposal-pdfs")
-      .upload(pdfPath, pdfBuffer, {
-        contentType: "application/pdf",
-        upsert: true,
-      });
-
-    if (uploadError) {
-      console.error("[Sign] PDF upload failed:", uploadError);
-    } else {
-      // Get a signed URL (valid for 10 years — essentially permanent)
-      const { data: urlData } = await supabase.storage
-        .from("proposal-pdfs")
-        .createSignedUrl(pdfPath, 60 * 60 * 24 * 365 * 10);
-
-      if (urlData?.signedUrl) {
-        await supabase
-          .from("estimates")
-          .update({ proposal_pdf_url: urlData.signedUrl })
-          .eq("id", ctx.estimateId);
-
-        console.log(`[Sign] PDF URL stored for ${ctx.estimateNumber}`);
-      }
+  const tierNames: Record<number, string> = { ...defaultTierNames };
+  if (ctx.tierMetadata) {
+    for (const meta of ctx.tierMetadata) {
+      tierNames[meta.tier_number] = meta.tier_name;
     }
-  } catch (err) {
-    console.error("[Sign] PDF generation failed:", err);
   }
 
-  // c. HCP writeback
+  // b. HCP writeback
   if (ctx.hcpEstimateId) {
     // Find hcp_option_id for selected tier
     const selectedTierItem = ctx.lineItems.find(
@@ -541,6 +615,7 @@ async function runPostSignTasks(ctx: {
   // d. Send confirmation email
   if (ctx.customer?.email) {
     try {
+      const companyInfo = await getCompanyInfo();
       await sendProposalConfirmationEmail({
         customerEmail: ctx.customer.email,
         customerName: ctx.customer.name,

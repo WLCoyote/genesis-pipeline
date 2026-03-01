@@ -4,6 +4,7 @@ export interface TierData {
   tierNumber: number;
   tierName: string;
   tagline: string;
+  featureBullets?: string[];
   items: Array<{
     id: string;
     display_name: string;
@@ -293,47 +294,98 @@ export default function TierCards({
                 </div>
               </div>
 
-              {/* Features list */}
+              {/* Features + Equipment */}
               <div style={{ padding: "14px 22px", flex: 1 }}>
-                {tier.items.map((item, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: "flex",
-                      alignItems: "flex-start",
-                      gap: 9,
-                      padding: "6px 0",
-                      borderBottom:
-                        i < tier.items.length - 1
-                          ? "1px solid rgba(255,255,255,0.04)"
-                          : "none",
-                      fontSize: 12.5,
-                      lineHeight: 1.4,
-                      color: "#cdd8e8",
-                    }}
-                  >
-                    <span
+                {/* Feature bullets (if available) */}
+                {tier.featureBullets && tier.featureBullets.length > 0 ? (
+                  <>
+                    {tier.featureBullets.filter(b => b.trim()).map((bullet, i) => (
+                      <div
+                        key={`fb-${i}`}
+                        style={{
+                          display: "flex",
+                          alignItems: "flex-start",
+                          gap: 9,
+                          padding: "6px 0",
+                          borderBottom:
+                            i < tier.featureBullets!.filter(b => b.trim()).length - 1
+                              ? "1px solid rgba(255,255,255,0.04)"
+                              : "none",
+                          fontSize: 12.5,
+                          lineHeight: 1.4,
+                          color: "#cdd8e8",
+                        }}
+                      >
+                        <span style={{ fontSize: 13, flexShrink: 0, marginTop: 1 }}>
+                          &#9989;
+                        </span>
+                        <span style={{ color: "#fff", fontWeight: 600 }}>{bullet}</span>
+                      </div>
+                    ))}
+
+                    {/* Equipment Included — condensed list */}
+                    <div style={{ marginTop: 14 }}>
+                      <div style={{
+                        fontSize: 9,
+                        textTransform: "uppercase" as const,
+                        letterSpacing: 2,
+                        color: "#7a8fa8",
+                        marginBottom: 6,
+                        fontWeight: 700,
+                      }}>
+                        Equipment Included
+                      </div>
+                      {tier.items.map((item, i) => (
+                        <div
+                          key={i}
+                          style={{
+                            fontSize: 11,
+                            color: "#7a8fa8",
+                            padding: "3px 0",
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          {item.display_name}
+                          {item.spec_line && (
+                            <span style={{ color: "#5a6a80" }}> — {item.spec_line}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  /* Fallback: show items as features (original behavior) */
+                  tier.items.map((item, i) => (
+                    <div
+                      key={i}
                       style={{
-                        fontSize: 13,
-                        flexShrink: 0,
-                        marginTop: 1,
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: 9,
+                        padding: "6px 0",
+                        borderBottom:
+                          i < tier.items.length - 1
+                            ? "1px solid rgba(255,255,255,0.04)"
+                            : "none",
+                        fontSize: 12.5,
+                        lineHeight: 1.4,
+                        color: "#cdd8e8",
                       }}
                     >
-                      &#9989;
-                    </span>
-                    <span>
-                      <strong style={{ color: "#fff", fontWeight: 700 }}>
-                        {item.display_name}
-                      </strong>
-                      {item.spec_line && (
-                        <span style={{ color: "#7a8fa8" }}>
-                          {" "}
-                          — {item.spec_line}
-                        </span>
-                      )}
-                    </span>
-                  </div>
-                ))}
+                      <span style={{ fontSize: 13, flexShrink: 0, marginTop: 1 }}>
+                        &#9989;
+                      </span>
+                      <span>
+                        <strong style={{ color: "#fff", fontWeight: 700 }}>
+                          {item.display_name}
+                        </strong>
+                        {item.spec_line && (
+                          <span style={{ color: "#7a8fa8" }}> — {item.spec_line}</span>
+                        )}
+                      </span>
+                    </div>
+                  ))
+                )}
               </div>
 
               {/* Pricing block */}

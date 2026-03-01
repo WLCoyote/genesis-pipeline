@@ -41,7 +41,7 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
   // Fetch pricebook items for the item picker
   const { data: pricebookItems } = await supabase
     .from("pricebook_items")
-    .select("id, display_name, spec_line, unit_price, cost, manufacturer, model_number, category, system_type, efficiency_rating, is_addon, addon_default_checked, unit_of_measure, hcp_type, is_favorite")
+    .select("id, display_name, spec_line, unit_price, cost, manufacturer, model_number, part_number, category, system_type, efficiency_rating, is_addon, addon_default_checked, unit_of_measure, hcp_type, is_favorite")
     .eq("is_active", true)
     .order("display_name", { ascending: true });
 
@@ -71,6 +71,30 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
     customer_phone: string | null;
     customer_address: string | null;
     assigned_to: string | null;
+    proposal_token: string | null;
+    line_items?: Array<{
+      option_group: number;
+      pricebook_item_id: string | null;
+      display_name: string;
+      spec_line: string | null;
+      description: string | null;
+      quantity: number;
+      unit_price: number;
+      is_addon: boolean;
+      is_selected: boolean;
+      category: string | null;
+      sort_order: number;
+    }>;
+    tier_metadata?: Array<{
+      tier_number: number;
+      tier_name: string;
+      tagline: string;
+      feature_bullets: string[];
+      is_recommended: boolean;
+    }>;
+    selected_financing_plan_id?: string | null;
+    include_tax?: boolean;
+    tax_rate?: number | null;
   } | null = null;
 
   if (estimate_id) {
@@ -78,12 +102,17 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
       .from("estimates")
       .select(`
         id, estimate_number, hcp_estimate_id, assigned_to, status, proposal_signed_at,
-        customers ( id, name, email, phone, address )
+        proposal_token, tier_metadata, selected_financing_plan_id, tax_rate,
+        customers ( id, name, email, phone, address ),
+        estimate_line_items (
+          option_group, pricebook_item_id, display_name, spec_line, description,
+          quantity, unit_price, is_addon, is_selected, category, sort_order
+        )
       `)
       .eq("id", estimate_id)
       .single();
 
-    if (est && (est as any).proposal_signed_at) {
+    if (est && (est as Record<string, unknown>).proposal_signed_at) {
       redirect(`/dashboard/estimates/${estimate_id}`);
     }
 
@@ -97,6 +126,20 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
         address: string | null;
       } | null;
 
+      const lineItemsRaw = (est.estimate_line_items || []) as Array<{
+        option_group: number;
+        pricebook_item_id: string | null;
+        display_name: string;
+        spec_line: string | null;
+        description: string | null;
+        quantity: number;
+        unit_price: number;
+        is_addon: boolean;
+        is_selected: boolean;
+        category: string | null;
+        sort_order: number;
+      }>;
+
       draftEstimate = {
         id: est.id,
         estimate_number: est.estimate_number,
@@ -107,6 +150,12 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
         customer_phone: cust?.phone || null,
         customer_address: cust?.address || null,
         assigned_to: est.assigned_to,
+        proposal_token: (est as Record<string, unknown>).proposal_token as string | null,
+        line_items: lineItemsRaw.length > 0 ? lineItemsRaw : undefined,
+        tier_metadata: ((est as Record<string, unknown>).tier_metadata as Array<{ tier_number: number; tier_name: string; tagline: string; feature_bullets: string[]; is_recommended: boolean }>) || undefined,
+        selected_financing_plan_id: ((est as Record<string, unknown>).selected_financing_plan_id as string | null) || null,
+        include_tax: est.tax_rate != null,
+        tax_rate: est.tax_rate,
       };
     }
   }

@@ -4,6 +4,7 @@ import type { TierForm, TierTotals, FinancingPlanFull } from "./types";
 import {
   formatCurrency,
   calculateMonthly,
+  calculateTierCost,
   groupItemsByCategory,
   TIER_BADGES,
 } from "./utils";
@@ -22,6 +23,7 @@ interface Props {
   onSetRecommended: (tierNumber: number) => void;
   onUpdateItemQuantity: (tierNumber: number, pbItemId: string, qty: number) => void;
   onUpdateItemPrice: (tierNumber: number, pbItemId: string, price: number) => void;
+  onToggleTax: (v: boolean) => void;
 }
 
 export default function QuoteBuilderTiersStep({
@@ -38,6 +40,7 @@ export default function QuoteBuilderTiersStep({
   onSetRecommended,
   onUpdateItemQuantity,
   onUpdateItemPrice,
+  onToggleTax,
 }: Props) {
   const getCashTotal = (total: number) => {
     if (includeTax && taxRate != null) {
@@ -59,6 +62,20 @@ export default function QuoteBuilderTiersStep({
         <h3 className="text-xs font-black uppercase tracking-[2px] text-gray-900 dark:text-gray-100">
           Equipment Tiers — Add items from pricebook →
         </h3>
+        <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">
+          <input
+            type="checkbox"
+            checked={includeTax}
+            onChange={(e) => onToggleTax(e.target.checked)}
+            className="w-3.5 h-3.5 rounded"
+          />
+          Include sales tax
+          {includeTax && taxRate != null && (
+            <span className="text-[10px] text-gray-400 dark:text-gray-500">
+              ({(taxRate * 100).toFixed(1)}%)
+            </span>
+          )}
+        </label>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
@@ -70,6 +87,9 @@ export default function QuoteBuilderTiersStep({
           const monthly = getMonthly(totals?.total || 0);
           const categoryGroups = groupItemsByCategory(tier.items);
           const addons = tier.items.filter((i) => i.is_addon);
+          const tierCost = calculateTierCost(tier);
+          const tierTotal = totals?.total || 0;
+          const margin = tierTotal > 0 ? ((tierTotal - tierCost) / tierTotal) * 100 : 0;
 
           const borderClass = tier.is_recommended
             ? "border-blue-500 shadow-[0_0_0_1px_#3b82f6]"
@@ -164,6 +184,11 @@ export default function QuoteBuilderTiersStep({
                     · {formatCurrency(monthly)}/mo
                   </span>
                 )}
+                {tierCost > 0 && (
+                  <span className="ml-auto text-[10px] text-gray-400 dark:text-gray-500">
+                    Cost {formatCurrency(tierCost)} · Margin {formatCurrency(tierTotal - tierCost)} ({margin.toFixed(0)}%)
+                  </span>
+                )}
               </div>
 
               {/* Line items by category */}
@@ -202,6 +227,11 @@ export default function QuoteBuilderTiersStep({
                           }
                           className="w-10 px-1 py-0.5 text-[10px] text-center border border-transparent group-hover:border-gray-200 dark:group-hover:border-gray-600 rounded bg-transparent text-gray-500 dark:text-gray-400"
                         />
+                        {item.cost != null && item.cost > 0 && (
+                          <span className="text-[9px] text-gray-400 dark:text-gray-500 w-12 text-right shrink-0" title="Cost">
+                            {formatCurrency(item.cost)}
+                          </span>
+                        )}
                         <input
                           type="number"
                           min={0}
@@ -232,6 +262,47 @@ export default function QuoteBuilderTiersStep({
                   className="w-full mt-2 py-1.5 border-[1.5px] border-dashed border-gray-200 dark:border-gray-600 rounded-lg text-xs text-blue-600 dark:text-blue-400 font-bold hover:bg-blue-50/50 dark:hover:bg-blue-900/10 hover:border-blue-400 transition-colors"
                 >
                   + Add Item to {tier.tier_name}
+                </button>
+              </div>
+
+              {/* Feature Bullets */}
+              <div className="px-2.5 py-2.5 border-t border-gray-200 dark:border-gray-700" onClick={(e) => e.stopPropagation()}>
+                <div className="text-[9px] uppercase tracking-[2px] text-gray-400 dark:text-gray-500 font-bold mb-1.5">
+                  Features (shown on proposal)
+                </div>
+                {(tier.feature_bullets || []).map((bullet, bIdx) => (
+                  <div key={bIdx} className="flex items-center gap-1.5 mb-1">
+                    <span className="text-green-500 text-[10px] shrink-0">✓</span>
+                    <input
+                      type="text"
+                      value={bullet}
+                      onChange={(e) => {
+                        const updated = [...(tier.feature_bullets || [])];
+                        updated[bIdx] = e.target.value;
+                        onUpdateTierField(tier.tier_number, "feature_bullets", updated);
+                      }}
+                      className="flex-1 text-[11px] text-gray-700 dark:text-gray-300 bg-transparent border-none outline-none p-0"
+                      placeholder="Feature description..."
+                    />
+                    <button
+                      onClick={() => {
+                        const updated = (tier.feature_bullets || []).filter((_, i) => i !== bIdx);
+                        onUpdateTierField(tier.tier_number, "feature_bullets", updated);
+                      }}
+                      className="text-[10px] text-gray-300 dark:text-gray-600 hover:text-red-400 px-0.5"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+                <button
+                  onClick={() => {
+                    const updated = [...(tier.feature_bullets || []), ""];
+                    onUpdateTierField(tier.tier_number, "feature_bullets", updated);
+                  }}
+                  className="text-[10px] text-blue-500 hover:text-blue-600 font-bold mt-1"
+                >
+                  + Add Feature
                 </button>
               </div>
 

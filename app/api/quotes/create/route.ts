@@ -201,6 +201,15 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Build tier_metadata from the tiers payload
+  const tierMetadata = body.tiers.map((tier: { tier_number: number; tier_name?: string; tagline?: string; feature_bullets?: string[]; is_recommended?: boolean }) => ({
+    tier_number: tier.tier_number,
+    tier_name: tier.tier_name || `Tier ${tier.tier_number}`,
+    tagline: tier.tagline || "",
+    feature_bullets: tier.feature_bullets || [],
+    is_recommended: tier.is_recommended || false,
+  }));
+
   // Use the recommended tier's total as the estimate total
   const subtotal = defaultTierTotal;
   const taxRate = body.tax_rate ?? null;
@@ -249,6 +258,7 @@ export async function POST(request: NextRequest) {
         template_id: body.template_id || null,
         payment_schedule_type: body.payment_schedule_type || "standard",
         selected_financing_plan_id: body.selected_financing_plan_id || null,
+        tier_metadata: tierMetadata.length > 0 ? tierMetadata : null,
       })
       .eq("id", existingEstimate.id);
 
@@ -280,6 +290,7 @@ export async function POST(request: NextRequest) {
         template_id: body.template_id || null,
         payment_schedule_type: body.payment_schedule_type || "standard",
         selected_financing_plan_id: body.selected_financing_plan_id || null,
+        tier_metadata: tierMetadata.length > 0 ? tierMetadata : null,
       })
       .select("id")
       .single();

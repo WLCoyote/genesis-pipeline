@@ -8,6 +8,7 @@ export interface PricebookItemSlim {
   cost: number | null;
   manufacturer: string | null;
   model_number: string | null;
+  part_number: string | null;
   category: string;
   system_type: string | null;
   efficiency_rating: string | null;
@@ -110,6 +111,30 @@ export interface DraftEstimate {
   customer_phone: string | null;
   customer_address: string | null;
   assigned_to: string | null;
+  proposal_token: string | null;
+  line_items?: Array<{
+    option_group: number;
+    pricebook_item_id: string | null;
+    display_name: string;
+    spec_line: string | null;
+    description: string | null;
+    quantity: number;
+    unit_price: number;
+    is_addon: boolean;
+    is_selected: boolean;
+    category: string | null;
+    sort_order: number;
+  }>;
+  tier_metadata?: Array<{
+    tier_number: number;
+    tier_name: string;
+    tagline: string;
+    feature_bullets: string[];
+    is_recommended: boolean;
+  }>;
+  selected_financing_plan_id?: string | null;
+  include_tax?: boolean;
+  tax_rate?: number | null;
 }
 
 export interface QuoteBuilderProps {

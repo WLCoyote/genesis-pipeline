@@ -78,12 +78,67 @@ export default function QuoteBuilder({
   // ---- Template state ----
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
 
-  // ---- Tier state ----
-  const [tiers, setTiers] = useState<TierForm[]>([
-    emptyTier(1),
-    emptyTier(2),
-    emptyTier(3),
-  ]);
+  // ---- Tier state (reconstruct from draft if available) ----
+  const [tiers, setTiers] = useState<TierForm[]>(() => {
+    if (draftEstimate?.line_items && draftEstimate.line_items.length > 0) {
+      const newTiers: TierForm[] = [emptyTier(1), emptyTier(2), emptyTier(3)];
+      const meta = draftEstimate.tier_metadata;
+
+      // Apply tier metadata
+      if (meta) {
+        for (const m of meta) {
+          const idx = m.tier_number - 1;
+          if (idx >= 0 && idx < 3) {
+            newTiers[idx].tier_name = m.tier_name;
+            newTiers[idx].tagline = m.tagline;
+            newTiers[idx].feature_bullets = m.feature_bullets || [];
+            newTiers[idx].is_recommended = m.is_recommended;
+          }
+        }
+      }
+
+      // Group line items into tiers
+      for (const li of draftEstimate.line_items) {
+        const idx = li.option_group - 1;
+        if (idx < 0 || idx >= 3) continue;
+
+        // Look up cost from pricebook
+        const pbItem = li.pricebook_item_id
+          ? pricebookItems.find((p) => p.id === li.pricebook_item_id)
+          : null;
+
+        newTiers[idx].items.push({
+          pricebook_item_id: li.pricebook_item_id || `manual-${li.display_name}`,
+          display_name: li.display_name,
+          spec_line: li.spec_line,
+          description: li.description,
+          unit_price: li.unit_price,
+          quantity: li.quantity,
+          is_addon: li.is_addon,
+          addon_default_checked: li.is_selected,
+          hcp_type: pbItem?.hcp_type ?? null,
+          category: li.category || pbItem?.category || "equipment",
+          cost: pbItem?.cost ?? null,
+        });
+      }
+
+      // Sort items by sort_order
+      for (const tier of newTiers) {
+        tier.items.sort((a, b) => {
+          const aIdx = draftEstimate.line_items!.findIndex(
+            (li) => (li.pricebook_item_id || li.display_name) === a.pricebook_item_id
+          );
+          const bIdx = draftEstimate.line_items!.findIndex(
+            (li) => (li.pricebook_item_id || li.display_name) === b.pricebook_item_id
+          );
+          return aIdx - bIdx;
+        });
+      }
+
+      return newTiers;
+    }
+    return [emptyTier(1), emptyTier(2), emptyTier(3)];
+  });
 
   // ---- Pricebook panel state ----
   const [targetTier, setTargetTier] = useState<1 | 2 | 3>(2);
@@ -96,7 +151,7 @@ export default function QuoteBuilder({
   // ---- Financing ----
   const defaultPlan = financingPlans.find((p) => p.is_default) || financingPlans[0] || null;
   const [selectedFinancingPlanId, setSelectedFinancingPlanId] = useState<string | null>(
-    defaultPlan?.id || null
+    draftEstimate?.selected_financing_plan_id || defaultPlan?.id || null
   );
   const selectedFinancingPlan = useMemo(
     () => financingPlans.find((p) => p.id === selectedFinancingPlanId) || null,
@@ -104,8 +159,8 @@ export default function QuoteBuilder({
   );
 
   // ---- Tax ----
-  const [includeTax, setIncludeTax] = useState(false);
-  const [taxRate, setTaxRate] = useState<number | null>(null);
+  const [includeTax, setIncludeTax] = useState(draftEstimate?.include_tax ?? false);
+  const [taxRate, setTaxRate] = useState<number | null>(draftEstimate?.tax_rate ?? null);
   const [taxLoading, setTaxLoading] = useState(false);
   const [taxError, setTaxError] = useState<string | null>(null);
 
@@ -115,6 +170,7 @@ export default function QuoteBuilder({
   const [draftSaving, setDraftSaving] = useState(false);
   const [draftSaved, setDraftSaved] = useState(false);
   const [savedEstimateId, setSavedEstimateId] = useState<string | null>(draftEstimate?.id || null);
+  const [proposalToken, setProposalToken] = useState<string | null>(draftEstimate?.proposal_token || null);
   const [createdEstimate, setCreatedEstimate] = useState<{
     estimate_id: string;
     estimate_number: string;
@@ -408,6 +464,7 @@ export default function QuoteBuilder({
         return;
       }
       setSavedEstimateId(data.estimate_id);
+      if (data.proposal_token) setProposalToken(data.proposal_token);
       setDraftSaved(true);
       setTimeout(() => setDraftSaved(false), 3000);
     } catch {
@@ -420,16 +477,25 @@ export default function QuoteBuilder({
   // ---- Preview ----
 
   const handlePreview = async () => {
-    // Save draft first if not yet saved
-    if (!savedEstimateId) {
-      await handleSaveDraft();
-    }
-    // Open the proposal page in a new tab
-    if (savedEstimateId) {
-      // We need a proposal token — for preview, just open the estimate detail
-      window.open(`/dashboard/estimates/${savedEstimateId}`, "_blank");
-    }
+    // Save draft first (always — to persist latest changes + get proposal_token)
+    await handleSaveDraft();
   };
+
+  // Open preview after draft save succeeds and we have a proposal token
+  // This is handled via useEffect to capture the updated proposalToken state
+  const [pendingPreview, setPendingPreview] = useState(false);
+
+  const handlePreviewClick = async () => {
+    setPendingPreview(true);
+    await handlePreview();
+  };
+
+  useEffect(() => {
+    if (pendingPreview && proposalToken) {
+      setPendingPreview(false);
+      window.open(`/proposals/${proposalToken}`, "_blank");
+    }
+  }, [pendingPreview, proposalToken]);
 
   // ---- Submit (Send to Customer) ----
 
@@ -558,7 +624,7 @@ export default function QuoteBuilder({
         assignedTo={assignedTo}
         onAssignedToChange={setAssignedTo}
         onSaveDraft={handleSaveDraft}
-        onPreview={handlePreview}
+        onPreview={handlePreviewClick}
         onSend={handleSubmit}
         draftSaving={draftSaving}
         draftSaved={draftSaved}
@@ -627,6 +693,7 @@ export default function QuoteBuilder({
               onSetRecommended={setRecommended}
               onUpdateItemQuantity={updateItemQuantity}
               onUpdateItemPrice={updateItemPrice}
+              onToggleTax={setIncludeTax}
             />
           )}
 

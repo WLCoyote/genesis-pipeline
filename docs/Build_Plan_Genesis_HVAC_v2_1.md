@@ -465,7 +465,7 @@ app/components/quote-builder/
 
 ---
 
-## PHASE 7.7: Quote Builder QA Fixes + Proposal Polish — IN PROGRESS
+## PHASE 7.7: Quote Builder QA Fixes + Proposal Polish — COMPLETE
 
 First round of visual QA on the Phase 7.6 quote builder overhaul. 17 items identified, 15 actionable (2 deferred). Covers builder UX, tier metadata persistence, draft restoration, preview flow, proposal page fixes, and HCP sync corrections.
 
@@ -484,25 +484,25 @@ First round of visual QA on the Phase 7.6 quote builder overhaul. 17 items ident
 - **1D**: ✅ Tax toggle visible on step 2 (tiers) in addition to step 4 (financing)
 
 ### Phase 2: Tier Metadata + Feature Bullets
-- **2A**: Save `tier_metadata` JSONB with estimates (draft + create endpoints)
-- **2B**: Feature bullets editor in TiersStep — editable bullet list per tier with add/remove
-- **2C**: Proposal page reads `tier_metadata` for tier names, taglines, is_recommended instead of hardcoded values
-- **2D**: TierCards renders feature bullets (green checkmarks) + condensed "Equipment Included" list
+- **2A**: ✅ Save `tier_metadata` JSONB with estimates (draft + create endpoints)
+- **2B**: ✅ Feature bullets editor in TiersStep — editable bullet list per tier with add/remove
+- **2C**: ✅ Proposal page reads `tier_metadata` for tier names, taglines, is_recommended instead of hardcoded values
+- **2D**: ✅ TierCards renders feature bullets (green checkmarks) + condensed "Equipment Included" list
 
 ### Phase 3: Draft Restoration (Edit loads empty fix)
-- **3A**: Fetch `estimate_line_items` + `tier_metadata` when loading a draft in quote builder page
-- **3B**: Reconstruct tiers from draft line items — group by `option_group`, merge with tier_metadata, restore financing/tax state
+- **3A**: ✅ Fetch `estimate_line_items` + `tier_metadata` when loading a draft in quote builder page
+- **3B**: ✅ Reconstruct tiers from draft line items — group by `option_group`, merge with tier_metadata, restore financing/tax state
 
 ### Phase 4: Preview (Show Real Proposal)
-- **4A**: Generate `proposal_token` on draft save (new drafts only)
-- **4B**: Preview button saves draft first, then opens `/proposals/{token}` in new tab
+- **4A**: ✅ Generate `proposal_token` on draft save (new drafts only)
+- **4B**: ✅ Preview button saves draft first, then opens `/proposals/{token}` in new tab
 
 ### Phase 5: Proposal Page Fixes
-- **5A**: Sticky bottom bar — CTA disabled until all disclosure checkboxes checked, scroll-to-terms on disabled click
-- **5B**: View PDF button fix — move `proposal_pdf_url` save before response in sign endpoint (was fire-and-forget)
+- **5A**: ✅ Sticky bottom bar — CTA disabled until all disclosure checkboxes checked, scroll-to-terms on disabled click
+- **5B**: ✅ View PDF button fix — PDF generation moved synchronous (before sign response); HCP/email/notifications remain in after()
 
 ### Phase 6: HCP Sync Fix
-- **6A**: Line items use `hcp_type` from pricebook metadata to distinguish materials vs services in HCP sync
+- **6A**: ✅ Already correctly uses `hcp_type` to distinguish materials vs services — no changes needed
 
 ### Files Modified
 `sql/024_qb_qa_fixes.sql`, `utils.ts`, `types.ts`, `QuoteBuilder.tsx`, `QuoteBuilderTiersStep.tsx`, `QuoteBuilderPricebookPanel.tsx`, `page.tsx` (quote-builder), `route.ts` (quotes/draft), `route.ts` (quotes/create), `page.tsx` (proposals/[token]), `TierCards.tsx`, `ProposalPage.tsx`, `StickyBottomBar.tsx`, `route.ts` (sign), `lib/hcp-estimate.ts`
