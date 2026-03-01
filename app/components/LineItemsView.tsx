@@ -25,11 +25,11 @@ export default function LineItemsView({
 }: LineItemsViewProps) {
   if (lineItems.length === 0) {
     return (
-      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
-        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
+      <div className="border-b border-ds-border dark:border-gray-700 px-4.5 py-4">
+        <div className="text-[10px] font-black uppercase tracking-[2px] text-ds-gray dark:text-gray-400 mb-3">
           Estimate Options
-        </h2>
-        <p className="text-sm text-gray-400 dark:text-gray-500">
+        </div>
+        <p className="text-[13px] text-ds-gray-lt dark:text-gray-500">
           No line items on this estimate.
         </p>
       </div>
@@ -54,13 +54,13 @@ export default function LineItemsView({
   const isSigned = selectedTier != null;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+    <div className="border-b border-ds-border dark:border-gray-700 px-4.5 py-4">
+      <div className="flex items-center justify-between mb-3">
+        <div className="text-[10px] font-black uppercase tracking-[2px] text-ds-gray dark:text-gray-400">
           {isSigned ? "Accepted Option" : "Estimate Options"}
-        </h2>
+        </div>
         {totalAmount != null && (
-          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+          <span className={`font-display text-lg font-black ${isSigned ? "text-ds-green" : "text-ds-text dark:text-gray-100"}`}>
             ${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
           </span>
         )}
@@ -74,36 +74,51 @@ export default function LineItemsView({
           const isSelected = tierNum === selectedTier;
           const showDetails = isSelected || (!isSigned && sortedTierKeys.length === 1);
 
+          if (isSigned && !isSelected) {
+            // Collapsed non-selected tier
+            return (
+              <div
+                key={tierNum}
+                className="flex justify-between items-center py-2 opacity-40"
+              >
+                <span className="text-[13px] text-ds-gray dark:text-gray-400">
+                  {tierNames[tierNum] || `Tier ${tierNum}`}
+                </span>
+                <span className="text-[13px] text-ds-gray-lt dark:text-gray-500 font-bold">
+                  ${tierTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+            );
+          }
+
           return (
             <div
               key={tierNum}
-              className={`rounded-md border ${
+              className={`rounded-xl border-[1.5px] p-3.5 ${
                 isSelected
-                  ? "border-green-300 dark:border-green-700 bg-green-50 dark:bg-green-900/20"
-                  : isSigned
-                    ? "border-gray-100 dark:border-gray-700 opacity-40"
-                    : "border-gray-200 dark:border-gray-700"
-              } p-3`}
+                  ? "border-ds-green/25 bg-ds-green-bg dark:bg-green-900/20"
+                  : "border-ds-border dark:border-gray-700"
+              }`}
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <h3 className="text-[14px] font-bold text-ds-text dark:text-gray-100">
                     {tierNames[tierNum] || `Tier ${tierNum}`}
                   </h3>
                   {isSelected && (
-                    <span className="text-xs font-medium text-green-700 dark:text-green-400 bg-green-100 dark:bg-green-900/40 px-1.5 py-0.5 rounded">
-                      Accepted
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-[5px] bg-ds-green text-white">
+                      ✓ Accepted
                     </span>
                   )}
                 </div>
-                <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                <span className={`font-display text-xl font-black ${isSelected ? "text-ds-green" : "text-ds-text dark:text-gray-100"}`}>
                   ${tierTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                 </span>
               </div>
 
-              {/* Expanded line items for selected tier (or single tier when not signed) */}
+              {/* Expanded line items */}
               {showDetails && (
-                <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 space-y-1">
+                <div className="mt-2.5 pt-2.5 border-t border-ds-border/50 dark:border-gray-700/50 space-y-1">
                   {[...items]
                     .sort((a, b) => a.sort_order - b.sort_order)
                     .map((item) => (
@@ -112,21 +127,21 @@ export default function LineItemsView({
                         className="flex items-start justify-between py-1"
                       >
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs text-gray-700 dark:text-gray-300">
+                          <div className="text-[12px] text-ds-text dark:text-gray-300">
                             {item.quantity > 1 && (
-                              <span className="text-gray-500 dark:text-gray-400 mr-1">
+                              <span className="text-ds-gray dark:text-gray-400 mr-1">
                                 {item.quantity}x
                               </span>
                             )}
                             {item.display_name}
                           </div>
                           {item.spec_line && (
-                            <div className="text-xs text-gray-400 dark:text-gray-500 truncate">
+                            <div className="text-[12px] text-ds-gray-lt dark:text-gray-500 truncate">
                               {item.spec_line}
                             </div>
                           )}
                         </div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400 ml-3 shrink-0">
+                        <span className="text-[12px] font-bold text-ds-text dark:text-gray-300 ml-3 shrink-0">
                           ${item.line_total.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                         </span>
                       </div>
@@ -142,10 +157,10 @@ export default function LineItemsView({
       {addons.length > 0 && (
         <div className="mt-3">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+            <div className="text-[10px] font-black uppercase tracking-[2px] text-ds-gray dark:text-gray-400">
               Add-ons
-            </h3>
-            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+            </div>
+            <span className="text-[12px] font-bold text-ds-text-lt dark:text-gray-400">
               ${addons
                 .reduce((s, i) => s + (i.is_selected ? i.line_total : 0), 0)
                 .toLocaleString("en-US", { minimumFractionDigits: 2 })}
@@ -162,21 +177,21 @@ export default function LineItemsView({
                   }`}
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="text-xs text-gray-700 dark:text-gray-300">
+                    <div className="text-[12px] text-ds-text dark:text-gray-300">
                       {item.quantity > 1 && (
-                        <span className="text-gray-500 dark:text-gray-400 mr-1">
+                        <span className="text-ds-gray dark:text-gray-400 mr-1">
                           {item.quantity}x
                         </span>
                       )}
                       {item.display_name}
                       {!item.is_selected && (
-                        <span className="ml-1.5 text-xs text-gray-400 dark:text-gray-500">
+                        <span className="ml-1.5 text-[11px] text-ds-gray-lt dark:text-gray-500">
                           (declined)
                         </span>
                       )}
                     </div>
                   </div>
-                  <span className="text-xs text-gray-500 dark:text-gray-400 ml-3 shrink-0">
+                  <span className="text-[12px] font-bold text-ds-text-lt dark:text-gray-400 ml-3 shrink-0">
                     ${item.line_total.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                   </span>
                 </div>
@@ -187,21 +202,23 @@ export default function LineItemsView({
 
       {/* Totals */}
       {subtotal != null && (
-        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700 space-y-1">
-          <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+        <div className="mt-3 pt-3 border-t-[1.5px] border-ds-border dark:border-gray-700 space-y-1">
+          <div className="flex justify-between text-[12px] text-ds-text-lt dark:text-gray-400">
             <span>Subtotal</span>
             <span>${subtotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
           </div>
           {taxAmount != null && taxAmount > 0 && (
-            <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+            <div className="flex justify-between text-[12px] text-ds-text-lt dark:text-gray-400">
               <span>Tax{taxRate ? ` (${(taxRate * 100).toFixed(2)}%)` : ""}</span>
               <span>${taxAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
             </div>
           )}
           {totalAmount != null && (
-            <div className="flex justify-between text-sm font-semibold text-gray-900 dark:text-gray-100">
-              <span>Total</span>
-              <span>${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}</span>
+            <div className="flex justify-between items-baseline pt-1">
+              <span className="text-[13px] font-bold text-ds-text dark:text-gray-100">Total</span>
+              <span className="font-display text-2xl font-black text-ds-text dark:text-gray-100">
+                ${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              </span>
             </div>
           )}
         </div>

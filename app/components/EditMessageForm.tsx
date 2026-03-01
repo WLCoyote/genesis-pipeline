@@ -54,9 +54,9 @@ export default function EditMessageForm({ event, onClose }: EditMessageFormProps
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
-      <div className="text-sm text-gray-500 dark:text-gray-400">
+      <div className="text-[12px] text-ds-text-lt dark:text-gray-400">
         This {event.channel} is scheduled to send at{" "}
-        <span className="font-medium">{scheduledAt}</span>. Edit the content
+        <span className="font-bold text-ds-text dark:text-gray-300">{scheduledAt}</span>. Edit the content
         below before it auto-sends.
       </div>
 
@@ -64,23 +64,23 @@ export default function EditMessageForm({ event, onClose }: EditMessageFormProps
         value={content}
         onChange={(e) => setContent(e.target.value)}
         rows={4}
-        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2.5 border-[1.5px] border-ds-border dark:border-gray-600 rounded-lg text-[13px] bg-ds-bg dark:bg-gray-700 text-ds-text dark:text-gray-100 focus:border-ds-blue focus:bg-white dark:focus:bg-gray-600 outline-none transition-colors"
       />
 
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="text-[12px] text-ds-red dark:text-red-400">{error}</p>}
 
       <div className="flex gap-2">
         <button
           type="submit"
           disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="px-4 py-[7px] bg-ds-blue text-white text-[13px] font-bold rounded-[7px] shadow-[0_3px_10px_rgba(21,101,192,0.3)] hover:bg-ds-blue-lt disabled:opacity-50 transition-colors cursor-pointer border-none"
         >
           {loading ? "Saving..." : "Save Changes"}
         </button>
         <button
           type="button"
           onClick={onClose}
-          className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+          className="px-4 py-[7px] text-[13px] text-ds-gray dark:text-gray-400 hover:text-ds-text dark:hover:text-gray-200 transition-colors cursor-pointer bg-transparent border-none"
         >
           Cancel
         </button>

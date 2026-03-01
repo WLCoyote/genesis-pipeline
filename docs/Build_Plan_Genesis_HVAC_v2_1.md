@@ -592,11 +592,59 @@ Applied the design system (fonts, ds- tokens, component decomposition pattern) f
 
 ---
 
-## PHASE 8.1: Commission Tracking — NOT STARTED
+## PHASE 8.1A: Estimate Detail Page UI Overhaul ✅ COMPLETE
+
+Applied the ds- design system to the estimate detail page. Restyled all 11 sub-components with ds- tokens, restructured layout from `grid-cols-3` to flex with 320px right rail.
+
+### Key Changes
+- **Topbar**: Back button, customer name (Barlow Condensed), StatusBadge, metadata (estimate #, amount, rep), action buttons (Preview Proposal, Edit Quote, Signed PDF)
+- **Paused banner**: Yellow gradient bar below topbar when sequence is paused
+- **Layout**: Flex two-column — left (flex-1, scrollable: timeline + SMS) + right rail (320px: actions, customer, tiers, proposal activity)
+- **FollowUpTimeline**: Visual timeline connectors (channel-colored gradient circles + vertical lines), channel badges (SMS=blue, Call=green, Email=orange), styled step status badges
+- **EstimateActions**: Snooze (yellow), Won (green), Lost (red) action buttons with ds- tokens, styled status banners
+- **CustomerInfo**: Avatar with gradient initials + HCP ID, styled contact rows with Call Now button
+- **ConversationThread**: Card with header, ds-blue message bubbles, styled compose section
+- **LineItemsView**: Green-highlighted accepted tier with ✓ badge, collapsed non-selected tiers, Barlow Condensed totals
+- **ProposalEngagementPanel**: Signed badge (green), 2x2 stats grid with ds-bg boxes, insights with icons, event timeline
+- **Supporting components**: OptionsList, ExecuteStepButton, SnoozeForm, EditMessageForm — all restyled with ds- tokens
+
+### Files Modified
+`page.tsx` (layout restructured), `FollowUpTimeline.tsx`, `EstimateActions.tsx`, `CustomerInfo.tsx`, `ConversationThread.tsx`, `LineItemsView.tsx`, `ProposalEngagementPanel.tsx`, `OptionsList.tsx`, `ExecuteStepButton.tsx`, `SnoozeForm.tsx`, `EditMessageForm.tsx`. No new files — pure restyling.
+
+---
+
+## PHASE 8.1B: Sequences Page UI Overhaul ✅ COMPLETE
+
+Decomposed `SequenceEditor.tsx` (243 lines) into lean orchestrator (135 lines) + 4 new components in `app/components/sequences/`. Applied ds- design system with timeline connectors and channel-colored step cards.
+
+### Component Decomposition
+
+| Component | Lines | Purpose |
+|---|---|---|
+| `SequenceHeader.tsx` | 85 | Editable name, Active/Paused badge with dot, step count + day span stats, Pause/Save buttons |
+| `SequenceTokenBar.tsx` | 42 | Shared variable token buttons (7 tokens) with insert hint, click-to-insert at cursor |
+| `SequenceStepCard.tsx` | 155 | Timeline connector (channel-colored gradient circle + vertical line), card with channel-colored left border, header (badge, day input, channel select, call task toggle, remove), template textarea with char count |
+| `SequenceAddStep.tsx` | 60 | Dashed add button expanding to 3 channel-colored options (SMS/Call/Email) |
+
+### Key Features
+- **Timeline layout**: Gradient circles (SMS=blue, Call=green, Email=orange) with vertical connector lines between steps
+- **Channel-colored cards**: 3px left border matching channel color, channel badge in header
+- **Shared token bar**: Moved variable tokens from per-step to shared top-level bar with cursor-position insertion via ref
+- **Add step with channel**: Dashed button expands to 3 channel-colored options, creates step with correct channel pre-set
+- **Call task toggle**: Green checkbox badge that updates card styling (green textarea background, italic)
+- **Character count**: Shows char count below textarea, orange highlight when >160 chars
+- **Paused warning**: Yellow gradient bar with "Resume now →" link
+
+### Files Modified
+`SequenceEditor.tsx` (refactored to orchestrator), `sequences/page.tsx` (topbar added). 4 new files in `app/components/sequences/`.
+
+---
+
+## PHASE 8.2: Commission Tracking — NOT STARTED
 
 Two-stage commission from close to confirmed payout. See PRD v4.0 Section 6.
 
-### Step 8.1: Database — Commission Tables
+### Step 8.2a: Database — Commission Tables
 
 Create SQL migrations for:
 - `commission_tiers` — period (monthly/quarterly/annual), min_revenue, max_revenue, rate_pct, is_active.
@@ -609,7 +657,7 @@ Seed default tier structure (admin-configurable rates 5-8%).
 
 **VERIFY:** Tables created. Tier structure seeded. RLS working.
 
-### Step 8.2: Commission Calculation Logic
+### Step 8.2b: Commission Calculation Logic
 
 Create `lib/commission.ts`:
 - `getTierRate(userId, periodRevenue)` — looks up cumulative revenue against tier table
@@ -620,7 +668,7 @@ Called automatically: estimated at proposal signing (Phase 7), confirmed by cron
 
 **VERIFY:** Estimated commission calculates correctly at signing. Tier rate lookup works.
 
-### Step 8.3: QBO Integration
+### Step 8.2c: QBO Integration
 
 Create `lib/qbo.ts`:
 - OAuth 2.0 flow: `/api/auth/qbo` callback for token exchange
@@ -633,7 +681,7 @@ QBO OAuth connection UI in Settings page (admin only).
 
 **VERIFY:** QBO OAuth connects. Can query invoices. Paid status detected correctly.
 
-### Step 8.4: Commission Confirmation Cron
+### Step 8.2d: Commission Confirmation Cron
 
 New cron job: `/api/cron/confirm-commission` — 1x daily.
 

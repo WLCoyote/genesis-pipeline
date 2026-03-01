@@ -10,6 +10,12 @@ interface ExecuteStepButtonProps {
   isCallTask: boolean;
 }
 
+const channelStyles: Record<string, string> = {
+  sms: "bg-ds-blue-bg text-ds-blue border-ds-blue/20 hover:bg-ds-blue hover:text-white",
+  email: "bg-ds-orange-bg text-ds-orange border-ds-orange/20 hover:bg-ds-orange hover:text-white",
+  call: "bg-ds-green-bg text-ds-green border-ds-green/20 hover:bg-ds-green hover:text-white",
+};
+
 export default function ExecuteStepButton({
   estimateId,
   stepIndex,
@@ -21,6 +27,7 @@ export default function ExecuteStepButton({
   const [result, setResult] = useState("");
 
   const label = isCallTask ? "Schedule Call" : `Send ${channel.toUpperCase()}`;
+  const style = channelStyles[channel] || channelStyles.sms;
 
   return (
     <span className="inline-flex items-center gap-1.5">
@@ -58,13 +65,13 @@ export default function ExecuteStepButton({
           setSending(false);
         }}
         disabled={sending}
-        className="text-xs px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-700 rounded hover:bg-blue-100 dark:hover:bg-blue-900/50 disabled:opacity-50 transition-colors cursor-pointer"
+        className={`text-[11px] font-bold px-2.5 py-1 rounded-[7px] border cursor-pointer disabled:opacity-50 transition-colors ${style}`}
       >
         {sending ? "..." : label}
       </button>
       {result && (
         <span
-          className={`text-xs ${result === "Failed" ? "text-red-500" : "text-green-600 dark:text-green-400"}`}
+          className={`text-[11px] font-bold ${result === "Failed" ? "text-ds-red" : "text-ds-green dark:text-green-400"}`}
         >
           {result}
         </span>

@@ -26,13 +26,16 @@ export default async function SequencesPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Follow-Up Sequences
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Edit the automated follow-up steps for estimates
-        </p>
+      {/* Topbar */}
+      <div className="bg-ds-card dark:bg-gray-800 border-b border-ds-border dark:border-gray-700 px-7 flex items-center justify-between h-14 -mx-6 -mt-6 mb-5">
+        <div className="flex items-center gap-4">
+          <h1 className="font-display text-2xl font-black tracking-[1px] uppercase text-ds-text dark:text-gray-100">
+            Follow-Up Sequences
+          </h1>
+          <span className="text-xs text-ds-gray dark:text-gray-500">
+            Automated follow-up steps for estimates
+          </span>
+        </div>
       </div>
 
       <div className="space-y-6">
@@ -47,7 +50,7 @@ export default async function SequencesPage() {
         ))}
 
         {(!sequences || sequences.length === 0) && (
-          <div className="text-center py-12 text-gray-500 dark:text-gray-400 text-sm">
+          <div className="text-center py-12 text-ds-gray-lt dark:text-gray-500 text-[13px]">
             No sequences found. Run the default sequence SQL to get started.
           </div>
         )}

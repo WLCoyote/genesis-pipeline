@@ -92,20 +92,28 @@ export default function ConversationThread({
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
-      <h2 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-3">
-        SMS Conversation
-      </h2>
+    <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-ds overflow-hidden">
+      {/* Card header */}
+      <div className="border-b border-ds-border dark:border-gray-700 px-4.5 py-3 flex items-center justify-between">
+        <div className="text-[11px] font-black uppercase tracking-[2px] text-ds-text dark:text-gray-100 flex items-center gap-2">
+          <span>💬</span> SMS Conversation
+        </div>
+        {customerPhone && (
+          <span className="text-[11px] text-ds-gray-lt dark:text-gray-500">{customerPhone}</span>
+        )}
+      </div>
 
       {!customerPhone ? (
-        <p className="text-sm text-gray-400 dark:text-gray-500">
-          No phone number on file for this customer.
-        </p>
+        <div className="p-4.5">
+          <p className="text-[13px] text-ds-gray-lt dark:text-gray-500">
+            No phone number on file for this customer.
+          </p>
+        </div>
       ) : (
         <>
-          <div className="h-64 overflow-y-auto space-y-2 mb-3 border border-gray-100 dark:border-gray-700 rounded-md p-3 bg-gray-50 dark:bg-gray-700">
+          <div className="h-64 overflow-y-auto space-y-2 p-4 bg-ds-bg dark:bg-gray-700/50">
             {messages.length === 0 ? (
-              <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-8">
+              <p className="text-[13px] text-ds-gray-lt dark:text-gray-500 text-center py-8 italic">
                 No messages yet.
               </p>
             ) : (
@@ -125,18 +133,18 @@ export default function ConversationThread({
                     }`}
                   >
                     <div
-                      className={`max-w-[75%] px-3 py-2 rounded-lg text-sm ${
+                      className={`max-w-[75%] px-3 py-2 rounded-xl text-[13px] ${
                         msg.direction === "outbound"
-                          ? "bg-blue-600 text-white"
-                          : "bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100"
+                          ? "bg-ds-blue text-white"
+                          : "bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-600 text-ds-text dark:text-gray-100"
                       }`}
                     >
                       <p>{msg.body}</p>
                       <p
-                        className={`text-xs mt-1 ${
+                        className={`text-[11px] mt-1 ${
                           msg.direction === "outbound"
                             ? "text-blue-200"
-                            : "text-gray-400 dark:text-gray-500"
+                            : "text-ds-gray-lt dark:text-gray-500"
                         }`}
                       >
                         {formatTime(msg.created_at)}
@@ -148,25 +156,27 @@ export default function ConversationThread({
             <div ref={bottomRef} />
           </div>
 
-          <form onSubmit={handleSend} className="flex gap-2">
-            <input
-              type="text"
-              value={reply}
-              onChange={(e) => setReply(e.target.value)}
-              placeholder="Type a reply..."
-              className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              type="submit"
-              disabled={sending || !reply.trim()}
-              className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
-            >
-              {sending ? "Sending..." : "Send"}
-            </button>
-          </form>
-          {error && (
-            <p className="text-sm text-red-600 dark:text-red-400 mt-2">{error}</p>
-          )}
+          <div className="border-t border-ds-border dark:border-gray-700">
+            <form onSubmit={handleSend} className="flex gap-2.5 p-3">
+              <input
+                type="text"
+                value={reply}
+                onChange={(e) => setReply(e.target.value)}
+                placeholder="Type a reply..."
+                className="flex-1 px-3.5 py-2.5 border-[1.5px] border-ds-border dark:border-gray-600 rounded-lg text-[13px] text-ds-text dark:text-gray-100 bg-ds-bg dark:bg-gray-700 placeholder:text-ds-gray-lt focus:border-ds-blue focus:bg-white dark:focus:bg-gray-600 outline-none transition-colors"
+              />
+              <button
+                type="submit"
+                disabled={sending || !reply.trim()}
+                className="px-5 py-0 bg-ds-blue text-white border-none rounded-lg font-bold text-[13px] hover:bg-ds-blue-lt disabled:opacity-50 transition-colors cursor-pointer"
+              >
+                {sending ? "..." : "Send"}
+              </button>
+            </form>
+            {error && (
+              <p className="text-[12px] text-ds-red dark:text-red-400 px-3 pb-3 -mt-1">{error}</p>
+            )}
+          </div>
         </>
       )}
     </div>

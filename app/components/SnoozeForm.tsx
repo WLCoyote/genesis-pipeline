@@ -60,19 +60,19 @@ export default function SnoozeForm({ estimateId, onCancel }: SnoozeFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-[12px] font-bold text-ds-text dark:text-gray-300 mb-1.5">
           Snooze for
         </label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {snoozeOptions.map((opt) => (
             <button
               key={opt.days}
               type="button"
               onClick={() => setDays(opt.days)}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium border transition-colors ${
+              className={`px-3 py-1.5 rounded-[7px] text-[12px] font-bold border transition-colors cursor-pointer ${
                 days === opt.days
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-600 hover:border-blue-400"
+                  ? "bg-ds-blue text-white border-ds-blue"
+                  : "bg-ds-card dark:bg-gray-700 text-ds-text dark:text-gray-300 border-ds-border dark:border-gray-600 hover:border-ds-blue"
               }`}
             >
               {opt.label}
@@ -82,32 +82,32 @@ export default function SnoozeForm({ estimateId, onCancel }: SnoozeFormProps) {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-          Note <span className="text-red-500">*</span>
+        <label className="block text-[12px] font-bold text-ds-text dark:text-gray-300 mb-1.5">
+          Note <span className="text-ds-red">*</span>
         </label>
         <textarea
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="Why are you snoozing this estimate?"
           rows={2}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm bg-white dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2.5 border-[1.5px] border-ds-border dark:border-gray-600 rounded-lg text-[13px] bg-ds-bg dark:bg-gray-700 text-ds-text dark:text-gray-100 focus:border-ds-blue focus:bg-white dark:focus:bg-gray-600 outline-none transition-colors"
         />
       </div>
 
-      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
+      {error && <p className="text-[12px] text-ds-red dark:text-red-400">{error}</p>}
 
       <div className="flex gap-2">
         <button
           type="submit"
           disabled={loading}
-          className="px-4 py-2 bg-yellow-500 text-white text-sm font-medium rounded-md hover:bg-yellow-600 disabled:opacity-50 transition-colors"
+          className="px-4 py-2 bg-ds-yellow text-ds-text text-[13px] font-bold rounded-[7px] hover:brightness-105 disabled:opacity-50 transition-all cursor-pointer border-none"
         >
           {loading ? "Snoozing..." : "Snooze"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+          className="px-4 py-2 text-[13px] text-ds-gray dark:text-gray-400 hover:text-ds-text dark:hover:text-gray-200 transition-colors cursor-pointer bg-transparent border-none"
         >
           Cancel
         </button>

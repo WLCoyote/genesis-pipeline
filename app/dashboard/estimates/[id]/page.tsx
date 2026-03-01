@@ -104,24 +104,25 @@ export default async function EstimateDetailPage({
     }
   }
 
+  const isTerminal = est.status === "won" || est.status === "lost";
+
   return (
     <div>
-      {/* Header */}
-      <div className="mb-6">
-        <Link
-          href="/dashboard/estimates"
-          className="text-sm text-blue-600 dark:text-blue-400 hover:underline mb-2 inline-block"
-        >
-          &larr; Back to Estimates
-        </Link>
-        <div className="flex items-center gap-3 mt-1">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+      {/* Topbar */}
+      <div className="bg-ds-card dark:bg-gray-800 border-b border-ds-border dark:border-gray-700 px-7 flex items-center justify-between h-14 -mx-6 -mt-6 mb-0">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard/estimates"
+            className="px-3 py-1.5 rounded-[7px] text-[13px] font-bold border border-ds-border dark:border-gray-600 text-ds-blue hover:bg-ds-blue-bg hover:border-ds-blue transition-colors no-underline"
+          >
+            ← Back
+          </Link>
+          <h1 className="font-display text-[22px] font-black uppercase tracking-[1px] text-ds-text dark:text-gray-100">
             {customer?.name || "Unknown Customer"}
           </h1>
           <StatusBadge status={est.status} />
-        </div>
-        <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mt-1">
-          <span>
+          <div className="hidden sm:flex items-center gap-2 text-[12px] text-ds-gray dark:text-gray-500">
+            <span className="w-px h-4 bg-ds-border dark:bg-gray-600" />
             {(() => {
               const firstOptionId = options.find((o: any) => o.hcp_option_id)?.hcp_option_id;
               const hcpUrl = firstOptionId
@@ -132,34 +133,33 @@ export default async function EstimateDetailPage({
                   href={hcpUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                  className="text-ds-blue font-bold hover:underline"
                 >
-                  Estimate #{est.estimate_number}
+                  #{est.estimate_number}
                 </a>
               ) : (
-                <>Estimate #{est.estimate_number}</>
+                <span>#{est.estimate_number}</span>
               );
             })()}
             {est.total_amount !== null && (
-              <span className="ml-3 font-medium text-gray-700 dark:text-gray-300">
-                $
-                {est.total_amount.toLocaleString("en-US", {
-                  minimumFractionDigits: 0,
-                })}
+              <span className="font-bold text-ds-text dark:text-gray-300">
+                ${est.total_amount.toLocaleString("en-US", { minimumFractionDigits: 0 })}
               </span>
             )}
             {est.users?.name && (
-              <span className="ml-3">Assigned to {est.users.name}</span>
+              <span>→ {est.users.name}</span>
             )}
-          </span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
           {est.proposal_token && (
             <a
               href={`/proposals/${est.proposal_token}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+              className="px-4 py-[7px] rounded-[7px] text-[13px] font-bold border border-ds-border dark:border-gray-600 text-ds-gray hover:border-ds-blue hover:text-ds-blue transition-colors no-underline"
             >
-              View Proposal
+              Preview Proposal
             </a>
           )}
           {est.proposal_pdf_url && (
@@ -167,31 +167,47 @@ export default async function EstimateDetailPage({
               href={est.proposal_pdf_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-600 text-white text-xs font-medium rounded-md hover:bg-green-700 transition-colors"
+              className="px-4 py-[7px] rounded-[7px] text-[13px] font-bold bg-ds-green text-white hover:brightness-110 transition-all no-underline"
             >
-              Download Signed PDF
+              Signed PDF
             </a>
           )}
           {hasPipelineLineItems && !est.proposal_signed_at && (
             <Link
               href={`/dashboard/quote-builder?estimate_id=${id}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-600 text-white text-xs font-medium rounded-md hover:bg-amber-700 transition-colors"
+              className="px-4 py-[7px] rounded-[7px] text-[13px] font-bold bg-ds-orange text-white shadow-[0_3px_10px_rgba(230,81,0,0.25)] hover:bg-[#ff6d00] transition-colors no-underline"
             >
               Edit Quote
             </Link>
           )}
           {est.proposal_signed_at && (
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded-md">
-              Signed {new Date(est.proposal_signed_at).toLocaleDateString()}
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-ds-green-bg dark:bg-green-900/30 text-ds-green dark:text-green-400 text-[12px] font-bold rounded-[7px]">
+              ✍️ Signed {new Date(est.proposal_signed_at).toLocaleDateString()}
             </span>
           )}
         </div>
       </div>
 
-      {/* Two-column layout on desktop */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+      {/* Paused / snoozed banner */}
+      {!sequenceIsActive && !isTerminal && (
+        <div className="bg-gradient-to-r from-ds-yellow-bg to-[#fffde7] border-b border-ds-yellow/40 px-7 py-2.5 flex items-center gap-2.5 -mx-6">
+          <span className="text-[13px]">⏸</span>
+          <span className="text-[12px] text-[#795500] dark:text-yellow-300 font-bold">
+            Sequence is paused — no follow-ups will be sent.
+          </span>
+          <Link
+            href="/dashboard/admin/sequences"
+            className="text-[12px] text-ds-blue font-bold hover:underline ml-1"
+          >
+            Resume in Admin →
+          </Link>
+        </div>
+      )}
+
+      {/* Two-column layout: main + right rail */}
+      <div className="flex flex-col lg:flex-row">
         {/* Left column — main content */}
-        <div className="lg:col-span-2 space-y-4">
+        <div className="flex-1 space-y-4 py-5 pr-0 lg:pr-5">
           <FollowUpTimeline
             estimateId={id}
             events={events}
@@ -209,8 +225,8 @@ export default async function EstimateDetailPage({
           />
         </div>
 
-        {/* Right column — info + actions */}
-        <div className="space-y-4">
+        {/* Right rail */}
+        <div className="w-full lg:w-80 shrink-0 bg-ds-card dark:bg-gray-800 lg:border-l border-t lg:border-t-0 border-ds-border dark:border-gray-700 lg:-mr-6 lg:-my-0">
           <EstimateActions
             estimateId={id}
             status={est.status}
