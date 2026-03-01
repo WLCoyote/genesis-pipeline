@@ -175,11 +175,19 @@ export async function POST(
   );
   const tierSubtotal = tierItems.reduce((sum, li) => sum + li.line_total, 0);
 
+  // Subtract rebates for the selected tier from tier_metadata
+  const tierMeta = ((estimate as Record<string, unknown>).tier_metadata as Array<{
+    tier_number: number;
+    rebates?: Array<{ amount: number }>;
+  }> | null);
+  const selectedTierMeta = tierMeta?.find((m) => m.tier_number === selectedTier);
+  const rebateTotal = (selectedTierMeta?.rebates || []).reduce((sum, r) => sum + r.amount, 0);
+
   const selectedAddonTotal = addonItems
     .filter((li) => selectedAddonSet.has(li.id))
     .reduce((sum, li) => sum + li.line_total, 0);
 
-  const subtotal = Math.round((tierSubtotal + selectedAddonTotal) * 100) / 100;
+  const subtotal = Math.max(0, Math.round((tierSubtotal + selectedAddonTotal - rebateTotal) * 100) / 100);
   const taxRate = estimate.tax_rate;
   const taxAmount =
     taxRate != null ? Math.round(subtotal * taxRate * 100) / 100 : null;

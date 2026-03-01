@@ -509,6 +509,28 @@ First round of visual QA on the Phase 7.6 quote builder overhaul. 17 items ident
 
 ---
 
+## PHASE 7.8: UI Polish + Rebates — COMPLETE
+
+Post-deploy QA polish and rebate system. Pushed to GitHub (Vercel build triggered).
+
+### Changes
+1. **Removed QuoteBuilderTotalsBar**: Redundant navy header showing tier prices + "Send Proposal Link" — prices already visible on tier cards, "Send to Customer" already in top bar. Deleted `QuoteBuilderTotalsBar.tsx`.
+2. **Dark navy sidebar**: Restyled global sidebar from white/gray to dark navy (`#0a1929`) with `#1a3357` borders, blue-tinted links. Matches Genesis brand.
+3. **Expanded pricebook search**: Search now covers all fields — `display_name`, `manufacturer`, `model_number`, `part_number`, `spec_line`, `category`, `system_type`, `efficiency_rating`, `refrigerant_type`, `unit_of_measure`. Added `refrigerant_type` to `PricebookItemSlim` type and server query.
+4. **Rebate system**: Pricebook-managed rebates per tier.
+   - `RebateForm` type (`id`, `name`, `amount`) on `TierForm.rebates[]`
+   - "Rebate" category added to pricebook (`sql/024`, `CATEGORY_ORDER`, `CATEGORY_TABS`)
+   - Tier cards have a rebate picker dropdown pulling from pricebook items with `category === "rebate"`
+   - Amount pre-fills from pricebook `unit_price`, editable per-tier
+   - Rebates stored in `tier_metadata` JSONB, persisted on draft save + quote create
+   - Rebates subtracted from totals everywhere: builder `calculateTierTotals`, proposal page, sign endpoint, draft/create `total_amount`
+   - Proposal renders rebates as green discount lines with strikethrough original price
+
+### Files Modified
+`Sidebar.tsx`, `QuoteBuilderTotalsBar.tsx` (deleted), `QuoteBuilder.tsx`, `QuoteBuilderTiersStep.tsx`, `QuoteBuilderPricebookPanel.tsx`, `utils.ts`, `types.ts`, `page.tsx` (quote-builder), `route.ts` (quotes/draft), `route.ts` (quotes/create), `route.ts` (sign), `page.tsx` (proposals/[token]), `TierCards.tsx`, `ProposalPage.tsx`, `sql/024_qb_qa_fixes.sql`
+
+---
+
 ## PHASE 8: Commission Tracking — NOT STARTED
 
 Two-stage commission from close to confirmed payout. See PRD v4.0 Section 6.

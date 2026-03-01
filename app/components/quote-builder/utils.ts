@@ -33,6 +33,7 @@ export const CATEGORY_ORDER: Record<string, { order: number; label: string; dotC
   electrical:          { order: 13, label: "Electrical",          dotColor: "#ffa726" },
   exclusion:           { order: 14, label: "Exclusion",           dotColor: "#ef5350" },
   controls:            { order: 15, label: "Controls",            dotColor: "#26c6da" },
+  rebate:              { order: 16, label: "Rebate",              dotColor: "#4caf50" },
 };
 
 // Pricebook panel category tabs (condensed labels mapping to slugs)
@@ -47,6 +48,7 @@ export const CATEGORY_TABS = [
   { key: "controls",  label: "Controls",  match: ["controls", "accessory"] },
   { key: "addons",    label: "Add-Ons",   match: ["addon", "service_plan", "maintenance_plan"] },
   { key: "other",     label: "Other",     match: ["electrical", "exclusion"] },
+  { key: "rebates",   label: "Rebates",   match: ["rebate"] },
 ];
 
 // ---- Helpers ----
@@ -59,6 +61,7 @@ export function emptyTier(tierNumber: number): TierForm {
     feature_bullets: [],
     is_recommended: tierNumber === 2,
     items: [],
+    rebates: [],
   };
 }
 
@@ -93,10 +96,14 @@ export function calculateTierTotals(tiers: TierForm[]): TierTotals[] {
       (sum, i) => sum + i.quantity * i.unit_price,
       0
     );
+    const rebateTotal = (tier.rebates || []).reduce(
+      (sum, r) => sum + r.amount,
+      0
+    );
     return {
       equipmentTotal,
       addonTotal,
-      total: equipmentTotal + addonTotal,
+      total: Math.max(0, equipmentTotal + addonTotal - rebateTotal),
       itemCount: nonAddonItems.length + checkedAddons.length,
     };
   });

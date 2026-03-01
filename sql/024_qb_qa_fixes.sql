@@ -11,3 +11,8 @@ INSERT INTO pricebook_categories (name, slug, hcp_type, display_order) VALUES
   ('Exclusion',   'exclusion',  'service',  14),
   ('Controls',    'controls',   'material', 15)
 ON CONFLICT (slug) DO NOTHING;
+
+-- 3. Rebate category for pricebook-managed rebates
+INSERT INTO pricebook_categories (name, slug, hcp_type, display_order) VALUES
+  ('Rebate', 'rebate', 'service', 16)
+ON CONFLICT (slug) DO NOTHING;

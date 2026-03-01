@@ -5,6 +5,7 @@ export interface TierData {
   tierName: string;
   tagline: string;
   featureBullets?: string[];
+  rebates?: Array<{ id: string; name: string; amount: number }>;
   items: Array<{
     id: string;
     display_name: string;
@@ -159,7 +160,9 @@ export default function TierCards({
         {tiers.map((tier) => {
           const s = tierStyles[tier.tierNumber] || tierStyles[1];
           const isSelected = selectedTier === tier.tierNumber;
-          const monthly = getMonthly(tier.subtotal);
+          const rebateTotal = (tier.rebates || []).reduce((sum, r) => sum + r.amount, 0);
+          const displaySubtotal = Math.max(0, tier.subtotal - rebateTotal);
+          const monthly = getMonthly(displaySubtotal);
 
           return (
             <div
@@ -407,6 +410,28 @@ export default function TierCards({
                 >
                   Cash / Check Price
                 </div>
+                {rebateTotal > 0 && (
+                  <div style={{ marginBottom: 8 }}>
+                    {(tier.rebates || []).filter((r) => r.amount > 0).map((rebate) => (
+                      <div
+                        key={rebate.id}
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          padding: "3px 0",
+                          fontSize: 12,
+                        }}
+                      >
+                        <span style={{ color: "#4caf50" }}>{rebate.name}</span>
+                        <span style={{ color: "#4caf50", fontWeight: 700 }}>
+                          -${rebate.amount.toLocaleString()}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <div style={{ marginBottom: 12 }}>
                   <span
                     style={{
@@ -418,8 +443,13 @@ export default function TierCards({
                       letterSpacing: -1,
                     }}
                   >
-                    ${tier.subtotal.toLocaleString()}
+                    ${displaySubtotal.toLocaleString()}
                   </span>
+                  {rebateTotal > 0 && (
+                    <span style={{ fontSize: 13, color: "#7a8fa8", marginLeft: 8, textDecoration: "line-through" }}>
+                      ${tier.subtotal.toLocaleString()}
+                    </span>
+                  )}
                 </div>
 
                 {monthly !== null && (

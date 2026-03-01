@@ -55,14 +55,14 @@ export default function Sidebar({ role, userName, isOpen, onClose }: SidebarProp
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col transition-transform md:translate-x-0 md:static md:z-auto ${
+        className={`fixed top-0 left-0 z-50 h-full w-64 bg-[#0a1929] border-r border-[#1a3357] flex flex-col transition-transform md:translate-x-0 md:static md:z-auto ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <h1 className="text-lg font-bold text-gray-900 dark:text-gray-100">Genesis Pipeline</h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+        <div className="p-4 border-b border-[#1a3357]">
+          <h1 className="text-lg font-bold text-white">Genesis Pipeline</h1>
+          <p className="text-xs text-blue-300/60 mt-0.5">
             {userName} &middot; {roleLabels[role]}
           </p>
         </div>
@@ -85,8 +85,8 @@ export default function Sidebar({ role, userName, isOpen, onClose }: SidebarProp
                 onClick={onClose}
                 className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive
-                    ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400"
-                    : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                    ? "bg-blue-600/20 text-blue-400"
+                    : "text-blue-100/70 hover:bg-white/5 hover:text-white"
                 }`}
               >
                 {item.label}
@@ -96,7 +96,7 @@ export default function Sidebar({ role, userName, isOpen, onClose }: SidebarProp
         </nav>
 
         {/* Sign out */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
+        <div className="p-4 border-t border-[#1a3357]">
           <SignOutButton />
         </div>
       </aside>

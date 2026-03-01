@@ -287,6 +287,7 @@ export default async function ProposalPageRoute({ params }: Props) {
     tagline: string;
     feature_bullets: string[];
     is_recommended: boolean;
+    rebates?: Array<{ id: string; name: string; amount: number }>;
   }> | null;
 
   const defaultTierNames: Record<number, string> = {
@@ -309,6 +310,7 @@ export default async function ProposalPageRoute({ params }: Props) {
         tierName: meta?.tier_name || defaultTierNames[group] || `Option ${group}`,
         tagline: meta?.tagline || defaultTierTaglines[group] || "",
         featureBullets: meta?.feature_bullets || [],
+        rebates: (meta?.rebates || []).filter((r) => r.amount > 0),
         items: data.items.sort((a, b) => a.sort_order - b.sort_order),
         subtotal: data.subtotal,
         isRecommended: meta?.is_recommended ?? group === 2,

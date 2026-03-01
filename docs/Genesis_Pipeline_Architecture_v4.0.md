@@ -264,7 +264,7 @@ Also stores QBO OAuth tokens (encrypted), HCP lead source cache, `company_info` 
 | display_order | INTEGER | Sort order for category pills. |
 | is_active | BOOLEAN | Inactive categories hidden from UI. |
 
-RLS: all authenticated can SELECT, admin only for write. Seeded with 15 categories: Equipment, Labor, Material, Add-On, Service Plan, Accessory (original 6), Indoor, Cased Coil, Outdoor, Equipment Warranty, Labor Warranty, Maintenance Plan (added in Phase 7.6 sql/023), Electrical, Exclusion, Controls (added in Phase 7.7 sql/024).
+RLS: all authenticated can SELECT, admin only for write. Seeded with 16 categories: Equipment, Labor, Material, Add-On, Service Plan, Accessory (original 6), Indoor, Cased Coil, Outdoor, Equipment Warranty, Labor Warranty, Maintenance Plan (added in Phase 7.6 sql/023), Electrical, Exclusion, Controls (added in Phase 7.7 sql/024), Rebate (added in Phase 7.8 sql/024).
 
 #### pricebook_suppliers
 
@@ -314,7 +314,7 @@ RLS: all authenticated can SELECT, admin only for write. Seeded with Gensco, Fer
 | template_id | UUID FK → quote_templates | Which template was used to build this quote. NULL if built from scratch. |
 | payment_schedule_type | ENUM | `standard` \| `large_job`. Determined by HCP tags at estimate creation. |
 | online_estimate_url | TEXT | HCP customer-facing URL if manually set. Not auto-populated (HCP API does not expose it). |
-| tier_metadata | JSONB | Stores per-tier metadata: `[{tier_number, tier_name, tagline, feature_bullets: string[], is_recommended}]`. Saved by quote builder (draft + create). Used by proposal page for tier names/taglines/features instead of hardcoded values. Added in sql/024. |
+| tier_metadata | JSONB | Stores per-tier metadata: `[{tier_number, tier_name, tagline, feature_bullets: string[], is_recommended, rebates?: [{id, name, amount}]}]`. Saved by quote builder (draft + create). Used by proposal page for tier names/taglines/features/rebates instead of hardcoded values. Added in sql/024. |
 
 #### markup_tiers
 

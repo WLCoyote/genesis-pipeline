@@ -14,7 +14,7 @@ import type {
 import { emptyTier, calculateTierTotals, formatCurrency } from "./utils";
 import QuoteBuilderTopbar from "./QuoteBuilderTopbar";
 import QuoteBuilderSteps from "./QuoteBuilderSteps";
-import QuoteBuilderTotalsBar from "./QuoteBuilderTotalsBar";
+
 import QuoteBuilderCustomerStep from "./QuoteBuilderCustomerStep";
 import QuoteBuilderTiersStep from "./QuoteBuilderTiersStep";
 import QuoteBuilderAddonsStep from "./QuoteBuilderAddonsStep";
@@ -93,6 +93,7 @@ export default function QuoteBuilder({
             newTiers[idx].tagline = m.tagline;
             newTiers[idx].feature_bullets = m.feature_bullets || [];
             newTiers[idx].is_recommended = m.is_recommended;
+            newTiers[idx].rebates = m.rebates || [];
           }
         }
       }
@@ -247,6 +248,7 @@ export default function QuoteBuilder({
             tagline: t.tagline || "",
             feature_bullets: t.feature_bullets || [],
             is_recommended: t.is_recommended,
+            rebates: [],
             items: (t.quote_template_items || []).map((item) => {
               const pb = item.pricebook_items;
               return {
@@ -436,6 +438,7 @@ export default function QuoteBuilder({
             tagline: tier.tagline,
             feature_bullets: tier.feature_bullets,
             is_recommended: tier.is_recommended,
+            rebates: tier.rebates || [],
             items: tier.items.map((item, idx) => ({
               pricebook_item_id: item.pricebook_item_id,
               display_name: item.display_name,
@@ -523,6 +526,7 @@ export default function QuoteBuilder({
             tagline: tier.tagline,
             feature_bullets: tier.feature_bullets,
             is_recommended: tier.is_recommended,
+            rebates: tier.rebates || [],
             items: tier.items.map((item, idx) => ({
               pricebook_item_id: item.pricebook_item_id,
               display_name: item.display_name,
@@ -638,17 +642,6 @@ export default function QuoteBuilder({
         onStepClick={setActiveStep}
       />
 
-      <QuoteBuilderTotalsBar
-        tiers={tiers}
-        tierTotals={tierTotals}
-        selectedFinancingPlan={selectedFinancingPlan}
-        includeTax={includeTax}
-        taxRate={taxRate}
-        onSend={handleSubmit}
-        saving={saving}
-        canSend={canSend}
-      />
-
       {/* Builder body: left panel + right pricebook */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left panel — scrollable content */}
@@ -686,6 +679,7 @@ export default function QuoteBuilder({
               selectedFinancingPlan={selectedFinancingPlan}
               includeTax={includeTax}
               taxRate={taxRate}
+              pricebookItems={pricebookItems}
               onSetTargetTier={setTargetTier}
               onRemoveItem={removeItemFromTier}
               onToggleAddon={toggleAddon}

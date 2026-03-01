@@ -152,7 +152,10 @@ export default function ProposalPage({
     [tiers, selectedTier]
   );
 
-  const tierSubtotal = selectedTierData?.subtotal ?? 0;
+  const tierRebateTotal = useMemo(() => {
+    return (selectedTierData?.rebates || []).reduce((sum, r) => sum + r.amount, 0);
+  }, [selectedTierData]);
+  const tierSubtotal = Math.max(0, (selectedTierData?.subtotal ?? 0) - tierRebateTotal);
 
   const addonTotal = useMemo(() => {
     let total = 0;

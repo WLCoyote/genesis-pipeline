@@ -123,7 +123,8 @@ export async function POST(request: NextRequest) {
       0
     );
     if (tier.is_recommended || tier.tier_number === 1) {
-      defaultTierTotal = total;
+      const tierRebates = (tier.rebates || []).reduce((s: number, r: { amount: number }) => s + r.amount, 0);
+      defaultTierTotal = Math.max(0, total - tierRebates);
     }
   }
 
@@ -132,12 +133,13 @@ export async function POST(request: NextRequest) {
   const totalAmount = taxAmount !== null ? defaultTierTotal + taxAmount : defaultTierTotal;
 
   // Build tier_metadata from the tiers payload
-  const tierMetadata = (body.tiers || []).map((tier: { tier_number: number; tier_name?: string; tagline?: string; feature_bullets?: string[]; is_recommended?: boolean }) => ({
+  const tierMetadata = (body.tiers || []).map((tier: { tier_number: number; tier_name?: string; tagline?: string; feature_bullets?: string[]; is_recommended?: boolean; rebates?: Array<{ id: string; name: string; amount: number }> }) => ({
     tier_number: tier.tier_number,
     tier_name: tier.tier_name || `Tier ${tier.tier_number}`,
     tagline: tier.tagline || "",
     feature_bullets: tier.feature_bullets || [],
     is_recommended: tier.is_recommended || false,
+    rebates: tier.rebates || [],
   }));
 
   // --- 3. Create or update draft estimate ---

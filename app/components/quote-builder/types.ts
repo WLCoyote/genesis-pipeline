@@ -16,6 +16,7 @@ export interface PricebookItemSlim {
   addon_default_checked: boolean;
   unit_of_measure: string | null;
   hcp_type: string | null;
+  refrigerant_type: string | null;
   is_favorite: boolean;
 }
 
@@ -43,6 +44,12 @@ export interface LineItemForm {
   cost: number | null;
 }
 
+export interface RebateForm {
+  id: string;
+  name: string;
+  amount: number; // positive number, displayed/applied as discount
+}
+
 export interface TierForm {
   tier_number: number;
   tier_name: string;
@@ -50,6 +57,7 @@ export interface TierForm {
   feature_bullets: string[];
   is_recommended: boolean;
   items: LineItemForm[];
+  rebates: RebateForm[];
 }
 
 export interface CustomerResult {
@@ -131,6 +139,7 @@ export interface DraftEstimate {
     tagline: string;
     feature_bullets: string[];
     is_recommended: boolean;
+    rebates?: RebateForm[];
   }>;
   selected_financing_plan_id?: string | null;
   include_tax?: boolean;

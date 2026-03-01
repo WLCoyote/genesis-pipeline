@@ -1,6 +1,6 @@
 "use client";
 
-import type { TierForm, TierTotals, FinancingPlanFull } from "./types";
+import type { TierForm, TierTotals, FinancingPlanFull, PricebookItemSlim } from "./types";
 import {
   formatCurrency,
   calculateMonthly,
@@ -16,6 +16,7 @@ interface Props {
   selectedFinancingPlan: FinancingPlanFull | null;
   includeTax: boolean;
   taxRate: number | null;
+  pricebookItems: PricebookItemSlim[];
   onSetTargetTier: (t: 1 | 2 | 3) => void;
   onRemoveItem: (tierNumber: number, pbItemId: string) => void;
   onToggleAddon: (tierNumber: number, pbItemId: string, checked: boolean) => void;
@@ -33,6 +34,7 @@ export default function QuoteBuilderTiersStep({
   selectedFinancingPlan,
   includeTax,
   taxRate,
+  pricebookItems,
   onSetTargetTier,
   onRemoveItem,
   onToggleAddon,
@@ -42,6 +44,8 @@ export default function QuoteBuilderTiersStep({
   onUpdateItemPrice,
   onToggleTax,
 }: Props) {
+  // Filter pricebook items to rebate category for the rebate picker
+  const availableRebates = pricebookItems.filter((p) => p.category === "rebate");
   const getCashTotal = (total: number) => {
     if (includeTax && taxRate != null) {
       const tax = Math.round(total * taxRate * 100) / 100;
@@ -304,6 +308,82 @@ export default function QuoteBuilderTiersStep({
                 >
                   + Add Feature
                 </button>
+              </div>
+
+              {/* Rebates */}
+              <div className="px-2.5 py-2.5 border-t border-gray-200 dark:border-gray-700" onClick={(e) => e.stopPropagation()}>
+                <div className="text-[9px] uppercase tracking-[2px] text-gray-400 dark:text-gray-500 font-bold mb-1.5">
+                  Rebates
+                </div>
+                {(tier.rebates || []).map((rebate) => (
+                  <div key={rebate.id} className="flex items-center gap-1.5 mb-1 group">
+                    <div
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{ background: "#4caf50" }}
+                    />
+                    <span className="flex-1 text-[11px] text-green-700 dark:text-green-400 leading-tight truncate">
+                      {rebate.name}
+                    </span>
+                    <input
+                      type="number"
+                      min={0}
+                      step={1}
+                      value={rebate.amount}
+                      onChange={(e) => {
+                        const updated = (tier.rebates || []).map((r) =>
+                          r.id === rebate.id ? { ...r, amount: parseFloat(e.target.value) || 0 } : r
+                        );
+                        onUpdateTierField(tier.tier_number, "rebates", updated);
+                      }}
+                      className="w-20 px-1 py-0.5 text-xs text-right font-bold border border-transparent group-hover:border-gray-200 dark:group-hover:border-gray-600 rounded bg-transparent text-green-600 dark:text-green-400"
+                    />
+                    <button
+                      onClick={() => {
+                        const updated = (tier.rebates || []).filter((r) => r.id !== rebate.id);
+                        onUpdateTierField(tier.tier_number, "rebates", updated);
+                      }}
+                      className="opacity-0 group-hover:opacity-100 text-[10px] text-gray-300 dark:text-gray-600 hover:text-red-400 px-0.5 transition-opacity"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+                {/* Rebate picker from pricebook */}
+                {availableRebates.length > 0 ? (
+                  <select
+                    value=""
+                    onChange={(e) => {
+                      const pb = availableRebates.find((r) => r.id === e.target.value);
+                      if (!pb) return;
+                      const already = (tier.rebates || []).some((r) => r.id === pb.id);
+                      if (already) return;
+                      const updated = [
+                        ...(tier.rebates || []),
+                        { id: pb.id, name: pb.display_name, amount: pb.unit_price ?? 0 },
+                      ];
+                      onUpdateTierField(tier.tier_number, "rebates", updated);
+                    }}
+                    className="mt-1 w-full text-[11px] px-2 py-1 rounded-md border border-dashed border-green-300 dark:border-green-700 bg-transparent text-green-600 dark:text-green-400 outline-none cursor-pointer"
+                  >
+                    <option value="">+ Add Rebate...</option>
+                    {availableRebates
+                      .filter((rb) => !(tier.rebates || []).some((r) => r.id === rb.id))
+                      .map((rb) => (
+                        <option key={rb.id} value={rb.id}>
+                          {rb.display_name} — {formatCurrency(rb.unit_price ?? 0)}
+                        </option>
+                      ))}
+                  </select>
+                ) : (
+                  <div className="text-[10px] text-gray-400 dark:text-gray-500 italic mt-1">
+                    No rebates in pricebook yet
+                  </div>
+                )}
+                {(tier.rebates || []).some((r) => r.amount > 0) && (
+                  <div className="text-[10px] text-green-600 dark:text-green-400 font-bold mt-1.5 text-right">
+                    -{formatCurrency((tier.rebates || []).reduce((sum, r) => sum + r.amount, 0))} rebates applied
+                  </div>
+                )}
               </div>
 
               {/* Add-ons chips */}

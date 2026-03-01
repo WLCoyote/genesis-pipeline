@@ -47,7 +47,12 @@ export default function QuoteBuilderPricebookPanel({
           !item.manufacturer?.toLowerCase().includes(q) &&
           !item.model_number?.toLowerCase().includes(q) &&
           !item.part_number?.toLowerCase().includes(q) &&
-          !item.spec_line?.toLowerCase().includes(q)
+          !item.spec_line?.toLowerCase().includes(q) &&
+          !item.category?.toLowerCase().includes(q) &&
+          !item.system_type?.toLowerCase().includes(q) &&
+          !item.efficiency_rating?.toLowerCase().includes(q) &&
+          !item.refrigerant_type?.toLowerCase().includes(q) &&
+          !item.unit_of_measure?.toLowerCase().includes(q)
         )
           return false;
       }
