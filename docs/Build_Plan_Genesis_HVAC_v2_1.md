@@ -373,7 +373,7 @@ New page: `app/proposals/[token]/page.tsx` — **no auth**, token-gated. Standal
 - **HCP polling expanded:** `handleNewEstimate()` now imports unsent estimates as `status='draft'` instead of skipping. Auto-transitions `draft→active` when options get sent in HCP.
 - **Estimates tab:** Pipeline/Unsent segmented tabs. Unsent tab shows draft estimates with customer name, address, HCP estimate #, and an orange "Build Quote" button.
 - **Build Quote flow:** Button navigates to `/dashboard/quote-builder?estimate_id=xxx`. Server page fetches draft estimate + customer data, passes as `draftEstimate` prop. Customer fields pre-filled, assigned_to preserved.
-- **Quote creation from draft:** `POST /api/quotes/create` detects `existing_estimate_id`, updates the existing draft (status→active, adds line items + proposal token) instead of creating a new estimate. Keeps the original HCP estimate number and `hcp_estimate_id`. Skips HCP sync (estimate already exists in HCP).
+- **Quote creation from draft:** `POST /api/quotes/create` detects `existing_estimate_id`, updates the existing draft (status→active, adds line items + proposal token) instead of creating a new estimate. Keeps the original HCP estimate number. Always syncs to HCP (creates new structured estimate with tier options so `hcp_option_ids` get stored for sign-time writeback).
 
 ### Step 7.4: Proposal Tracking in Dashboard — ✅ COMPLETE
 
@@ -404,6 +404,18 @@ First full end-to-end test revealed 6 bugs, all fixed:
 6. **Copy button no feedback:** Added "Copied!" state with green background toggle (2 seconds) to QuoteBuilder success screen.
 
 **Also fixed:** Financing plan grid now supports up to 4 plans (was capped at 3).
+
+Second E2E test revealed 3 more issues, all fixed:
+
+7. **HCP writeback silent failure:** When building from a draft (Unsent tab), quote creation skipped HCP sync because `hcp_estimate_id` already existed. But without syncing, `hcp_option_ids` were never stored on `estimate_line_items`, so sign-time approve/decline/attach had nothing to target. Fix: always sync to HCP on quote creation — creates a new structured estimate with proper tier options.
+8. **LineItemsView too verbose:** Showed every line item across all 3 tiers. Condensed to tier summary cards (name + subtotal). Accepted tier highlighted green with "Accepted" badge and expanded items; other tiers dimmed.
+9. **No PDF download on estimate page:** "View Proposal" pointed to live proposal page even after signing (showing "Proposal Accepted" page). Fix: "View Proposal" only shows when unsigned; green "Download Signed PDF" button shows when `proposal_pdf_url` exists.
+
+**Pending user feature requests (not yet built):**
+- Edit estimates / revise proposals
+- Quote builder line item category restructure (Labor → Indoor → Cased Coil → Outdoor → Install Materials → Equipment Warranty → Labor Warranty → Maintenance Plan)
+- Install materials builder, maintenance plan builder
+- Configurable payment terms in quote builder
 
 ---
 
