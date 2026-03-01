@@ -49,7 +49,7 @@ export default async function QuoteTemplatesPage() {
           Quote Templates
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Pre-built packages with Good / Better / Best tiers. Select a template when building a quote to pre-populate items.
+          Pre-built packages with Standard Comfort / Enhanced Efficiency / Premium Performance tiers. Select a template when building a quote to pre-populate items.
         </p>
       </div>
 

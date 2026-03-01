@@ -260,9 +260,9 @@ export default async function ProposalPageRoute({ params }: Props) {
   }
 
   const tierNames: Record<number, string> = {
-    1: "Good",
-    2: "Better",
-    3: "Best",
+    1: "Standard Comfort",
+    2: "Enhanced Efficiency",
+    3: "Premium Performance",
   };
   const tierTaglines: Record<number, string> = {
     1: "Reliable performance at an honest price",

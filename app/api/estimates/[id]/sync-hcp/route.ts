@@ -88,7 +88,7 @@ export async function POST(
     tierMap.set(item.option_group, group);
   }
 
-  const tierNames: Record<number, string> = { 1: "Good", 2: "Better", 3: "Best" };
+  const tierNames: Record<number, string> = { 1: "Standard Comfort", 2: "Enhanced Efficiency", 3: "Premium Performance" };
 
   // Fetch default financing plan
   const { data: defaultFinancingPlan } = await supabase

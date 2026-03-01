@@ -62,7 +62,7 @@ export default async function QuoteBuilderPage() {
           New Quote
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Build a quote with Good / Better / Best tiers. A proposal link is generated automatically.
+          Build a quote with Standard Comfort / Enhanced Efficiency / Premium Performance tiers. A proposal link is generated automatically.
         </p>
       </div>
 

@@ -68,7 +68,7 @@ interface TemplateForm {
   tiers: TierForm[];
 }
 
-const DEFAULT_TIER_NAMES = ["Good", "Better", "Best"];
+const DEFAULT_TIER_NAMES = ["Standard Comfort", "Enhanced Efficiency", "Premium Performance"];
 const DEFAULT_TAGLINES = [
   "Reliable performance at an honest price",
   "The sweet spot of comfort & savings",

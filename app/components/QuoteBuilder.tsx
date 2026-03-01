@@ -114,7 +114,7 @@ interface QuoteBuilderProps {
 
 // ---- Helpers ----
 
-const DEFAULT_TIER_NAMES = ["Good", "Better", "Best"];
+const DEFAULT_TIER_NAMES = ["Standard Comfort", "Enhanced Efficiency", "Premium Performance"];
 
 function emptyTier(tierNumber: number): TierForm {
   return {
