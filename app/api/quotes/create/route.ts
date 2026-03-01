@@ -312,6 +312,76 @@ export async function POST(request: NextRequest) {
       .eq("id", customerId)
       .single();
 
+    // Fetch default financing plan for HCP line item
+    const { data: defaultFinancingPlan } = await supabase
+      .from("financing_plans")
+      .select("label, fee_pct, months")
+      .eq("is_active", true)
+      .eq("is_default", true)
+      .limit(1)
+      .single();
+
+    // Build tier data with subtotals for HCP summary line items
+    interface HcpTierItem {
+      display_name: string;
+      spec_line?: string | null;
+      unit_price: number;
+      cost?: number | null;
+      quantity: number;
+      is_addon: boolean;
+      hcp_type?: string | null;
+      category?: string | null;
+    }
+
+    const hcpTiers = body.tiers.map((tier: {
+      tier_name?: string;
+      tier_number: number;
+      items?: Array<{
+        display_name: string;
+        spec_line?: string;
+        unit_price: number;
+        cost?: number;
+        quantity: number;
+        is_addon?: boolean;
+        addon_default_checked?: boolean;
+        hcp_type?: string | null;
+        category?: string | null;
+      }>;
+    }) => {
+      const items: HcpTierItem[] = [];
+      let subtotal = 0;
+
+      for (const item of tier.items || []) {
+        const isAddon = item.is_addon ?? false;
+        const lineTotal = (item.quantity ?? 1) * (item.unit_price ?? 0);
+
+        // Subtotal includes non-addon items + checked addon items
+        if (!isAddon || item.addon_default_checked) {
+          subtotal += lineTotal;
+        }
+
+        // Only send checked addons (or non-addons) to HCP
+        if (!isAddon || item.addon_default_checked) {
+          items.push({
+            display_name: item.display_name,
+            spec_line: item.spec_line ?? null,
+            unit_price: item.unit_price ?? 0,
+            cost: item.cost ?? null,
+            quantity: item.quantity ?? 1,
+            is_addon: isAddon,
+            hcp_type: item.hcp_type ?? null,
+            category: item.category ?? null,
+          });
+        }
+      }
+
+      return {
+        tier_name: tier.tier_name || `Tier ${tier.tier_number}`,
+        subtotal: Math.round(subtotal * 100) / 100,
+        items,
+      };
+    });
+
     const result = await syncEstimateToHcp({
       customer: {
         name: body.customer_name.trim(),
@@ -320,16 +390,8 @@ export async function POST(request: NextRequest) {
         address: body.customer_address || null,
         hcp_customer_id: customerRow?.hcp_customer_id || null,
       },
-      tiers: body.tiers.map((tier: { tier_name?: string; tier_number: number; items?: Array<{ display_name: string; spec_line?: string; unit_price: number; cost?: number; quantity: number }> }) => ({
-        tier_name: tier.tier_name || `Tier ${tier.tier_number}`,
-        items: (tier.items || []).map((item: { display_name: string; spec_line?: string; unit_price: number; cost?: number; quantity: number }) => ({
-          display_name: item.display_name,
-          spec_line: item.spec_line,
-          unit_price: item.unit_price,
-          cost: item.cost ?? null,
-          quantity: item.quantity,
-        })),
-      })),
+      tiers: hcpTiers,
+      financingPlan: defaultFinancingPlan || null,
       taxRate: taxRate,
     });
 

@@ -25,7 +25,7 @@ export async function GET(
           *,
           pricebook_items (
             id, display_name, spec_line, unit_price, cost, manufacturer,
-            model_number, category, is_addon, addon_default_checked
+            model_number, category, is_addon, addon_default_checked, hcp_type
           )
         )
       ),
@@ -157,7 +157,7 @@ export async function PUT(
           *,
           pricebook_items (
             id, display_name, spec_line, unit_price, cost, manufacturer,
-            model_number, category, is_addon, addon_default_checked
+            model_number, category, is_addon, addon_default_checked, hcp_type
           )
         )
       )

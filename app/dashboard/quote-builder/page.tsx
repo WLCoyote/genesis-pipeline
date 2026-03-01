@@ -36,7 +36,7 @@ export default async function QuoteBuilderPage() {
   // Fetch pricebook items for the item picker
   const { data: pricebookItems } = await supabase
     .from("pricebook_items")
-    .select("id, display_name, spec_line, unit_price, cost, manufacturer, model_number, category, system_type, efficiency_rating, is_addon, addon_default_checked, unit_of_measure")
+    .select("id, display_name, spec_line, unit_price, cost, manufacturer, model_number, category, system_type, efficiency_rating, is_addon, addon_default_checked, unit_of_measure, hcp_type")
     .eq("is_active", true)
     .order("display_name", { ascending: true });
 

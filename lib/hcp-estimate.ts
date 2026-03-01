@@ -231,14 +231,23 @@ export async function syncEstimateToHcp(data: {
   };
   tiers: Array<{
     tier_name: string;
+    subtotal: number; // dollars — all non-addon items + checked addon items
     items: Array<{
       display_name: string;
       spec_line?: string | null;
       unit_price: number; // dollars
       cost?: number | null; // dollars
       quantity: number;
+      is_addon: boolean;
+      hcp_type?: string | null; // 'material' | 'service'
+      category?: string | null; // equipment, labor, material, addon, service_plan
     }>;
   }>;
+  financingPlan?: {
+    label: string;
+    fee_pct: number;
+    months: number;
+  } | null;
   taxRate?: number | null;
 }): Promise<{
   hcp_customer_id: string;
@@ -262,20 +271,80 @@ export async function syncEstimateToHcp(data: {
     }
   }
 
-  // 2. Map tiers to HCP options (prices converted to cents)
+  // 2. Build HCP options with structured line items
+  //    Pattern: Summary service line item (full price) → labor at $0 → materials at $0 → addons at $0 → financing
   const options: HcpOption[] = data.tiers
     .filter((tier) => tier.items.length > 0)
-    .map((tier) => ({
-      name: tier.tier_name,
-      line_items: tier.items.map((item) => ({
-        name: item.display_name,
-        description: item.spec_line || undefined,
-        unit_price: Math.round(item.unit_price * 100), // dollars → cents
-        unit_cost: item.cost != null ? Math.round(item.cost * 100) : undefined,
-        quantity: item.quantity,
+    .map((tier) => {
+      const line_items: HcpLineItem[] = [];
+
+      // 1. Summary service line item with full tier price
+      line_items.push({
+        name: `Installation of ${tier.tier_name}`,
+        description: "Complete installation package",
+        unit_price: Math.round(tier.subtotal * 100), // dollars → cents
+        quantity: 1,
         taxable: true,
-      })),
-    }));
+      });
+
+      // 2. Service/labor items at $0 (documentation)
+      for (const item of tier.items.filter(
+        (i) => !i.is_addon && (i.category === "labor" || i.hcp_type === "service")
+      )) {
+        line_items.push({
+          name: item.display_name,
+          description: item.spec_line || undefined,
+          unit_price: 0,
+          unit_cost: item.cost != null ? Math.round(item.cost * 100) : undefined,
+          quantity: item.quantity,
+          taxable: false,
+        });
+      }
+
+      // 3. Equipment/material items at $0 (documentation)
+      for (const item of tier.items.filter(
+        (i) =>
+          !i.is_addon && i.category !== "labor" && i.hcp_type !== "service"
+      )) {
+        line_items.push({
+          name: item.display_name,
+          description: item.spec_line || undefined,
+          unit_price: 0,
+          unit_cost: item.cost != null ? Math.round(item.cost * 100) : undefined,
+          quantity: item.quantity,
+          taxable: false,
+        });
+      }
+
+      // 4. Checked add-on items at $0 (documentation)
+      for (const item of tier.items.filter((i) => i.is_addon)) {
+        line_items.push({
+          name: item.display_name,
+          description: item.spec_line || undefined,
+          unit_price: 0,
+          unit_cost: item.cost != null ? Math.round(item.cost * 100) : undefined,
+          quantity: item.quantity,
+          taxable: false,
+        });
+      }
+
+      // 5. Financing reference line item
+      if (data.financingPlan) {
+        const originationFee = Math.round(
+          tier.subtotal * data.financingPlan.fee_pct * 100
+        ); // cents
+        line_items.push({
+          name: `Financing: ${data.financingPlan.label}`,
+          description: `${data.financingPlan.months} months`,
+          unit_price: 0,
+          unit_cost: originationFee,
+          quantity: 1,
+          taxable: false,
+        });
+      }
+
+      return { name: tier.tier_name, line_items };
+    });
 
   if (options.length === 0) {
     throw new Error("Cannot sync to HCP: no tiers with items");

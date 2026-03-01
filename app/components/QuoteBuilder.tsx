@@ -19,6 +19,7 @@ interface PricebookItemSlim {
   is_addon: boolean;
   addon_default_checked: boolean;
   unit_of_measure: string | null;
+  hcp_type: string | null;
 }
 
 interface TemplateTierData {
@@ -87,6 +88,9 @@ interface LineItemForm {
   quantity: number;
   is_addon: boolean;
   addon_default_checked: boolean;
+  hcp_type: string | null;
+  category: string;
+  cost: number | null;
 }
 
 interface TierForm {
@@ -171,6 +175,7 @@ export default function QuoteBuilder({
   const [itemSearch, setItemSearch] = useState("");
   const [itemCategoryFilter, setItemCategoryFilter] = useState("");
   const [showAddonPicker, setShowAddonPicker] = useState(false);
+  const [pickerQuantities, setPickerQuantities] = useState<Record<string, number>>({});
 
   // Assignment & options
   const [assignedTo, setAssignedTo] = useState(currentUserId);
@@ -292,6 +297,9 @@ export default function QuoteBuilder({
                 quantity: item.quantity,
                 is_addon: item.is_addon,
                 addon_default_checked: item.addon_default_checked,
+                hcp_type: pb?.hcp_type ?? null,
+                category: pb?.category || "equipment",
+                cost: pb?.cost ?? null,
               };
             }),
           };
@@ -309,7 +317,7 @@ export default function QuoteBuilder({
 
   // ---- Tier Item Management ----
 
-  const addItemToTier = (tierNumber: number, pbItem: PricebookItemSlim) => {
+  const addItemToTier = (tierNumber: number, pbItem: PricebookItemSlim, quantity: number = 1) => {
     setTiers((prev) =>
       prev.map((tier) => {
         if (tier.tier_number !== tierNumber) return tier;
@@ -325,9 +333,12 @@ export default function QuoteBuilder({
               spec_line: pbItem.spec_line,
               description: null,
               unit_price: pbItem.unit_price ?? 0,
-              quantity: 1,
+              quantity,
               is_addon: pbItem.is_addon,
               addon_default_checked: pbItem.addon_default_checked,
+              hcp_type: pbItem.hcp_type,
+              category: pbItem.category,
+              cost: pbItem.cost,
             },
           ],
         };
@@ -482,9 +493,12 @@ export default function QuoteBuilder({
               spec_line: item.spec_line,
               description: item.description,
               unit_price: item.unit_price,
+              cost: item.cost,
               quantity: item.quantity,
               is_addon: item.is_addon,
               addon_default_checked: item.addon_default_checked,
+              hcp_type: item.hcp_type,
+              category: item.category,
               sort_order: idx,
             })),
           })),
@@ -1032,7 +1046,7 @@ export default function QuoteBuilder({
 
             {activeTier.items.filter((i) => i.is_addon).length === 0 ? (
               <p className="text-sm text-gray-400 dark:text-gray-500 py-2">
-                No add-ons — toggle &ldquo;Add-ons&rdquo; in the item picker below to add
+                No add-ons yet — switch to the Add-Ons tab in the picker below
               </p>
             ) : (
               <div className="space-y-1">
@@ -1096,15 +1110,28 @@ export default function QuoteBuilder({
               <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
                 Add Items from Pricebook
               </h3>
+            </div>
+
+            <div className="flex mb-3 bg-gray-100 dark:bg-gray-700 rounded-md p-0.5">
               <button
-                onClick={() => setShowAddonPicker(!showAddonPicker)}
-                className={`text-xs px-2 py-1 rounded border ${
-                  showAddonPicker
-                    ? "bg-blue-50 dark:bg-blue-900/30 border-blue-300 dark:border-blue-700 text-blue-700 dark:text-blue-400"
-                    : "border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-400"
+                onClick={() => setShowAddonPicker(false)}
+                className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                  !showAddonPicker
+                    ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
                 }`}
               >
-                {showAddonPicker ? "Showing Add-ons" : "Showing Equipment"}
+                Equipment &amp; Line Items
+              </button>
+              <button
+                onClick={() => setShowAddonPicker(true)}
+                className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                  showAddonPicker
+                    ? "bg-white dark:bg-gray-600 text-gray-900 dark:text-gray-100 shadow-sm"
+                    : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
+                }`}
+              >
+                Add-Ons
               </button>
             </div>
 
@@ -1166,6 +1193,20 @@ export default function QuoteBuilder({
                               ? formatCurrency(item.unit_price)
                               : "—"}
                           </td>
+                          <td className="px-2 py-2 w-16">
+                            {!alreadyAdded && (
+                              <input
+                                type="number"
+                                min={1}
+                                value={pickerQuantities[item.id] ?? 1}
+                                onChange={(e) => setPickerQuantities(prev => ({
+                                  ...prev,
+                                  [item.id]: Math.max(1, parseInt(e.target.value) || 1)
+                                }))}
+                                className="w-14 px-1 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm text-center"
+                              />
+                            )}
+                          </td>
                           <td className="px-3 py-2 w-16">
                             {alreadyAdded ? (
                               <span className="text-xs text-green-600 dark:text-green-400">
@@ -1174,7 +1215,7 @@ export default function QuoteBuilder({
                             ) : (
                               <button
                                 onClick={() =>
-                                  addItemToTier(activeTier.tier_number, item)
+                                  addItemToTier(activeTier.tier_number, item, pickerQuantities[item.id] ?? 1)
                                 }
                                 className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
                               >

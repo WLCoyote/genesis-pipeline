@@ -32,7 +32,9 @@ export async function POST(
     .select(`
       id, estimate_number, hcp_estimate_id, tax_rate,
       customers ( id, name, email, phone, address, hcp_customer_id ),
-      estimate_line_items ( option_group, display_name, spec_line, unit_price, quantity )
+      estimate_line_items ( option_group, display_name, spec_line, unit_price, quantity, is_addon, is_selected,
+        pricebook_items:pricebook_item_id ( hcp_type, category, cost )
+      )
     `)
     .eq("id", id)
     .single();
@@ -60,12 +62,15 @@ export async function POST(
     hcp_customer_id: string | null;
   };
 
-  const lineItems = (estimate.estimate_line_items || []) as Array<{
+  const lineItems = (estimate.estimate_line_items || []) as unknown as Array<{
     option_group: number;
     display_name: string;
     spec_line: string | null;
     unit_price: number;
     quantity: number;
+    is_addon: boolean;
+    is_selected: boolean;
+    pricebook_items: { hcp_type: string | null; category: string | null; cost: number | null } | null;
   }>;
 
   if (lineItems.length === 0) {
@@ -85,16 +90,35 @@ export async function POST(
 
   const tierNames: Record<number, string> = { 1: "Good", 2: "Better", 3: "Best" };
 
-  const tiers = Array.from(tierMap.entries()).map(([group, items]) => ({
-    tier_name: tierNames[group] || `Option ${group}`,
-    items: items.map((item) => ({
-      display_name: item.display_name,
-      spec_line: item.spec_line,
-      unit_price: item.unit_price,
-      cost: null,
-      quantity: item.quantity,
-    })),
-  }));
+  // Fetch default financing plan
+  const { data: defaultFinancingPlan } = await supabase
+    .from("financing_plans")
+    .select("label, fee_pct, months")
+    .eq("is_active", true)
+    .eq("is_default", true)
+    .limit(1)
+    .single();
+
+  const tiers = Array.from(tierMap.entries()).map(([group, items]) => {
+    // Only include non-addon items + selected addon items
+    const syncItems = items.filter((i) => !i.is_addon || i.is_selected);
+    const subtotal = syncItems.reduce((sum, i) => sum + i.quantity * i.unit_price, 0);
+
+    return {
+      tier_name: tierNames[group] || `Option ${group}`,
+      subtotal: Math.round(subtotal * 100) / 100,
+      items: syncItems.map((item) => ({
+        display_name: item.display_name,
+        spec_line: item.spec_line,
+        unit_price: item.unit_price,
+        cost: item.pricebook_items?.cost ?? null,
+        quantity: item.quantity,
+        is_addon: item.is_addon,
+        hcp_type: item.pricebook_items?.hcp_type ?? null,
+        category: item.pricebook_items?.category ?? null,
+      })),
+    };
+  });
 
   try {
     const result = await syncEstimateToHcp({
@@ -106,6 +130,7 @@ export async function POST(
         hcp_customer_id: customer.hcp_customer_id,
       },
       tiers,
+      financingPlan: defaultFinancingPlan || null,
       taxRate: estimate.tax_rate,
     });
 
