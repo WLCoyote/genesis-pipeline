@@ -330,19 +330,39 @@ New page: `app/proposals/[token]/page.tsx` — **no auth**, token-gated. Standal
 
 ### Step 7.3: Signature + PDF Generation + HCP Writeback — NOT STARTED
 
-**Sign API:** `POST /api/proposals/[token]/sign` — public, no auth. Body: customer_name, signature_data, selected_tier, selected_addon_ids, financing_plan_id. Steps: validate token → record signature → update line items is_selected → set estimate status=won → generate PDF → upload to Supabase Storage → HCP writeback → send confirmation email with PDF → fire notifications.
+**Prerequisites:** Install `@react-pdf/renderer`, create Supabase Storage bucket `proposal-pdfs`.
 
-**PDF generation:** `@react-pdf/renderer` in `lib/proposal-pdf.ts`. Branded PDF of the signed proposal matching the proposal page design.
+**Sign API:** `POST /api/proposals/[token]/sign` — public, no auth, token-gated. Body: `{ customer_name, signature_data, selected_tier, selected_addon_ids, selected_financing_plan_id }`. Critical DB write returns immediately; post-sign tasks run in `after()` (Next.js 16).
 
-**HCP writeback (post-sign):**
-- Push full structured estimate to HCP (line items with summary service pattern)
-- Upload signed PDF as HCP estimate attachment
-- Add private note to HCP estimate ("Proposal signed by {name} on {date}")
-- Update HCP estimate status
+**Sign flow:**
+1. Validate token → fetch estimate with line items, customer, user
+2. Guards: already signed (409), expired/lost/dormant (410)
+3. CRITICAL DB WRITE: update line items is_selected, calculate totals, update estimate (signature fields, status=won, amounts)
+4. Return `{ ok: true }` immediately
+5. `after()` fire-and-forget:
+   - Record 'signed' engagement event
+   - Generate PDF (`lib/proposal-pdf.ts`) → upload to Supabase Storage → update `proposal_pdf_url`
+   - HCP writeback: approve selected option, decline others, upload PDF attachment, add note
+   - Send confirmation email with PDF attachment (`lib/proposal-email.ts` via Resend)
+   - Create notifications for assigned user + admins
+   - Skip remaining follow-up sequence steps
 
-**HCP writeback (post-send, Phase 7.3b):**
-- When proposal is sent: add private note to HCP ("Proposal sent via Genesis Pipeline on {date}")
-- Update HCP estimate status to reflect sent state
+**New files:**
+- `lib/proposal-pdf.ts` — `generateProposalPdf()` using `@react-pdf/renderer` `renderToBuffer()`. Clean print-friendly format (white background), not dark theme. Layout: header, customer info, selected package table, addons, totals, payment schedule, signature image + name + date + IP, footer disclaimers.
+- `lib/proposal-email.ts` — `sendProposalConfirmation()` calls Resend directly (not `/api/send-email`) for attachment support. Branded HTML + PDF attachment.
+
+**HCP writeback functions added to `lib/hcp-estimate.ts`:**
+- `approveHcpOption(optionId)` — `POST /estimates/options/approve`
+- `declineHcpOptions(optionIds)` — `POST /estimates/options/decline`
+- `uploadHcpAttachment(estimateId, optionId, pdfBuffer, filename)` — `POST /estimates/{id}/options/{option_id}/attachments` (multipart)
+- `addHcpOptionNote(estimateId, optionId, content)` — `POST /estimates/{id}/options/{option_id}/notes`
+
+**Fix prerequisite:** Store `hcp_option_ids` on `estimate_line_items` after HCP sync in both `quotes/create` and `estimates/[id]/sync-hcp` routes (column exists in sql/018 but IDs aren't saved yet).
+
+**Proposal page update:** Add `proposal_pdf_url` to "already signed" screen as a download link.
+
+**HCP writeback (post-send, Phase 7.3b — future):**
+- When proposal is sent: add option note to HCP ("Proposal sent via Genesis Pipeline on {date}")
 
 ### Step 7.4: Proposal Tracking in Dashboard
 

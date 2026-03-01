@@ -478,7 +478,7 @@ Admin-configurable. Tags that trigger the 4-payment schedule on proposals.
 | `/api/webhooks/resend` | POST | Resend signature validation. Email open/click/bounce events. |
 | `/api/leads/inbound` | POST | Bearer `LEADS_WEBHOOK_SECRET`. Accepts leads from Retell AI, Webflow, Zapier, Facebook, Google. |
 | `/proposals/[token]` | GET | Public — no auth. Customer-facing proposal page. Token-gated. |
-| `/api/proposals/[token]/sign` | POST | Public — no auth. Customer submits signature. Validates token, records signature, fires approval flow. |
+| `/api/proposals/[token]/sign` | POST | Public — no auth. Customer submits signature. Records signature + status=won (blocking), then fire-and-forget: PDF generation, Supabase Storage upload, HCP option approve/decline + PDF attachment + note, confirmation email with PDF, notifications, skip follow-up steps. |
 | `/api/proposals/[token]/engage` | POST | Public — no auth. Records `proposal_engagement` events (opens, calculator use, etc.). |
 | `/api/auth/qbo` | GET | QBO OAuth callback. Exchanges code for tokens. Stores encrypted in settings. |
 
