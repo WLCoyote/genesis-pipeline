@@ -30,8 +30,8 @@ export async function GET(request: NextRequest) {
       `
       id, customer_id, assigned_to, sent_date,
       sequence_step_index, sequence_id, snooze_until,
-      online_estimate_url,
-      customers (id, name, email, phone),
+      proposal_token, total_amount, estimate_number,
+      customers (id, name, email, phone, address),
       users!estimates_assigned_to_fkey (name),
       follow_up_sequences (steps, is_active)
     `
@@ -90,13 +90,22 @@ export async function GET(request: NextRequest) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const comfortProName = (estimate as any).users?.name || "Your comfort pro";
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const estimateUrl = (estimate as any).online_estimate_url || "";
+      const est2 = estimate as any;
+      const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://app.genesishvacr.com").replace(/\/$/, "");
+      const proposalUrl = est2.proposal_token ? `${baseUrl}/proposals/${est2.proposal_token}` : "";
+      const totalFormatted = est2.total_amount != null
+        ? `$${Number(est2.total_amount).toLocaleString("en-US", { minimumFractionDigits: 0 })}`
+        : "";
 
       const content = step.template
         ?.replace(/\{\{customer_name\}\}/g, customer?.name || "there")
         ?.replace(/\{\{comfort_pro_name\}\}/g, comfortProName)
         ?.replace(/\{\{customer_email\}\}/g, customer?.email || "your email")
-        ?.replace(/\{\{estimate_link\}\}/g, estimateUrl);
+        ?.replace(/\{\{proposal_link\}\}/g, proposalUrl)
+        ?.replace(/\{\{estimate_number\}\}/g, est2.estimate_number || "")
+        ?.replace(/\{\{total_amount\}\}/g, totalFormatted)
+        ?.replace(/\{\{customer_address\}\}/g, customer?.address || "")
+        ?.replace(/\{\{estimate_link\}\}/g, proposalUrl);
 
       if (step.is_call_task) {
         // Call task: schedule it and notify the comfort pro

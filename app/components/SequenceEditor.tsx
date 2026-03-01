@@ -208,7 +208,7 @@ export default function SequenceEditor({
               />
               <div className="flex flex-wrap gap-1.5 mt-1.5">
                 <span className="text-xs text-gray-400 dark:text-gray-500 mr-0.5 leading-5">Insert:</span>
-                {["{{customer_name}}", "{{customer_email}}", "{{comfort_pro_name}}", "{{estimate_link}}"].map((tag) => (
+                {["{{customer_name}}", "{{customer_email}}", "{{comfort_pro_name}}", "{{proposal_link}}", "{{estimate_number}}", "{{total_amount}}", "{{customer_address}}"].map((tag) => (
                   <button
                     key={tag}
                     type="button"

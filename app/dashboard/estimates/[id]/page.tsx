@@ -113,35 +113,47 @@ export default async function EstimateDetailPage({
           </h1>
           <StatusBadge status={est.status} />
         </div>
-        <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          {(() => {
-            const firstOptionId = options.find((o: any) => o.hcp_option_id)?.hcp_option_id;
-            const hcpUrl = firstOptionId
-              ? `https://pro.housecallpro.com/app/estimates/${firstOptionId}`
-              : null;
-            return hcpUrl ? (
-              <a
-                href={hcpUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                Estimate #{est.estimate_number}
-              </a>
-            ) : (
-              <>Estimate #{est.estimate_number}</>
-            );
-          })()}
-          {est.total_amount !== null && (
-            <span className="ml-3 font-medium text-gray-700 dark:text-gray-300">
-              $
-              {est.total_amount.toLocaleString("en-US", {
-                minimumFractionDigits: 0,
-              })}
-            </span>
-          )}
-          {est.users?.name && (
-            <span className="ml-3">Assigned to {est.users.name}</span>
+        <div className="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <span>
+            {(() => {
+              const firstOptionId = options.find((o: any) => o.hcp_option_id)?.hcp_option_id;
+              const hcpUrl = firstOptionId
+                ? `https://pro.housecallpro.com/app/estimates/${firstOptionId}`
+                : null;
+              return hcpUrl ? (
+                <a
+                  href={hcpUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  Estimate #{est.estimate_number}
+                </a>
+              ) : (
+                <>Estimate #{est.estimate_number}</>
+              );
+            })()}
+            {est.total_amount !== null && (
+              <span className="ml-3 font-medium text-gray-700 dark:text-gray-300">
+                $
+                {est.total_amount.toLocaleString("en-US", {
+                  minimumFractionDigits: 0,
+                })}
+              </span>
+            )}
+            {est.users?.name && (
+              <span className="ml-3">Assigned to {est.users.name}</span>
+            )}
+          </span>
+          {est.proposal_token && (
+            <a
+              href={`/proposals/${est.proposal_token}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
+            >
+              View Proposal
+            </a>
           )}
         </div>
       </div>
