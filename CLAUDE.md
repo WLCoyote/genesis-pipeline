@@ -62,11 +62,14 @@ Context windows and Claude Code Max usage limits are finite. Auto-compact will t
 
 ### **When to Checkpoint**
 
-* Context usage hits ~70% (watch the indicator in the Claude Code window)
-* You're deep into a long agentic run with heavy tool use — session quota burns faster than conversation
-* Before switching to a new phase in the build plan
-* After any major architectural decision or schema change
-* Before ending a working session for the day
+* **After every major deliverable** — a completed feature, a multi-file fix, a new API route, a rewritten component. Don't wait for a context signal — treat completion as the trigger.
+* **After 3–4 small fixes in a row** — quick fixes stack up fast. If you've knocked out a batch of small changes, checkpoint before continuing.
+* **Before switching to a new phase in the build plan**
+* **After any major architectural decision or schema change**
+* **Before ending a working session for the day**
+* **When the user says "checkpoint"**
+
+**Important:** Claude cannot see the context usage percentage. Do NOT rely on monitoring context %. Instead, checkpoint based on work completed. Heavy tool use (reading files, edits, TypeScript checks) burns context much faster than conversation — a session with 8+ file edits needs a checkpoint even if it feels short.
 
 ### **Usage Limit Awareness (Claude Code Max 5x)**
 
@@ -192,8 +195,21 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete. 
 | Phase 7.3 | Signature + PDF generation + HCP writeback (sign endpoint, PDF via @react-pdf/renderer, Supabase Storage, HCP approve/decline/attach/note, confirmation email, notifications, skip follow-ups) | **Complete** |
 | Phase 7.3b | Unsent estimates — HCP polling pulls drafts, Pipeline/Unsent tabs on estimates page, Build Quote button pre-loads customer into quote builder, draft→active on quote creation | **Complete** |
 | Phase 7.4 | Proposal tracking in dashboard (ProposalEngagementPanel, LineItemsView, dual data model, View Proposal button, sequence template variables updated) | **Complete** |
+| Phase 7.5 | Proposal polish — flat-rate PDF, signature fix (black pen), company settings page, disclosure checkboxes, Synchrony pre-approval button, favicon, dynamic terms/company info | **Complete** |
 | Phase 8 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
 | v0.2 | HCP webhooks, analytics | Future |
 | Phase 2+ | Campaigns & segmentation | Future |
 | Phase 3+ | AI, weather triggers | Future |
+
+### **Pending Feature Requests**
+
+| Feature | Notes |
+| ----- | ----- |
+| Tax toggle in quote builder | Include/exclude tax option per estimate |
+| Edit estimates / revise proposals | Signed proposals should be locked |
+| Quote builder UI overhaul | HTML mockup in `docs/genesis-quote-builder-ui.html` — 3-column tiers, steps bar, live totals, pricebook panel |
+| Quote builder line item category restructure | Labor → Indoor → Cased Coil → Outdoor → Install Materials → Equipment Warranty → Labor Warranty → Maintenance Plan |
+| Install materials builder | Pricebook tool to bundle install materials |
+| Maintenance plan builder | Service plans, subscriptions |
+| Configurable payment terms | 50/50 default, 4-payment option, configurable in quote builder |

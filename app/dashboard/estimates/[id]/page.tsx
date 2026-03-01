@@ -152,7 +152,7 @@ export default async function EstimateDetailPage({
               <span className="ml-3">Assigned to {est.users.name}</span>
             )}
           </span>
-          {est.proposal_token && !est.proposal_signed_at && (
+          {est.proposal_token && (
             <a
               href={`/proposals/${est.proposal_token}`}
               target="_blank"
@@ -171,6 +171,19 @@ export default async function EstimateDetailPage({
             >
               Download Signed PDF
             </a>
+          )}
+          {hasPipelineLineItems && !est.proposal_signed_at && (
+            <Link
+              href={`/dashboard/quote-builder?estimate_id=${id}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-600 text-white text-xs font-medium rounded-md hover:bg-amber-700 transition-colors"
+            >
+              Edit Quote
+            </Link>
+          )}
+          {est.proposal_signed_at && (
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs font-medium rounded-md">
+              Signed {new Date(est.proposal_signed_at).toLocaleDateString()}
+            </span>
           )}
         </div>
       </div>

@@ -224,6 +224,12 @@ export default function QuoteBuilder({
   // Assignment & options
   const [assignedTo, setAssignedTo] = useState(draftEstimate?.assigned_to || currentUserId);
 
+  // Tax
+  const [includeTax, setIncludeTax] = useState(false);
+  const [taxRate, setTaxRate] = useState<number | null>(null);
+  const [taxLoading, setTaxLoading] = useState(false);
+  const [taxError, setTaxError] = useState<string | null>(null);
+
   // Submission
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -282,6 +288,34 @@ export default function QuoteBuilder({
     setCustomerAddress("");
     setIsNewCustomer(false);
   };
+
+  // ---- Tax Lookup ----
+
+  const lookupTax = useCallback(async (address: string) => {
+    if (!address.trim()) return;
+    setTaxLoading(true);
+    setTaxError(null);
+    try {
+      const res = await fetch(`/api/tax/lookup?address=${encodeURIComponent(address.trim())}`);
+      const data = await res.json();
+      if (res.ok && data.rate != null) {
+        setTaxRate(data.rate);
+      } else {
+        setTaxError(data.error || "Tax lookup failed");
+      }
+    } catch {
+      setTaxError("Tax lookup failed");
+    } finally {
+      setTaxLoading(false);
+    }
+  }, []);
+
+  // Auto-lookup tax when tax toggle is enabled and address exists
+  useEffect(() => {
+    if (includeTax && customerAddress.trim() && taxRate === null && !taxLoading) {
+      lookupTax(customerAddress);
+    }
+  }, [includeTax, customerAddress, taxRate, taxLoading, lookupTax]);
 
   // ---- Template Selection ----
 
@@ -524,6 +558,7 @@ export default function QuoteBuilder({
         customer_address: customerAddress.trim() || null,
         assigned_to: assignedTo,
         template_id: selectedTemplateId,
+        tax_rate: includeTax && taxRate !== null ? taxRate : null,
         tiers: tiers
           .filter((t) => t.items.length > 0)
           .map((tier) => ({
@@ -1275,26 +1310,78 @@ export default function QuoteBuilder({
         </div>
       </section>
 
-      {/* ====== SECTION 4: Assignment ====== */}
+      {/* ====== SECTION 4: Assignment & Options ====== */}
       <section className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-5">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-          Assignment
+          Assignment & Options
         </h2>
-        <div className="max-w-xs">
-          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-            Assigned To
-          </label>
-          <select
-            value={assignedTo}
-            onChange={(e) => setAssignedTo(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
-          >
-            {users.map((u) => (
-              <option key={u.id} value={u.id}>
-                {u.name} ({u.role})
-              </option>
-            ))}
-          </select>
+        <div className="flex flex-wrap gap-6">
+          <div className="max-w-xs">
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+              Assigned To
+            </label>
+            <select
+              value={assignedTo}
+              onChange={(e) => setAssignedTo(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
+            >
+              {users.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.role})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+              Sales Tax
+            </label>
+            <div className="flex items-center gap-3">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={includeTax}
+                  onChange={(e) => {
+                    setIncludeTax(e.target.checked);
+                    if (!e.target.checked) {
+                      setTaxRate(null);
+                      setTaxError(null);
+                    }
+                  }}
+                  className="accent-blue-600 cursor-pointer"
+                />
+                <span className="text-sm text-gray-700 dark:text-gray-300">Include tax</span>
+              </label>
+              {includeTax && taxLoading && (
+                <span className="text-xs text-gray-400">Looking up rate...</span>
+              )}
+              {includeTax && taxRate !== null && (
+                <span className="text-xs text-green-600 dark:text-green-400 font-medium">
+                  {(taxRate * 100).toFixed(2)}%
+                </span>
+              )}
+              {includeTax && taxError && (
+                <span className="text-xs text-red-500">{taxError}</span>
+              )}
+              {includeTax && taxRate !== null && (
+                <button
+                  onClick={() => {
+                    setTaxRate(null);
+                    lookupTax(customerAddress);
+                  }}
+                  className="text-xs text-blue-500 hover:underline"
+                >
+                  Re-lookup
+                </button>
+              )}
+            </div>
+            {includeTax && !customerAddress.trim() && (
+              <p className="text-xs text-amber-500 mt-1">
+                Enter a customer address to auto-lookup the tax rate
+              </p>
+            )}
+          </div>
         </div>
       </section>
 
@@ -1335,6 +1422,14 @@ export default function QuoteBuilder({
               {tierTotals[idx]?.addonTotal > 0 && (
                 <div className="text-xs text-gray-400 mt-0.5">
                   Includes {formatCurrency(tierTotals[idx].addonTotal)} in pre-checked add-ons
+                </div>
+              )}
+              {includeTax && taxRate !== null && (
+                <div className="text-xs text-gray-400 mt-1 pt-1 border-t border-gray-100 dark:border-gray-700">
+                  <span>Tax: {formatCurrency(Math.round((tierTotals[idx]?.total || 0) * taxRate * 100) / 100)}</span>
+                  <span className="ml-1 font-medium text-gray-600 dark:text-gray-300">
+                    = {formatCurrency((tierTotals[idx]?.total || 0) + Math.round((tierTotals[idx]?.total || 0) * taxRate * 100) / 100)}
+                  </span>
                 </div>
               )}
             </div>

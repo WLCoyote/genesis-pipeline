@@ -157,7 +157,7 @@ export default async function ProposalPageRoute({ params }: Props) {
             Proposal Expired
           </h1>
           <p style={{ fontSize: 16, color: "#7a8fa8", marginTop: 12 }}>
-            This proposal has expired. Please contact us at (360) 805-1234 for
+            This proposal has expired. Please contact us at (425) 261-9095 for
             an updated quote.
           </p>
         </div>

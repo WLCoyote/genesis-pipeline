@@ -16,6 +16,7 @@ import {
   uploadHcpAttachment,
   addHcpOptionNote,
 } from "@/lib/hcp-estimate";
+import { getCompanyInfo, getProposalTerms } from "@/lib/company-settings";
 
 export async function POST(
   request: NextRequest,
@@ -366,6 +367,12 @@ async function runPostSignTasks(ctx: {
       Math.round((financed / ctx.financingPlan.months) * 100) / 100;
   }
 
+  // Fetch company info and terms from settings
+  const [companyInfo, proposalTerms] = await Promise.all([
+    getCompanyInfo(),
+    getProposalTerms(),
+  ]);
+
   const pdfData: ProposalPdfData = {
     estimateNumber: ctx.estimateNumber,
     customerName: ctx.customer?.name || ctx.signedName,
@@ -399,6 +406,8 @@ async function runPostSignTasks(ctx: {
     financingMonthly,
     financingMonths: ctx.financingPlan?.months || null,
     paymentScheduleType: ctx.paymentScheduleType,
+    companyInfo,
+    proposalTerms,
   };
 
   let pdfBuffer: Buffer | null = null;
@@ -540,6 +549,7 @@ async function runPostSignTasks(ctx: {
           tierNames[ctx.selectedTier] || `Option ${ctx.selectedTier}`,
         totalAmount: ctx.totalAmount,
         pdfBuffer,
+        companyInfo,
       });
       console.log(
         `[Sign] Confirmation email sent to ${ctx.customer.email}`

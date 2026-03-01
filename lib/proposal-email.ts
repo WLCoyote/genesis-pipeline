@@ -4,6 +4,7 @@
  */
 
 import { Resend } from "resend";
+import type { CompanyInfo } from "@/lib/company-settings";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -14,6 +15,7 @@ interface SendConfirmationEmailOpts {
   selectedTierName: string;
   totalAmount: number;
   pdfBuffer: Buffer | null;
+  companyInfo: CompanyInfo;
 }
 
 function fmt(amount: number): string {
@@ -21,6 +23,9 @@ function fmt(amount: number): string {
 }
 
 function buildConfirmationHtml(opts: SendConfirmationEmailOpts): string {
+  const co = opts.companyInfo;
+  const phoneDigits = co.phone.replace(/\D/g, "");
+
   return `
 <!DOCTYPE html>
 <html>
@@ -37,7 +42,7 @@ function buildConfirmationHtml(opts: SendConfirmationEmailOpts): string {
           <tr>
             <td style="background-color:#0a2540;padding:24px 32px;">
               <h1 style="margin:0;font-size:20px;color:#ffffff;font-weight:bold;text-transform:uppercase;letter-spacing:1px;">
-                Genesis Heating, Cooling & Refrigeration
+                ${co.company_name}
               </h1>
             </td>
           </tr>
@@ -85,9 +90,9 @@ function buildConfirmationHtml(opts: SendConfirmationEmailOpts): string {
               </p>
 
               <p style="margin:0;font-size:15px;color:#444;line-height:1.6;">
-                <strong>Genesis HVAC</strong><br>
-                <a href="tel:3608051234" style="color:#e65100;text-decoration:none;">(360) 805-1234</a><br>
-                <a href="https://genesishvacr.com" style="color:#e65100;text-decoration:none;">genesishvacr.com</a>
+                <strong>${co.company_name}</strong><br>
+                <a href="tel:${phoneDigits}" style="color:#e65100;text-decoration:none;">${co.phone}</a><br>
+                <a href="https://${co.website}" style="color:#e65100;text-decoration:none;">${co.website}</a>
               </p>
             </td>
           </tr>
@@ -96,7 +101,7 @@ function buildConfirmationHtml(opts: SendConfirmationEmailOpts): string {
           <tr>
             <td style="background-color:#f8f9fa;padding:16px 32px;border-top:1px solid #eee;">
               <p style="margin:0;font-size:11px;color:#999;text-align:center;">
-                Genesis Heating, Cooling & Refrigeration | Monroe, WA | License: GENESR*788QL
+                ${co.company_name} | ${co.address} | License: ${co.license_number}
               </p>
             </td>
           </tr>

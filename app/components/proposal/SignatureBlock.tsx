@@ -15,6 +15,7 @@ interface SignatureBlockProps {
   canSign: boolean;
   onSubmit: () => void;
   isSubmitting: boolean;
+  hasFinancing: boolean;
 }
 
 export default function SignatureBlock({
@@ -29,10 +30,17 @@ export default function SignatureBlock({
   canSign,
   onSubmit,
   isSubmitting,
+  hasFinancing,
 }: SignatureBlockProps) {
   const sigRef = useRef<SignatureCanvas>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [canvasWidth, setCanvasWidth] = useState(600);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const [warrantyAccepted, setWarrantyAccepted] = useState(false);
+  const [financingAccepted, setFinancingAccepted] = useState(false);
+
+  const disclosuresComplete = termsAccepted && warrantyAccepted && (!hasFinancing || financingAccepted);
+  const canSubmit = canSign && disclosuresComplete;
 
   // Sync canvas intrinsic width with container width to prevent pointer offset
   useEffect(() => {
@@ -337,7 +345,7 @@ export default function SignatureBlock({
           <div
             ref={containerRef}
             style={{
-              background: "rgba(255,255,255,0.04)",
+              background: "#ffffff",
               border: "1.5px solid #1a3357",
               borderRadius: 8,
               overflow: "hidden",
@@ -345,8 +353,8 @@ export default function SignatureBlock({
           >
             <SignatureCanvas
               ref={sigRef}
-              penColor="#fff"
-              backgroundColor="transparent"
+              penColor="#000"
+              backgroundColor="#ffffff"
               canvasProps={{
                 width: canvasWidth,
                 height: 120,
@@ -362,26 +370,104 @@ export default function SignatureBlock({
           </div>
         </div>
 
+        {/* Disclosure checkboxes */}
+        <div style={{ marginBottom: 24 }}>
+          <label
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10,
+              padding: "8px 0",
+              cursor: "pointer",
+              fontSize: 12.5,
+              color: "#cdd8e8",
+              lineHeight: 1.5,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={termsAccepted}
+              onChange={(e) => setTermsAccepted(e.target.checked)}
+              style={{ marginTop: 3, accentColor: "#1e88e5", cursor: "pointer" }}
+            />
+            <span>
+              I agree to the{" "}
+              <a href="/terms" target="_blank" rel="noopener noreferrer" style={{ color: "#42a5f5", textDecoration: "underline" }}>
+                Terms & Conditions
+              </a>
+              {" "}and authorize Genesis Heating, Cooling & Refrigeration to perform the work described above.
+            </span>
+          </label>
+
+          <label
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              gap: 10,
+              padding: "8px 0",
+              cursor: "pointer",
+              fontSize: 12.5,
+              color: "#cdd8e8",
+              lineHeight: 1.5,
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={warrantyAccepted}
+              onChange={(e) => setWarrantyAccepted(e.target.checked)}
+              style={{ marginTop: 3, accentColor: "#1e88e5", cursor: "pointer" }}
+            />
+            <span>
+              I understand the labor warranty terms. All labor is warranted for one (1) year unless an extended labor warranty is included in my package.
+            </span>
+          </label>
+
+          {hasFinancing && (
+            <label
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 10,
+                padding: "8px 0",
+                cursor: "pointer",
+                fontSize: 12.5,
+                color: "#cdd8e8",
+                lineHeight: 1.5,
+              }}
+            >
+              <input
+                type="checkbox"
+                checked={financingAccepted}
+                onChange={(e) => setFinancingAccepted(e.target.checked)}
+                style={{ marginTop: 3, accentColor: "#1e88e5", cursor: "pointer" }}
+              />
+              <span>
+                I acknowledge that financing is provided by Synchrony Bank, subject to credit approval. Monthly payments are estimates and may vary based on the approved amount.
+              </span>
+            </label>
+          )}
+        </div>
+
         {/* Submit button */}
         <button
           onClick={onSubmit}
-          disabled={!canSign || isSubmitting}
+          disabled={!canSubmit || isSubmitting}
           style={{
             width: "100%",
             padding: 16,
-            background: canSign
+            background: canSubmit
               ? "linear-gradient(135deg, #e65100, #ff6d00)"
               : "rgba(120,144,156,0.12)",
-            color: canSign ? "#fff" : "#7a8fa8",
-            border: canSign ? "none" : "1.5px solid rgba(120,144,156,0.3)",
+            color: canSubmit ? "#fff" : "#7a8fa8",
+            border: canSubmit ? "none" : "1.5px solid rgba(120,144,156,0.3)",
             borderRadius: 10,
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: 17,
             fontWeight: 800,
             letterSpacing: 2,
             textTransform: "uppercase" as const,
-            cursor: canSign ? "pointer" : "not-allowed",
-            boxShadow: canSign ? "0 6px 20px rgba(255,109,0,0.35)" : "none",
+            cursor: canSubmit ? "pointer" : "not-allowed",
+            boxShadow: canSubmit ? "0 6px 20px rgba(255,109,0,0.35)" : "none",
             transition: "all 0.2s",
             opacity: isSubmitting ? 0.6 : 1,
           }}

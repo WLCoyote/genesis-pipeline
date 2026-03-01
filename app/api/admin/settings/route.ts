@@ -36,8 +36,10 @@ export async function PUT(request: NextRequest) {
   for (const [key, value] of entries) {
     const { error } = await supabase
       .from("settings")
-      .update({ value, updated_by: user.id })
-      .eq("key", key);
+      .upsert(
+        { key, value, updated_by: user.id, updated_at: new Date().toISOString() },
+        { onConflict: "key" }
+      );
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });

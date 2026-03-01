@@ -239,6 +239,35 @@ export default function FinancingCalculator({
         })}
       </div>
 
+      {/* Get Pre-Approved button */}
+      <div style={{ textAlign: "center" as const, marginTop: 28 }}>
+        <a
+          href="https://www.mysynchrony.com/mmc/HY223500700"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "inline-block",
+            padding: "14px 36px",
+            background: "linear-gradient(135deg, #1565c0, #1e88e5)",
+            color: "#fff",
+            borderRadius: 10,
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: 15,
+            fontWeight: 800,
+            letterSpacing: 2,
+            textTransform: "uppercase" as const,
+            textDecoration: "none",
+            boxShadow: "0 4px 16px rgba(21,101,192,0.35)",
+            transition: "all 0.2s",
+          }}
+        >
+          Get Pre-Approved with Synchrony
+        </a>
+        <p style={{ fontSize: 11, color: "#7a8fa8", marginTop: 8 }}>
+          Check your eligibility with no impact to your credit score
+        </p>
+      </div>
+
       <style>{`
         @media (max-width: 900px) {
           .proposal-fin-bar { flex-direction: column !important; }

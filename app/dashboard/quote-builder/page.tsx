@@ -77,12 +77,15 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
     const { data: est } = await supabase
       .from("estimates")
       .select(`
-        id, estimate_number, hcp_estimate_id, assigned_to, status,
+        id, estimate_number, hcp_estimate_id, assigned_to, status, proposal_signed_at,
         customers ( id, name, email, phone, address )
       `)
       .eq("id", estimate_id)
-      .eq("status", "draft")
       .single();
+
+    if (est && (est as any).proposal_signed_at) {
+      redirect(`/dashboard/estimates/${estimate_id}`);
+    }
 
     if (est) {
       const custRaw = est.customers as unknown;
@@ -116,7 +119,7 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
         </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
           {draftEstimate
-            ? `Building from HCP estimate #${draftEstimate.estimate_number}. Select a template or add items to build tiers.`
+            ? `Editing estimate #${draftEstimate.estimate_number}. Select a template or add items to build tiers.`
             : "Build a quote with Standard Comfort / Enhanced Efficiency / Premium Performance tiers. A proposal link is generated automatically."}
         </p>
       </div>

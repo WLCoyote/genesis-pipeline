@@ -1,8 +1,8 @@
 /**
  * Proposal PDF generation via @react-pdf/renderer
  *
- * Generates a clean, print-friendly signed proposal PDF.
- * White background, dark text, Genesis branding.
+ * Flat-rate style: shows included items without individual prices.
+ * Clean, print-friendly, 1-page layout with signature + terms.
  */
 
 import React from "react";
@@ -15,6 +15,7 @@ import {
   StyleSheet,
   renderToBuffer,
 } from "@react-pdf/renderer";
+import type { CompanyInfo, ProposalTerms } from "@/lib/company-settings";
 
 // ---------- Types ----------
 
@@ -50,177 +51,219 @@ export interface ProposalPdfData {
   financingMonths?: number | null;
 
   paymentScheduleType: string; // "standard" or "large_job"
+
+  companyInfo: CompanyInfo;
+  proposalTerms: ProposalTerms;
 }
 
 // ---------- Styles ----------
 
-const styles = StyleSheet.create({
+const s = StyleSheet.create({
   page: {
     fontFamily: "Helvetica",
-    fontSize: 10,
-    paddingTop: 40,
-    paddingBottom: 60,
-    paddingHorizontal: 40,
+    fontSize: 9,
+    paddingTop: 32,
+    paddingBottom: 50,
+    paddingHorizontal: 36,
     color: "#1a1a1a",
   },
+  // Header
   header: {
-    marginBottom: 20,
+    marginBottom: 14,
     borderBottomWidth: 2,
     borderBottomColor: "#0a2540",
-    paddingBottom: 12,
+    paddingBottom: 10,
   },
   companyName: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: "Helvetica-Bold",
     color: "#0a2540",
     textTransform: "uppercase",
     letterSpacing: 1,
   },
   docTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Helvetica-Bold",
     color: "#e65100",
-    marginTop: 4,
+    marginTop: 3,
   },
   estimateNum: {
-    fontSize: 9,
-    color: "#666",
+    fontSize: 8,
+    color: "#888",
     marginTop: 2,
   },
+  // Info row
   infoRow: {
     flexDirection: "row",
-    marginBottom: 16,
+    marginBottom: 12,
   },
   infoBlock: {
     flex: 1,
   },
   infoLabel: {
-    fontSize: 8,
+    fontSize: 7,
     color: "#888",
     textTransform: "uppercase",
     letterSpacing: 0.5,
-    marginBottom: 2,
+    marginBottom: 1,
   },
   infoValue: {
-    fontSize: 10,
+    fontSize: 9,
     color: "#1a1a1a",
   },
+  // Section title
   sectionTitle: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Helvetica-Bold",
     color: "#0a2540",
-    marginTop: 16,
-    marginBottom: 8,
-    paddingBottom: 4,
+    marginTop: 10,
+    marginBottom: 6,
+    paddingBottom: 3,
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
   },
-  tableHeader: {
+  // Flat rate item list
+  itemRow: {
     flexDirection: "row",
-    backgroundColor: "#f4f4f4",
-    paddingVertical: 4,
-    paddingHorizontal: 6,
-    borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    paddingVertical: 2,
+    paddingLeft: 4,
   },
-  tableRow: {
-    flexDirection: "row",
-    paddingVertical: 4,
-    paddingHorizontal: 6,
-    borderBottomWidth: 0.5,
-    borderBottomColor: "#eee",
-  },
-  colName: { flex: 3 },
-  colSpec: { flex: 3 },
-  colQty: { flex: 0.5, textAlign: "right" },
-  colPrice: { flex: 1, textAlign: "right" },
-  colTotal: { flex: 1, textAlign: "right" },
-  headerText: {
+  itemBullet: {
+    width: 10,
     fontSize: 8,
-    fontFamily: "Helvetica-Bold",
-    color: "#666",
-    textTransform: "uppercase",
+    color: "#999",
   },
-  cellText: {
+  itemName: {
+    flex: 1,
     fontSize: 9,
     color: "#333",
   },
-  totalsSection: {
-    marginTop: 16,
+  itemSpec: {
+    fontSize: 8,
+    color: "#777",
+    paddingLeft: 14,
+    marginBottom: 2,
+  },
+  itemQty: {
+    width: 40,
+    fontSize: 8,
+    color: "#888",
+    textAlign: "right",
+  },
+  // Totals
+  totalsBox: {
+    marginTop: 10,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#ddd",
     alignItems: "flex-end",
   },
   totalRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
-    marginBottom: 3,
+    marginBottom: 2,
   },
   totalLabel: {
-    fontSize: 10,
+    fontSize: 9,
     color: "#666",
-    width: 120,
+    width: 110,
     textAlign: "right",
-    marginRight: 12,
+    marginRight: 10,
   },
   totalValue: {
-    fontSize: 10,
-    width: 80,
+    fontSize: 9,
+    width: 75,
     textAlign: "right",
   },
   totalBold: {
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: "Helvetica-Bold",
     color: "#0a2540",
   },
-  paymentSection: {
-    marginTop: 16,
-    padding: 12,
+  financingText: {
+    fontSize: 9,
+    color: "#e65100",
+  },
+  // Payment schedule
+  paymentBox: {
+    marginTop: 10,
+    padding: 8,
     backgroundColor: "#f8f9fa",
-    borderRadius: 4,
+    borderRadius: 3,
   },
   paymentTitle: {
-    fontSize: 10,
+    fontSize: 9,
     fontFamily: "Helvetica-Bold",
-    marginBottom: 6,
+    marginBottom: 4,
     color: "#0a2540",
   },
   paymentText: {
-    fontSize: 9,
+    fontSize: 8,
     color: "#444",
-    marginBottom: 2,
+    marginBottom: 1,
   },
-  signatureSection: {
-    marginTop: 24,
+  // Signature
+  sigSection: {
+    marginTop: 14,
     borderTopWidth: 2,
     borderTopColor: "#0a2540",
-    paddingTop: 12,
+    paddingTop: 8,
   },
-  signatureTitle: {
-    fontSize: 12,
+  sigTitle: {
+    fontSize: 10,
     fontFamily: "Helvetica-Bold",
     color: "#0a2540",
-    marginBottom: 10,
-  },
-  signatureImage: {
-    width: 200,
-    height: 60,
     marginBottom: 6,
   },
-  signatureInfo: {
-    fontSize: 9,
-    color: "#444",
+  sigImage: {
+    width: 180,
+    height: 50,
+    marginBottom: 3,
+  },
+  sigName: {
+    fontSize: 10,
+    fontFamily: "Helvetica-Bold",
+    color: "#1a1a1a",
+    marginBottom: 4,
+  },
+  sigInfo: {
+    fontSize: 8,
+    color: "#666",
+    marginBottom: 1,
+  },
+  // Terms
+  termsSection: {
+    marginTop: 12,
+    paddingTop: 6,
+    borderTopWidth: 0.5,
+    borderTopColor: "#ccc",
+  },
+  termsTitle: {
+    fontSize: 8,
+    fontFamily: "Helvetica-Bold",
+    color: "#666",
+    marginBottom: 3,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  termsText: {
+    fontSize: 7,
+    color: "#888",
+    lineHeight: 1.4,
     marginBottom: 2,
   },
+  // Footer
   footer: {
     position: "absolute",
-    bottom: 20,
-    left: 40,
-    right: 40,
+    bottom: 16,
+    left: 36,
+    right: 36,
     fontSize: 7,
     color: "#999",
     textAlign: "center",
     borderTopWidth: 0.5,
     borderTopColor: "#ddd",
-    paddingTop: 8,
+    paddingTop: 6,
   },
 });
 
@@ -241,181 +284,141 @@ function fmtDate(iso: string): string {
 // ---------- Document Component ----------
 
 function ProposalDocument({ data }: { data: ProposalPdfData }) {
-  return React.createElement(
-    Document,
-    null,
-    React.createElement(
-      Page,
-      { size: "LETTER", style: styles.page },
+  const el = React.createElement;
 
-      // Header
-      React.createElement(
-        View,
-        { style: styles.header },
-        React.createElement(Text, { style: styles.companyName }, "Genesis Heating, Cooling & Refrigeration"),
-        React.createElement(Text, { style: styles.docTitle }, "SIGNED PROPOSAL"),
-        React.createElement(Text, { style: styles.estimateNum }, `Estimate ${data.estimateNumber}`)
+  // Build flat item list for tier
+  function itemList(items: ProposalPdfLineItem[], keyPrefix: string) {
+    const elements: React.ReactElement[] = [];
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      elements.push(
+        el(View, { style: s.itemRow, key: `${keyPrefix}-${i}` },
+          el(Text, { style: s.itemBullet }, "\u2022"),
+          el(Text, { style: s.itemName },
+            item.quantity > 1 ? `${item.displayName} (x${item.quantity})` : item.displayName
+          ),
+        )
+      );
+      if (item.specLine) {
+        elements.push(
+          el(Text, { style: s.itemSpec, key: `${keyPrefix}-spec-${i}` }, item.specLine)
+        );
+      }
+    }
+    return elements;
+  }
+
+  const co = data.companyInfo;
+  const terms = data.proposalTerms;
+
+  return el(Document, null,
+    el(Page, { size: "LETTER", style: s.page },
+
+      // ── Header ──
+      el(View, { style: s.header },
+        el(Text, { style: s.companyName }, co.company_name),
+        el(Text, { style: s.docTitle }, "SIGNED PROPOSAL"),
+        el(Text, { style: s.estimateNum }, `Estimate ${data.estimateNumber}`)
       ),
 
-      // Customer / Date / Technician info
-      React.createElement(
-        View,
-        { style: styles.infoRow },
-        React.createElement(
-          View,
-          { style: styles.infoBlock },
-          React.createElement(Text, { style: styles.infoLabel }, "Customer"),
-          React.createElement(Text, { style: styles.infoValue }, data.customerName),
+      // ── Customer / Date / Tech ──
+      el(View, { style: s.infoRow },
+        el(View, { style: s.infoBlock },
+          el(Text, { style: s.infoLabel }, "Customer"),
+          el(Text, { style: s.infoValue }, data.customerName),
           data.customerAddress
-            ? React.createElement(Text, { style: { ...styles.infoValue, fontSize: 9, color: "#555" } }, data.customerAddress)
+            ? el(Text, { style: { ...s.infoValue, fontSize: 8, color: "#555" } }, data.customerAddress)
             : null
         ),
-        React.createElement(
-          View,
-          { style: styles.infoBlock },
-          React.createElement(Text, { style: styles.infoLabel }, "Date Signed"),
-          React.createElement(Text, { style: styles.infoValue }, fmtDate(data.signedAt)),
-          React.createElement(Text, { style: { ...styles.infoLabel, marginTop: 6 } }, "Technician"),
-          React.createElement(Text, { style: styles.infoValue }, data.technicianName)
+        el(View, { style: s.infoBlock },
+          el(Text, { style: s.infoLabel }, "Date Signed"),
+          el(Text, { style: s.infoValue }, fmtDate(data.signedAt)),
+          el(Text, { style: { ...s.infoLabel, marginTop: 4 } }, "Technician"),
+          el(Text, { style: s.infoValue }, data.technicianName)
         )
       ),
 
-      // Selected Package
-      React.createElement(Text, { style: styles.sectionTitle }, `Selected Package: ${data.selectedTierName}`),
-      // Table header
-      React.createElement(
-        View,
-        { style: styles.tableHeader },
-        React.createElement(Text, { style: { ...styles.headerText, ...styles.colName } }, "Item"),
-        React.createElement(Text, { style: { ...styles.headerText, ...styles.colSpec } }, "Description"),
-        React.createElement(Text, { style: { ...styles.headerText, ...styles.colQty } }, "Qty"),
-        React.createElement(Text, { style: { ...styles.headerText, ...styles.colPrice } }, "Price"),
-        React.createElement(Text, { style: { ...styles.headerText, ...styles.colTotal } }, "Total")
-      ),
-      // Table rows
-      ...data.tierItems.map((item, i) =>
-        React.createElement(
-          View,
-          { style: styles.tableRow, key: `tier-${i}` },
-          React.createElement(Text, { style: { ...styles.cellText, ...styles.colName } }, item.displayName),
-          React.createElement(Text, { style: { ...styles.cellText, ...styles.colSpec } }, item.specLine || ""),
-          React.createElement(Text, { style: { ...styles.cellText, ...styles.colQty } }, String(item.quantity)),
-          React.createElement(Text, { style: { ...styles.cellText, ...styles.colPrice } }, fmt(item.unitPrice)),
-          React.createElement(Text, { style: { ...styles.cellText, ...styles.colTotal } }, fmt(item.lineTotal))
-        )
-      ),
+      // ── Selected Package (flat rate — no prices per item) ──
+      el(Text, { style: s.sectionTitle }, `Selected Package: ${data.selectedTierName}`),
+      ...itemList(data.tierItems, "tier"),
 
-      // Add-ons (if any)
+      // ── Add-ons ──
       ...(data.addonItems.length > 0
         ? [
-            React.createElement(Text, { style: styles.sectionTitle, key: "addon-title" }, "Selected Add-Ons"),
-            React.createElement(
-              View,
-              { style: styles.tableHeader, key: "addon-header" },
-              React.createElement(Text, { style: { ...styles.headerText, ...styles.colName } }, "Item"),
-              React.createElement(Text, { style: { ...styles.headerText, ...styles.colSpec } }, "Description"),
-              React.createElement(Text, { style: { ...styles.headerText, ...styles.colQty } }, "Qty"),
-              React.createElement(Text, { style: { ...styles.headerText, ...styles.colPrice } }, "Price"),
-              React.createElement(Text, { style: { ...styles.headerText, ...styles.colTotal } }, "Total")
-            ),
-            ...data.addonItems.map((item, i) =>
-              React.createElement(
-                View,
-                { style: styles.tableRow, key: `addon-${i}` },
-                React.createElement(Text, { style: { ...styles.cellText, ...styles.colName } }, item.displayName),
-                React.createElement(Text, { style: { ...styles.cellText, ...styles.colSpec } }, item.specLine || ""),
-                React.createElement(Text, { style: { ...styles.cellText, ...styles.colQty } }, String(item.quantity)),
-                React.createElement(Text, { style: { ...styles.cellText, ...styles.colPrice } }, fmt(item.unitPrice)),
-                React.createElement(Text, { style: { ...styles.cellText, ...styles.colTotal } }, fmt(item.lineTotal))
-              )
-            ),
+            el(Text, { style: { ...s.sectionTitle, marginTop: 8 }, key: "addon-title" }, "Selected Add-Ons"),
+            ...itemList(data.addonItems, "addon"),
           ]
         : []),
 
-      // Totals
-      React.createElement(
-        View,
-        { style: styles.totalsSection },
-        React.createElement(
-          View,
-          { style: styles.totalRow },
-          React.createElement(Text, { style: styles.totalLabel }, "Subtotal"),
-          React.createElement(Text, { style: styles.totalValue }, fmt(data.subtotal))
-        ),
-        data.taxAmount != null && data.taxRate != null
-          ? React.createElement(
-              View,
-              { style: styles.totalRow },
-              React.createElement(
-                Text,
-                { style: styles.totalLabel },
-                `Tax (${(data.taxRate * 100).toFixed(2)}%)`
-              ),
-              React.createElement(Text, { style: styles.totalValue }, fmt(data.taxAmount))
+      // ── Totals ──
+      el(View, { style: s.totalsBox },
+        // Subtotal (only show if different from total, i.e. there's tax)
+        data.taxAmount != null && data.taxAmount > 0
+          ? el(View, { style: s.totalRow },
+              el(Text, { style: s.totalLabel }, "Subtotal"),
+              el(Text, { style: s.totalValue }, fmt(data.subtotal))
             )
           : null,
-        React.createElement(
-          View,
-          { style: styles.totalRow },
-          React.createElement(Text, { style: { ...styles.totalLabel, ...styles.totalBold } }, "Total"),
-          React.createElement(Text, { style: { ...styles.totalValue, ...styles.totalBold } }, fmt(data.totalAmount))
+        // Tax
+        data.taxAmount != null && data.taxRate != null && data.taxAmount > 0
+          ? el(View, { style: s.totalRow },
+              el(Text, { style: s.totalLabel }, `Tax (${(data.taxRate * 100).toFixed(2)}%)`),
+              el(Text, { style: s.totalValue }, fmt(data.taxAmount))
+            )
+          : null,
+        // Total
+        el(View, { style: s.totalRow },
+          el(Text, { style: { ...s.totalLabel, ...s.totalBold } }, "Total"),
+          el(Text, { style: { ...s.totalValue, ...s.totalBold } }, fmt(data.totalAmount))
         ),
+        // Financing
         data.financingLabel && data.financingMonthly
-          ? React.createElement(
-              View,
-              { style: { ...styles.totalRow, marginTop: 4 } },
-              React.createElement(
-                Text,
-                { style: { ...styles.totalLabel, color: "#e65100" } },
-                `${data.financingLabel}`
-              ),
-              React.createElement(
-                Text,
-                { style: { ...styles.totalValue, color: "#e65100" } },
-                `${fmt(data.financingMonthly)}/mo`
-              )
+          ? el(View, { style: { ...s.totalRow, marginTop: 2 } },
+              el(Text, { style: { ...s.totalLabel, ...s.financingText } }, data.financingLabel),
+              el(Text, { style: { ...s.totalValue, ...s.financingText } }, `${fmt(data.financingMonthly)}/mo`)
             )
           : null
       ),
 
-      // Payment schedule
-      React.createElement(
-        View,
-        { style: styles.paymentSection },
-        React.createElement(Text, { style: styles.paymentTitle }, "Payment Schedule"),
+      // ── Payment Schedule ──
+      el(View, { style: s.paymentBox },
+        el(Text, { style: s.paymentTitle }, "Payment Schedule"),
         ...(data.paymentScheduleType === "large_job"
           ? [
-              React.createElement(Text, { style: styles.paymentText, key: "p1" }, `1. 50% deposit when scheduled: ${fmt(data.totalAmount * 0.5)}`),
-              React.createElement(Text, { style: styles.paymentText, key: "p2" }, `2. 25% after rough-in complete: ${fmt(data.totalAmount * 0.25)}`),
-              React.createElement(Text, { style: styles.paymentText, key: "p3" }, `3. 25% after install complete: ${fmt(data.totalAmount * 0.25)}`),
-              React.createElement(Text, { style: styles.paymentText, key: "p4" }, `4. Final $1,000 after final inspection`),
+              el(Text, { style: s.paymentText, key: "p1" }, `1. 50% deposit when scheduled: ${fmt(data.totalAmount * 0.5)}`),
+              el(Text, { style: s.paymentText, key: "p2" }, `2. 25% after rough-in complete: ${fmt(data.totalAmount * 0.25)}`),
+              el(Text, { style: s.paymentText, key: "p3" }, `3. 25% after install complete: ${fmt(data.totalAmount * 0.25)}`),
+              el(Text, { style: s.paymentText, key: "p4" }, "4. Final $1,000 after final inspection"),
             ]
           : [
-              React.createElement(Text, { style: styles.paymentText, key: "p1" }, `1. 50% deposit when scheduled: ${fmt(data.totalAmount * 0.5)}`),
-              React.createElement(Text, { style: styles.paymentText, key: "p2" }, `2. 50% upon install complete: ${fmt(data.totalAmount * 0.5)}`),
+              el(Text, { style: s.paymentText, key: "p1" }, `1. 50% deposit when scheduled: ${fmt(data.totalAmount * 0.5)}`),
+              el(Text, { style: s.paymentText, key: "p2" }, `2. 50% upon install complete: ${fmt(data.totalAmount * 0.5)}`),
             ])
       ),
 
-      // Signature block
-      React.createElement(
-        View,
-        { style: styles.signatureSection },
-        React.createElement(Text, { style: styles.signatureTitle }, "Customer Acceptance"),
+      // ── Signature ──
+      el(View, { style: s.sigSection },
+        el(Text, { style: s.sigTitle }, "Customer Acceptance"),
         data.signatureDataUrl
-          ? React.createElement(Image, { style: styles.signatureImage, src: data.signatureDataUrl })
+          ? el(Image, { style: s.sigImage, src: data.signatureDataUrl })
           : null,
-        React.createElement(Text, { style: styles.signatureInfo }, `Signed by: ${data.signedName}`),
-        React.createElement(Text, { style: styles.signatureInfo }, `Date: ${fmtDate(data.signedAt)}`),
-        React.createElement(Text, { style: { ...styles.signatureInfo, color: "#aaa" } }, `IP: ${data.signedIp}`)
+        el(Text, { style: s.sigName }, data.signedName),
+        el(Text, { style: s.sigInfo }, `Date: ${fmtDate(data.signedAt)}`),
+        el(Text, { style: { ...s.sigInfo, color: "#aaa" } }, `IP: ${data.signedIp}`)
       ),
 
-      // Footer
-      React.createElement(
-        Text,
-        { style: styles.footer },
-        "Genesis Heating, Cooling & Refrigeration | WA License: GENESR*788QL | (360) 805-1234 | genesishvacr.com\n" +
-          "All work includes standard manufacturer warranty. Financing provided by Synchrony Bank, subject to credit approval.\n" +
-          "Prices valid for 60 days from proposal date."
+      // ── Terms & Conditions ──
+      el(View, { style: s.termsSection },
+        el(Text, { style: s.termsTitle }, "Terms & Conditions"),
+        el(Text, { style: s.termsText }, terms.authorization),
+        el(Text, { style: s.termsText }, `Labor Warranty: ${terms.labor_warranty}`),
+        el(Text, { style: s.termsText }, `Financing: ${terms.financing}`),
+        el(Text, { style: s.termsText }, `Cancellation: ${terms.cancellation}`)
+      ),
+
+      // ── Footer ──
+      el(Text, { style: s.footer },
+        `${co.company_name} | ${co.license_state} License: ${co.license_number} | ${co.phone} | ${co.website}`
       )
     )
   );

@@ -315,6 +315,7 @@ export default function ProposalPage({
           canSign={canSign}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
+          hasFinancing={selectedPlan !== null}
         />
       </div>
 
@@ -343,11 +344,11 @@ export default function ProposalPage({
           <strong style={{ color: "#e8edf5" }}>
             Genesis Heating, Cooling & Refrigeration
           </strong>{" "}
-          &middot; Monroe, WA &middot; (360) 805-1234 &middot;
+          &middot; Monroe, WA &middot; (425) 261-9095 &middot;
           info@genesishvac.com
         </p>
         <p>
-          WA Contractor License #GENHVAC12345 &middot; EPA 608 Certified
+          WA Contractor License #GENESRH862OP &middot; EPA 608 Certified
           &middot; Lennox Premier Dealer
         </p>
         <p
