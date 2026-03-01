@@ -226,7 +226,7 @@ async function handleNewEstimate(
   // Check if estimate was sent to customer
   // HCP uses option.status = "submitted for signoff" when sent (not approval_status)
   // Also check approval_status for already-resolved estimates (approved/declined)
-  const sentOption = hcpOptions.find((o) => {
+  const isSent = hcpOptions.some((o) => {
     const optStatus = String(o.status || "").toLowerCase();
     const approvalStatus = String(o.approval_status || "").toLowerCase();
     return (
@@ -236,22 +236,24 @@ async function handleNewEstimate(
     );
   });
 
-  if (!sentOption) {
-    results.skipped++;
-    return false;
-  }
-
   // Determine local estimate status based on HCP option statuses
-  const anyApproved = hcpOptions.some(
-    (o) => String(o.approval_status || "").toLowerCase() === "approved"
-  );
-  const allDeclined = hcpOptions.every((o) => {
-    const s = String(o.approval_status || "").toLowerCase();
-    return s === "declined";
-  });
-  let localStatus = "active";
-  if (anyApproved) localStatus = "won";
-  else if (allDeclined && hcpOptions.length > 0) localStatus = "lost";
+  let localStatus: string;
+
+  if (!isSent) {
+    // Unsent estimate — import as draft (post-walkthrough, awaiting quote build)
+    localStatus = "draft";
+  } else {
+    const anyApproved = hcpOptions.some(
+      (o) => String(o.approval_status || "").toLowerCase() === "approved"
+    );
+    const allDeclined = hcpOptions.every((o) => {
+      const s = String(o.approval_status || "").toLowerCase();
+      return s === "declined";
+    });
+    localStatus = "active";
+    if (anyApproved) localStatus = "won";
+    else if (allDeclined && hcpOptions.length > 0) localStatus = "lost";
+  }
 
   // Extract customer data
   const hcpCustomer = (hcpEstimate.customer || {}) as Record<string, unknown>;
@@ -564,8 +566,35 @@ async function handleExistingEstimate(
     }
   }
 
+  // --- Transition draft → active when options get sent in HCP ---
+  if (localEstimate.status === "draft") {
+    const nowSent = hcpOptions.some((o) => {
+      const optStatus = String(o.status || "").toLowerCase();
+      const approvalStatus = String(o.approval_status || "").toLowerCase();
+      return (
+        optStatus === "submitted for signoff" ||
+        approvalStatus === "approved" ||
+        approvalStatus === "declined"
+      );
+    });
+
+    if (nowSent) {
+      // Determine target status
+      let newStatus = "active";
+      if (anyApproved) newStatus = "won";
+      else if (allDeclined && hcpOptions.length > 0) newStatus = "lost";
+
+      await supabase
+        .from("estimates")
+        .update({ status: newStatus })
+        .eq("id", localEstimate.id);
+
+      console.log(`[HCP Poll] Draft → ${newStatus}: estimate ${localEstimate.id}`);
+    }
+  }
+
   // --- Update estimate status if options changed (won/lost) ---
-  if (statusChanged && localEstimate.status !== "won" && localEstimate.status !== "lost") {
+  if (statusChanged && localEstimate.status !== "won" && localEstimate.status !== "lost" && localEstimate.status !== "draft") {
     if (anyApproved) {
       await supabase
         .from("estimates")

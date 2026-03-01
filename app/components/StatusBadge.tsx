@@ -10,6 +10,7 @@ const statusConfig: Record<
   lost: { label: "Lost", bg: "bg-red-100 dark:bg-red-900/30", text: "text-red-700 dark:text-red-400" },
   dormant: { label: "Dormant", bg: "bg-gray-100 dark:bg-gray-700", text: "text-gray-600 dark:text-gray-400" },
   sent: { label: "Sent", bg: "bg-purple-100 dark:bg-purple-900/30", text: "text-purple-700 dark:text-purple-400" },
+  draft: { label: "Draft", bg: "bg-orange-100 dark:bg-orange-900/30", text: "text-orange-700 dark:text-orange-400" },
 };
 
 export default function StatusBadge({ status }: { status: EstimateStatus }) {

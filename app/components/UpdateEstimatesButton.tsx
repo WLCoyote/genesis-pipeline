@@ -38,7 +38,7 @@ export default function UpdateEstimatesButton() {
       if (data.updated > 0) parts.push(`${data.updated} updated`);
       if (data.won > 0) parts.push(`${data.won} won`);
       if (data.lost > 0) parts.push(`${data.lost} lost`);
-      if (data.skipped > 0) parts.push(`${data.skipped} not sent`);
+      if (data.skipped > 0) parts.push(`${data.skipped} skipped`);
       if (data.pages_fetched > 0) parts.push(`${data.pages_fetched} pages`);
       setResult(
         parts.length > 0 ? `Found: ${parts.join(", ")}` : "No changes detected"

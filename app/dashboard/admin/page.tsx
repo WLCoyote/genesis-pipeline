@@ -32,7 +32,8 @@ export default async function AdminPage() {
       sent_date,
       customer_id,
       assigned_to,
-      customers ( name ),
+      hcp_estimate_id,
+      customers ( name, address ),
       users!estimates_assigned_to_fkey ( name ),
       follow_up_events ( status, sent_at, channel )
     `
@@ -64,7 +65,9 @@ export default async function AdminPage() {
       total_amount: est.total_amount,
       sent_date: est.sent_date,
       customer_name: est.customers?.name || "Unknown",
+      customer_address: est.customers?.address || null,
       assigned_to_name: est.users?.name || null,
+      hcp_estimate_id: est.hcp_estimate_id || null,
       emails_sent: events.filter(
         (e: any) => e.channel === "email" && e.status === "sent"
       ).length,

@@ -328,7 +328,7 @@ New page: `app/proposals/[token]/page.tsx` — **no auth**, token-gated. Standal
 
 `POST /api/proposals/[token]/engage` — public, no auth. Events: page_open, option_view, calculator_open, plan_selected, addon_checked/unchecked, signature_started, signed. Session timing via visibilitychange + beforeunload using navigator.sendBeacon. Device type auto-detected from user-agent. All events wired into ProposalPage client component. Best-effort tracking — never blocks the customer experience.
 
-### Step 7.3: Signature + PDF Generation + HCP Writeback — NOT STARTED
+### Step 7.3: Signature + PDF Generation + HCP Writeback — ✅ COMPLETE
 
 **Prerequisites:** Install `@react-pdf/renderer`, create Supabase Storage bucket `proposal-pdfs`.
 
@@ -363,6 +363,17 @@ New page: `app/proposals/[token]/page.tsx` — **no auth**, token-gated. Standal
 
 **HCP writeback (post-send, Phase 7.3b — future):**
 - When proposal is sent: add option note to HCP ("Proposal sent via Genesis Pipeline on {date}")
+
+### Step 7.3b: Unsent Estimates (Draft Import from HCP) — ✅ COMPLETE
+
+**Problem:** HCP polling only imported estimates that had been "submitted for signoff". Post-walkthrough estimates (unsent) were invisible in Pipeline — comfort pro had to manually enter customer info in the quote builder.
+
+**Solution:**
+- **SQL migration `019`:** Added `'draft'` to `estimates.status` CHECK constraint
+- **HCP polling expanded:** `handleNewEstimate()` now imports unsent estimates as `status='draft'` instead of skipping. Auto-transitions `draft→active` when options get sent in HCP.
+- **Estimates tab:** Pipeline/Unsent segmented tabs. Unsent tab shows draft estimates with customer name, address, HCP estimate #, and an orange "Build Quote" button.
+- **Build Quote flow:** Button navigates to `/dashboard/quote-builder?estimate_id=xxx`. Server page fetches draft estimate + customer data, passes as `draftEstimate` prop. Customer fields pre-filled, assigned_to preserved.
+- **Quote creation from draft:** `POST /api/quotes/create` detects `existing_estimate_id`, updates the existing draft (status→active, adds line items + proposal token) instead of creating a new estimate. Keeps the original HCP estimate number and `hcp_estimate_id`. Skips HCP sync (estimate already exists in HCP).
 
 ### Step 7.4: Proposal Tracking in Dashboard
 

@@ -611,13 +611,14 @@ The HCP polling cron (`/api/cron/poll-hcp-status`) and the manual "Update Estima
 - Pagination stops early when an entire page is older than the cutoff. Max 5 pages per poll
 - Before fetching from HCP, all local estimate IDs (`hcp_estimate_id` and `estimate_number`) are pre-loaded into memory Sets for O(1) matching — no per-estimate DB query
 
-**New estimate detection:** If an estimate exists in HCP but not locally, and any option has `status = "submitted for signoff"` (sent to customer) or `approval_status = "approved"/"declined"` (already resolved), the cron creates the local customer and estimate:
+**New estimate detection:** All HCP estimates within the cutoff window are imported:
+- **Sent estimates** (option `status = "submitted for signoff"` or `approval_status = "approved"/"declined"`) → created as `status = "active"/"won"/"lost"` (enrolled in follow-up sequence if active)
+- **Unsent estimates** (no options sent yet) → created as `status = "draft"`. These appear in the "Unsent" tab on the estimates page with a "Build Quote" button. When options later get sent in HCP, auto-transitions `draft → active`.
 - Customer name priority: `customer.company` > `first_name + last_name` > "Unknown"
 - HCP amounts are in cents — divided by 100
 - Sent date: `estimate.schedule.scheduled_start` if available, else `estimate.created_at`. Do NOT use `option.updated_at` — it reflects last modification, not send date
-- Local status: submitted → "active" (enrolled in sequence), approved → "won", all declined → "lost"
 
-**Existing estimate updates:** Full refresh on every poll. Customer name, email, phone updated from HCP. Total amount (cents/100), sent date, all option amounts/descriptions/statuses synced. New options added in HCP are created locally. If an option's `approval_status` changes to approved/declined, estimate status updates, sequence stops, comfort pro notified.
+**Existing estimate updates:** Full refresh on every poll. Customer name, email, phone updated from HCP. Total amount (cents/100), sent date, all option amounts/descriptions/statuses synced. New options added in HCP are created locally. If an option's `approval_status` changes to approved/declined, estimate status updates, sequence stops, comfort pro notified. Draft estimates auto-transition to active/won/lost when options get sent.
 
 ### 4.5 Inbound SMS (Twilio Webhook)
 

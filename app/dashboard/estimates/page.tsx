@@ -24,7 +24,7 @@ export default async function EstimatesPage() {
   const role = dbUser.role as UserRole;
 
   // Build estimate query with joins
-  let query = supabase
+  const query = supabase
     .from("estimates")
     .select(
       `
@@ -35,7 +35,8 @@ export default async function EstimatesPage() {
       sent_date,
       customer_id,
       assigned_to,
-      customers ( name ),
+      hcp_estimate_id,
+      customers ( name, address ),
       users!estimates_assigned_to_fkey ( name ),
       follow_up_events ( status, sent_at, channel )
     `
@@ -97,7 +98,9 @@ export default async function EstimatesPage() {
       total_amount: est.total_amount,
       sent_date: est.sent_date,
       customer_name: est.customers?.name || "Unknown",
+      customer_address: est.customers?.address || null,
       assigned_to_name: est.users?.name || null,
+      hcp_estimate_id: est.hcp_estimate_id || null,
       emails_sent: emailsSent,
       sms_sent: smsSent,
       calls_made: callsMade,
@@ -118,7 +121,7 @@ export default async function EstimatesPage() {
               : "Your assigned estimates"}
           </p>
         </div>
-        {["admin", "csr"].includes(role) && <UpdateEstimatesButton />}
+        {["admin", "csr", "comfort_pro"].includes(role) && <UpdateEstimatesButton />}
       </div>
       <EstimateTable estimates={rows} role={role} />
     </div>

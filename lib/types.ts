@@ -35,7 +35,8 @@ export type EstimateStatus =
   | "snoozed"
   | "won"
   | "lost"
-  | "dormant";
+  | "dormant"
+  | "draft";
 
 export interface Estimate {
   id: string;

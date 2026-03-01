@@ -104,12 +104,25 @@ interface TierForm {
 
 // ---- Props ----
 
+interface DraftEstimate {
+  id: string;
+  estimate_number: string;
+  hcp_estimate_id: string | null;
+  customer_id: string;
+  customer_name: string;
+  customer_email: string | null;
+  customer_phone: string | null;
+  customer_address: string | null;
+  assigned_to: string | null;
+}
+
 interface QuoteBuilderProps {
   templates: TemplateData[];
   pricebookItems: PricebookItemSlim[];
   financingPlans: FinancingPlanSlim[];
   users: UserSlim[];
   currentUserId: string;
+  draftEstimate?: DraftEstimate | null;
 }
 
 // ---- Helpers ----
@@ -144,18 +157,29 @@ export default function QuoteBuilder({
   financingPlans,
   users,
   currentUserId,
+  draftEstimate,
 }: QuoteBuilderProps) {
   const router = useRouter();
 
-  // Customer state
+  // Customer state — pre-fill from draft estimate if present
   const [customerSearch, setCustomerSearch] = useState("");
   const [customerResults, setCustomerResults] = useState<CustomerResult[]>([]);
   const [searching, setSearching] = useState(false);
-  const [selectedCustomer, setSelectedCustomer] = useState<CustomerResult | null>(null);
-  const [customerName, setCustomerName] = useState("");
-  const [customerEmail, setCustomerEmail] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [customerAddress, setCustomerAddress] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerResult | null>(
+    draftEstimate
+      ? {
+          id: draftEstimate.customer_id,
+          name: draftEstimate.customer_name,
+          email: draftEstimate.customer_email,
+          phone: draftEstimate.customer_phone,
+          address: draftEstimate.customer_address,
+        }
+      : null
+  );
+  const [customerName, setCustomerName] = useState(draftEstimate?.customer_name || "");
+  const [customerEmail, setCustomerEmail] = useState(draftEstimate?.customer_email || "");
+  const [customerPhone, setCustomerPhone] = useState(draftEstimate?.customer_phone || "");
+  const [customerAddress, setCustomerAddress] = useState(draftEstimate?.customer_address || "");
   const [isNewCustomer, setIsNewCustomer] = useState(false);
 
   // Template state
@@ -178,7 +202,7 @@ export default function QuoteBuilder({
   const [pickerQuantities, setPickerQuantities] = useState<Record<string, number>>({});
 
   // Assignment & options
-  const [assignedTo, setAssignedTo] = useState(currentUserId);
+  const [assignedTo, setAssignedTo] = useState(draftEstimate?.assigned_to || currentUserId);
 
   // Submission
   const [saving, setSaving] = useState(false);
@@ -472,6 +496,7 @@ export default function QuoteBuilder({
 
     try {
       const payload = {
+        existing_estimate_id: draftEstimate?.id || null,
         customer_id: selectedCustomer?.id || null,
         customer_name: customerName.trim(),
         customer_email: customerEmail.trim() || null,

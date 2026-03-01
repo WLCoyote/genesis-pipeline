@@ -127,23 +127,45 @@ export async function POST(request: NextRequest) {
     customerId = newCust.id;
   }
 
-  // --- 2. Generate estimate number (GEN-{sequential}) ---
-  const { data: lastEst } = await supabase
-    .from("estimates")
-    .select("estimate_number")
-    .like("estimate_number", "GEN-%")
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
+  // --- 2. Check if building from existing draft estimate ---
+  let existingEstimate: { id: string; estimate_number: string; hcp_estimate_id: string | null } | null = null;
 
-  let nextNum = 1001;
-  if (lastEst?.estimate_number) {
-    const match = lastEst.estimate_number.match(/^GEN-(\d+)$/);
-    if (match) nextNum = parseInt(match[1], 10) + 1;
+  if (body.existing_estimate_id) {
+    const { data: draft } = await supabase
+      .from("estimates")
+      .select("id, estimate_number, hcp_estimate_id")
+      .eq("id", body.existing_estimate_id)
+      .eq("status", "draft")
+      .single();
+
+    if (draft) {
+      existingEstimate = draft;
+    }
   }
-  const estimateNumber = `GEN-${nextNum}`;
 
-  // --- 3. Generate proposal token ---
+  // --- 3. Generate estimate number (or reuse from draft) ---
+  let estimateNumber: string;
+
+  if (existingEstimate) {
+    estimateNumber = existingEstimate.estimate_number;
+  } else {
+    const { data: lastEst } = await supabase
+      .from("estimates")
+      .select("estimate_number")
+      .like("estimate_number", "GEN-%")
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    let nextNum = 1001;
+    if (lastEst?.estimate_number) {
+      const match = lastEst.estimate_number.match(/^GEN-(\d+)$/);
+      if (match) nextNum = parseInt(match[1], 10) + 1;
+    }
+    estimateNumber = `GEN-${nextNum}`;
+  }
+
+  // --- 4. Generate proposal token ---
   const proposalToken = crypto.randomBytes(32).toString("hex");
 
   // --- 4. Calculate totals per tier ---
@@ -203,36 +225,70 @@ export async function POST(request: NextRequest) {
   const autoDeclineDate = new Date();
   autoDeclineDate.setDate(autoDeclineDate.getDate() + autoDeclineDays);
 
-  // --- 6. Create estimate ---
+  // --- 7. Create or update estimate ---
   const assignedTo = body.assigned_to || user.id;
+  let estimate: { id: string };
 
-  const { data: estimate, error: estErr } = await supabase
-    .from("estimates")
-    .insert({
-      estimate_number: estimateNumber,
-      customer_id: customerId,
-      assigned_to: assignedTo,
-      status: "active",
-      total_amount: Math.round(totalAmount * 100) / 100,
-      subtotal: Math.round(subtotal * 100) / 100,
-      tax_rate: taxRate,
-      tax_amount: taxAmount !== null ? Math.round(taxAmount * 100) / 100 : null,
-      sent_date: new Date().toISOString().split("T")[0],
-      sequence_id: seq?.id || null,
-      sequence_step_index: 0,
-      auto_decline_date: autoDeclineDate.toISOString().split("T")[0],
-      proposal_token: proposalToken,
-      template_id: body.template_id || null,
-      payment_schedule_type: body.payment_schedule_type || "standard",
-    })
-    .select("id")
-    .single();
+  if (existingEstimate) {
+    // Update existing draft → active
+    const { error: updateErr } = await supabase
+      .from("estimates")
+      .update({
+        customer_id: customerId,
+        assigned_to: assignedTo,
+        status: "active",
+        total_amount: Math.round(totalAmount * 100) / 100,
+        subtotal: Math.round(subtotal * 100) / 100,
+        tax_rate: taxRate,
+        tax_amount: taxAmount !== null ? Math.round(taxAmount * 100) / 100 : null,
+        sent_date: new Date().toISOString().split("T")[0],
+        sequence_id: seq?.id || null,
+        sequence_step_index: 0,
+        auto_decline_date: autoDeclineDate.toISOString().split("T")[0],
+        proposal_token: proposalToken,
+        template_id: body.template_id || null,
+        payment_schedule_type: body.payment_schedule_type || "standard",
+      })
+      .eq("id", existingEstimate.id);
 
-  if (estErr || !estimate) {
-    return NextResponse.json(
-      { error: estErr?.message || "Failed to create estimate" },
-      { status: 500 }
-    );
+    if (updateErr) {
+      return NextResponse.json(
+        { error: updateErr.message || "Failed to update estimate" },
+        { status: 500 }
+      );
+    }
+    estimate = { id: existingEstimate.id };
+  } else {
+    // Insert new estimate
+    const { data: newEst, error: estErr } = await supabase
+      .from("estimates")
+      .insert({
+        estimate_number: estimateNumber,
+        customer_id: customerId,
+        assigned_to: assignedTo,
+        status: "active",
+        total_amount: Math.round(totalAmount * 100) / 100,
+        subtotal: Math.round(subtotal * 100) / 100,
+        tax_rate: taxRate,
+        tax_amount: taxAmount !== null ? Math.round(taxAmount * 100) / 100 : null,
+        sent_date: new Date().toISOString().split("T")[0],
+        sequence_id: seq?.id || null,
+        sequence_step_index: 0,
+        auto_decline_date: autoDeclineDate.toISOString().split("T")[0],
+        proposal_token: proposalToken,
+        template_id: body.template_id || null,
+        payment_schedule_type: body.payment_schedule_type || "standard",
+      })
+      .select("id")
+      .single();
+
+    if (estErr || !newEst) {
+      return NextResponse.json(
+        { error: estErr?.message || "Failed to create estimate" },
+        { status: 500 }
+      );
+    }
+    estimate = newEst;
   }
 
   // --- 7. Insert estimate_line_items (snapshot prices from pricebook) ---
@@ -301,10 +357,20 @@ export async function POST(request: NextRequest) {
   }
 
   // --- 9. HCP Sync (non-blocking — Pipeline estimate succeeds even if HCP fails) ---
+  // Skip HCP sync if building from a draft that already has an HCP estimate
+  const skipHcpSync = existingEstimate?.hcp_estimate_id != null;
   let hcpSyncResult: { hcp_customer_id: string; hcp_estimate_id: string } | null = null;
   let hcpSyncError: string | null = null;
 
-  try {
+  if (skipHcpSync && existingEstimate?.hcp_estimate_id) {
+    hcpSyncResult = {
+      hcp_customer_id: "",
+      hcp_estimate_id: existingEstimate.hcp_estimate_id,
+    };
+    console.log(`[HCP Sync] Skipped — draft already linked to HCP estimate ${existingEstimate.hcp_estimate_id}`);
+  }
+
+  if (!skipHcpSync) try {
     // Look up existing HCP customer ID
     const { data: customerRow } = await supabase
       .from("customers")
