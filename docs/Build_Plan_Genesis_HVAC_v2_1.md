@@ -430,7 +430,7 @@ Second E2E test revealed 3 more issues, all fixed:
 
 ---
 
-## PHASE 7.6: Quote Builder UI Overhaul — IN PROGRESS
+## PHASE 7.6: Quote Builder UI Overhaul — ✅ COMPLETE
 
 Rewrites the quote builder from a vertical stacked form to a professional 3-column tier comparison view with persistent pricebook sidebar, live totals bar, step navigation, and full save/preview/send workflow. HTML mockup: `docs/genesis-quote-builder-ui.html`.
 
@@ -447,9 +447,9 @@ Rewrites the quote builder from a vertical stacked form to a professional 3-colu
 3. **Phase C**: ✅ Layout shell — QuoteBuilder parent + Topbar + Steps + TotalsBar
 4. **Phase D**: ✅ Step content — CustomerStep, TiersStep (3-column), AddonsStep, FinancingStep, ReviewStep
 5. **Phase E**: ✅ PricebookPanel (right sidebar: search, tabs, favorites, items, tier target selector)
-6. **Phase F**: Server page updates (expand financing plan data, add is_favorite to query, update import path)
-7. **Phase G**: Draft save endpoint (`POST /api/quotes/draft`), create endpoint updates
-8. **Phase H**: PricebookManager favorites toggle
+6. **Phase F**: ✅ Server page updates — expanded financing plan query (fee_pct, months, apr, is_default), added is_favorite to pricebook query, updated import path to new quote-builder/, removed page-level h1
+7. **Phase G**: ✅ Draft save endpoint (`POST /api/quotes/draft`) — creates/updates draft estimates with line items + category. Updated `POST /api/quotes/create` to store `category` on line items + `selected_financing_plan_id` on estimate.
+8. **Phase H**: ✅ PricebookManager favorites toggle — star ★ button per row, calls PUT endpoint with `is_favorite`
 
 ### Component Architecture (split from ~1100-line monolith)
 ```

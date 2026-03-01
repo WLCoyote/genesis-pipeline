@@ -110,7 +110,8 @@
 | Route | Method | Purpose |
 |-------|--------|---------|
 | `/api/customers/search` | GET | Search customers by name/email/phone. `?q=` (any authenticated user) |
-| `/api/quotes/create` | POST | Create estimate + line items + generate proposal_token (admin, comfort_pro) |
+| `/api/quotes/create` | POST | Create estimate + line items + generate proposal_token + HCP sync (admin, comfort_pro, csr) |
+| `/api/quotes/draft` | POST | Save/update draft estimate with line items. No proposal token, no HCP sync. Upsert via `existing_estimate_id`. (admin, comfort_pro, csr) |
 | `/api/tax/lookup` | GET | WA DOR tax rate lookup. `?address=&city=&zip=` (any authenticated user) |
 | `/api/estimates/[id]/sync-hcp` | POST | Manual retry HCP sync for failed quote syncs (admin, estimate owner) |
 

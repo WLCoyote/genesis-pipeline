@@ -173,7 +173,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete. E2E bug fixes done (sql/021). HCP writeback fixed for draft flow.
+Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul). E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023 needs to be run in Supabase before new quote builder is usable.
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -196,7 +196,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete. 
 | Phase 7.3b | Unsent estimates — HCP polling pulls drafts, Pipeline/Unsent tabs on estimates page, Build Quote button pre-loads customer into quote builder, draft→active on quote creation | **Complete** |
 | Phase 7.4 | Proposal tracking in dashboard (ProposalEngagementPanel, LineItemsView, dual data model, View Proposal button, sequence template variables updated) | **Complete** |
 | Phase 7.5 | Proposal polish — flat-rate PDF, signature fix (black pen), company settings page, disclosure checkboxes, Synchrony pre-approval button, favicon, dynamic terms/company info | **Complete** |
-| Phase 7.6 | Quote builder UI overhaul — 3-column tiers, steps bar, live totals bar, pricebook sidebar panel, save draft/preview/send, category restructure, favorites | **In progress** — components built (A-E), server page + endpoints + favorites toggle remaining (F-H) |
+| Phase 7.6 | Quote builder UI overhaul — 3-column tiers, steps bar, live totals bar, pricebook sidebar panel, save draft/preview/send, category restructure, favorites | **Complete** — all 8 phases (A-H) done. 12 components, draft endpoint, favorites toggle. Needs sql/023 run in Supabase. |
 | Phase 8 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
 | v0.2 | HCP webhooks, analytics | Future |
@@ -209,8 +209,8 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete. 
 | ----- | ----- |
 | ~~Tax toggle in quote builder~~ | **Done** (Phase 7.5) |
 | ~~Edit estimates / revise proposals~~ | **Done** (Phase 7.5 — edit button + lock signed) |
-| Quote builder UI overhaul | **Phase 7.6** — 3-column tiers, steps bar, live totals, pricebook panel, save draft/preview/send |
-| ~~Quote builder line item category restructure~~ | **Phase 7.6** — Indoor, Cased Coil, Outdoor, Equipment Warranty, Labor Warranty, Maintenance Plan |
+| ~~Quote builder UI overhaul~~ | **Done** (Phase 7.6) — 3-column tiers, steps bar, live totals, pricebook panel, save draft/preview/send |
+| ~~Quote builder line item category restructure~~ | **Done** (Phase 7.6) — Indoor, Cased Coil, Outdoor, Equipment Warranty, Labor Warranty, Maintenance Plan |
 | Install materials builder | Pricebook tool to bundle install materials |
 | Maintenance plan builder | Service plans, subscriptions |
 | Configurable payment terms | 50/50 default, 4-payment option, configurable in quote builder |
