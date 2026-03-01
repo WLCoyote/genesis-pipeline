@@ -430,7 +430,7 @@ Second E2E test revealed 3 more issues, all fixed:
 
 ---
 
-## PHASE 7.6: Quote Builder UI Overhaul — NOT STARTED
+## PHASE 7.6: Quote Builder UI Overhaul — IN PROGRESS
 
 Rewrites the quote builder from a vertical stacked form to a professional 3-column tier comparison view with persistent pricebook sidebar, live totals bar, step navigation, and full save/preview/send workflow. HTML mockup: `docs/genesis-quote-builder-ui.html`.
 
@@ -442,12 +442,12 @@ Rewrites the quote builder from a vertical stacked form to a professional 3-colu
 - **Financing in builder**: Live monthly per tier in totals bar using `cash / (1 - fee_pct) / months`
 
 ### Build Order
-1. **Phase A**: DB migration `sql/023_quote_builder_overhaul.sql` — add `is_favorite` to pricebook_items, new categories, `category` on estimate_line_items
-2. **Phase B**: Types + utils extraction into `app/components/quote-builder/types.ts` and `utils.ts`
-3. **Phase C**: Layout shell — QuoteBuilder parent + Topbar + Steps + TotalsBar
-4. **Phase D**: Step content — CustomerStep, TiersStep (3-column), AddonsStep, FinancingStep, ReviewStep
-5. **Phase E**: PricebookPanel (right sidebar: search, tabs, favorites, items, tier target selector)
-6. **Phase F**: Server page updates (expand financing plan data, add is_favorite to query)
+1. **Phase A**: ✅ DB migration `sql/023_quote_builder_overhaul.sql` — add `is_favorite` to pricebook_items, new categories, `category` on estimate_line_items
+2. **Phase B**: ✅ Types + utils extraction into `app/components/quote-builder/types.ts` and `utils.ts`
+3. **Phase C**: ✅ Layout shell — QuoteBuilder parent + Topbar + Steps + TotalsBar
+4. **Phase D**: ✅ Step content — CustomerStep, TiersStep (3-column), AddonsStep, FinancingStep, ReviewStep
+5. **Phase E**: ✅ PricebookPanel (right sidebar: search, tabs, favorites, items, tier target selector)
+6. **Phase F**: Server page updates (expand financing plan data, add is_favorite to query, update import path)
 7. **Phase G**: Draft save endpoint (`POST /api/quotes/draft`), create endpoint updates
 8. **Phase H**: PricebookManager favorites toggle
 
