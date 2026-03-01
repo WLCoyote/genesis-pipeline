@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import QuoteBuilder from "@/app/components/QuoteBuilder";
+import QuoteBuilder from "@/app/components/quote-builder/QuoteBuilder";
 
 interface Props {
   searchParams: Promise<{ estimate_id?: string }>;
@@ -41,14 +41,14 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
   // Fetch pricebook items for the item picker
   const { data: pricebookItems } = await supabase
     .from("pricebook_items")
-    .select("id, display_name, spec_line, unit_price, cost, manufacturer, model_number, category, system_type, efficiency_rating, is_addon, addon_default_checked, unit_of_measure, hcp_type")
+    .select("id, display_name, spec_line, unit_price, cost, manufacturer, model_number, category, system_type, efficiency_rating, is_addon, addon_default_checked, unit_of_measure, hcp_type, is_favorite")
     .eq("is_active", true)
     .order("display_name", { ascending: true });
 
-  // Fetch active financing plans (for reference)
+  // Fetch active financing plans (full data for monthly calculations)
   const { data: financingPlans } = await supabase
     .from("financing_plans")
-    .select("id, plan_code, label")
+    .select("id, plan_code, label, fee_pct, months, apr, is_default")
     .eq("is_active", true)
     .order("display_order", { ascending: true });
 
@@ -112,26 +112,13 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
   }
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          {draftEstimate ? `Quote for ${draftEstimate.customer_name}` : "New Quote"}
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          {draftEstimate
-            ? `Editing estimate #${draftEstimate.estimate_number}. Select a template or add items to build tiers.`
-            : "Build a quote with Standard Comfort / Enhanced Efficiency / Premium Performance tiers. A proposal link is generated automatically."}
-        </p>
-      </div>
-
-      <QuoteBuilder
-        templates={templates || []}
-        pricebookItems={pricebookItems || []}
-        financingPlans={financingPlans || []}
-        users={teamUsers || []}
-        currentUserId={user.id}
-        draftEstimate={draftEstimate}
-      />
-    </div>
+    <QuoteBuilder
+      templates={templates || []}
+      pricebookItems={pricebookItems || []}
+      financingPlans={financingPlans || []}
+      users={teamUsers || []}
+      currentUserId={user.id}
+      draftEstimate={draftEstimate}
+    />
   );
 }

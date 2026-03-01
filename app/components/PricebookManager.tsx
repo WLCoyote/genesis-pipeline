@@ -461,6 +461,26 @@ export default function PricebookManager({ initialItems, initialCategories, init
     }
   };
 
+  // Toggle favorite
+  const handleToggleFavorite = async (id: string, currentValue: boolean) => {
+    try {
+      const res = await fetch(`/api/admin/pricebook/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ is_favorite: !currentValue }),
+      });
+      if (res.ok) {
+        setItems((prev) =>
+          prev.map((item) =>
+            item.id === id ? { ...item, is_favorite: !currentValue } : item
+          )
+        );
+      }
+    } catch {
+      // Silent — non-critical toggle
+    }
+  };
+
   // Deactivate
   const handleDeactivate = async (id: string) => {
     try {
@@ -1088,6 +1108,7 @@ export default function PricebookManager({ initialItems, initialCategories, init
                     />
                   </th>
                   <th className="w-8 px-2 py-3"></th>
+                  <th className="w-8 px-1 py-3"></th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-gray-400">
                     Name
                   </th>
@@ -1132,6 +1153,19 @@ export default function PricebookManager({ initialItems, initialCategories, init
                       </td>
                       <td className="px-2 py-3 text-center">
                         {refrigerantDot(item.refrigerant_type)}
+                      </td>
+                      <td className="px-1 py-3 text-center">
+                        <button
+                          onClick={() => handleToggleFavorite(item.id, item.is_favorite)}
+                          className={`text-sm transition-colors ${
+                            item.is_favorite
+                              ? "text-amber-400"
+                              : "text-gray-300 dark:text-gray-600 hover:text-amber-400"
+                          }`}
+                          title={item.is_favorite ? "Remove from Quick Picks" : "Add to Quick Picks"}
+                        >
+                          ★
+                        </button>
                       </td>
                       <td className="px-4 py-3">
                         <div className="font-medium text-gray-900 dark:text-gray-100">

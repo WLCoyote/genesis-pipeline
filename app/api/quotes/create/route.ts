@@ -248,6 +248,7 @@ export async function POST(request: NextRequest) {
         proposal_token: proposalToken,
         template_id: body.template_id || null,
         payment_schedule_type: body.payment_schedule_type || "standard",
+        selected_financing_plan_id: body.selected_financing_plan_id || null,
       })
       .eq("id", existingEstimate.id);
 
@@ -278,6 +279,7 @@ export async function POST(request: NextRequest) {
         proposal_token: proposalToken,
         template_id: body.template_id || null,
         payment_schedule_type: body.payment_schedule_type || "standard",
+        selected_financing_plan_id: body.selected_financing_plan_id || null,
       })
       .select("id")
       .single();
@@ -305,6 +307,7 @@ export async function POST(request: NextRequest) {
     is_addon: boolean;
     is_selected: boolean;
     sort_order: number;
+    category: string | null;
   }> = [];
 
   for (const tier of body.tiers) {
@@ -327,6 +330,7 @@ export async function POST(request: NextRequest) {
         is_addon: item.is_addon ?? false,
         is_selected: item.addon_default_checked ?? !item.is_addon,
         sort_order: item.sort_order ?? idx,
+        category: item.category || null,
       });
     }
   }
