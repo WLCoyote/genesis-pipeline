@@ -411,8 +411,23 @@ Second E2E test revealed 3 more issues, all fixed:
 8. **LineItemsView too verbose:** Showed every line item across all 3 tiers. Condensed to tier summary cards (name + subtotal). Accepted tier highlighted green with "Accepted" badge and expanded items; other tiers dimmed.
 9. **No PDF download on estimate page:** "View Proposal" pointed to live proposal page even after signing (showing "Proposal Accepted" page). Fix: "View Proposal" only shows when unsigned; green "Download Signed PDF" button shows when `proposal_pdf_url` exists.
 
+### Phase 7.5: Proposal Polish + Company Settings + Tax Toggle — ✅ COMPLETE
+
+1. **Flat-rate PDF:** Removed individual line item prices. Items shown as bullet list (name + spec), only total displayed. Condensed layout targets 1-page output.
+2. **Signature fix:** Changed canvas from `penColor="#fff" backgroundColor="transparent"` to `penColor="#000" backgroundColor="#ffffff"`. Signature was invisible on white PDF. Added printed name directly under signature on PDF.
+3. **Company settings page:** Admin settings page expanded with Company Information section (7 fields: company_name, phone, email, website, address, license_number, license_state) and Proposal Terms section (4 textareas: authorization, labor_warranty, financing, cancellation). New `lib/company-settings.ts` with `getCompanyInfo()` and `getProposalTerms()` — reads from settings table with defaults. `sql/022_company_settings.sql` seeds initial values.
+4. **Dynamic company info:** PDF and confirmation email now pull company name, phone, license, website from settings (not hardcoded). Settings API changed from `.update()` to `.upsert()` with `onConflict: "key"` to handle new keys.
+5. **Disclosure checkboxes:** Three checkboxes on proposal page before signing — Terms & Conditions, Labor Warranty, Financing (conditional on financing plan selected). All must be checked to enable submit.
+6. **"Get Pre-Approved" button:** Added to FinancingCalculator linking to Synchrony dealer page.
+7. **Favicon:** Genesis mascot logo as `app/icon.png` + `app/apple-icon.png`.
+8. **Phone/license fix:** Corrected to (425) 261-9095 and GENESRH862OP across all files.
+9. **Tax toggle in quote builder:** Checkbox to include/exclude tax. Auto-lookups WA DOR rate using customer address. Shows rate, allows re-lookup. Sends `tax_rate` in create payload (API already supported it). Summary cards show tax + total with tax per tier.
+10. **Edit estimates / lock signed:** "Edit Quote" button (amber) on estimate detail page for unsigned Pipeline estimates. Signed proposals show "Signed [date]" badge. Quote builder accepts non-draft estimates. Signed estimates redirect away from quote builder.
+
 **Pending user feature requests (not yet built):**
-- Edit estimates / revise proposals
+- Tax toggle in quote builder — DONE (moved to Phase 7.5)
+- Edit estimates / revise proposals — partially done (button + lock done; full tier/item pre-loading deferred to quote builder overhaul)
+- Quote builder UI overhaul (3-column tiers, steps bar, live totals, pricebook panel — HTML mockup in `docs/genesis-quote-builder-ui.html`)
 - Quote builder line item category restructure (Labor → Indoor → Cased Coil → Outdoor → Install Materials → Equipment Warranty → Labor Warranty → Maintenance Plan)
 - Install materials builder, maintenance plan builder
 - Configurable payment terms in quote builder

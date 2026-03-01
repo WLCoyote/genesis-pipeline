@@ -193,7 +193,7 @@ Admin creates invites. On first Google sign-in, auth callback matches by email, 
 | updated_by | UUID FK → users | |
 | updated_at | TIMESTAMPTZ | |
 
-Also stores QBO OAuth tokens (encrypted) and HCP lead source cache.
+Also stores QBO OAuth tokens (encrypted), HCP lead source cache, `company_info` (company name, phone, email, website, address, license number/state), and `proposal_terms` (authorization, labor warranty, financing, cancellation text). Seeded by `sql/022_company_settings.sql`. API uses upsert with `onConflict: "key"`.
 
 ---
 
@@ -529,7 +529,7 @@ These routes are called by the dashboard UI. They require an authenticated Supab
 | `/api/follow-up-events/[id]` | PUT | Edit pending event content (30-min edit window). |
 | `/api/notifications` | GET | User notifications. |
 | `/api/notifications/[id]/read` | PUT | Mark notification as read. |
-| `/api/admin/settings` | GET/PUT | Read/write system settings. Admin only. |
+| `/api/admin/settings` | GET/PUT | Read/write system settings (pipeline settings, company_info, proposal_terms). Uses upsert. Admin only. |
 | `/api/admin/import-csv` | POST | CSV estimate import. Admin only. |
 | `/api/admin/sequences` | GET/PUT | Read/write follow-up sequences. Admin only. |
 | `/api/admin/team` | GET | List team members and invites. Admin only. |
@@ -688,6 +688,7 @@ Admin creates campaign, selects audience via tag/segment filters, sets "not cont
 | `/lib/hcp.ts` | HCP API client (planned). `getEstimates()`, `declineOptions()`, `approveOption()`, `postNamedLink()`. Reusable by Command Layer. |
 | `/lib/qbo.ts` | QBO client. `refreshToken()`, `getInvoiceByReference()`, `getInvoicePaidStatus()`, `getPreTaxTotal()`. Reusable by Command Layer. |
 | `/lib/tax.ts` | WA DOR API wrapper. `getTaxRate({address, city?, zip?})` → `{rate, source}`. 5s timeout, falls back to 0.092 (Monroe default). Built. |
+| `/lib/company-settings.ts` | `getCompanyInfo()` and `getProposalTerms()` — reads company info and proposal terms from settings table with hardcoded defaults as fallback. Used by sign endpoint, PDF generation, and confirmation email. Built. |
 | `/lib/commission.ts` | Commission calculation logic. `getTierRate(userId, periodRevenue)`, `calculateEstimated()`, `calculateConfirmed()`. |
 | `/lib/proposal.ts` | Proposal generation. `generateToken()`, `buildProposalData()`, `generateSignedPdf()`. |
 | `/lib/supabase.ts` | Supabase client (anon + service role). Pipeline-specific query helpers. |

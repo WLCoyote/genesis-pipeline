@@ -67,7 +67,7 @@ The platform replaces the need for expensive tools like Mailchimp ($45–$350/mo
 
 | Role | Who | Access |
 |------|-----|--------|
-| Admin | Wylee | Full access. Configures sequences, pricebook, financing plans, add-on catalog, commission tiers, team settings. Views all data across all comfort pros. Primary person setting up campaigns and automations. |
+| Admin | Wylee | Full access. Configures sequences, pricebook, financing plans, add-on catalog, commission tiers, team settings, company information (name, phone, email, website, address, license), and proposal terms/policies. Views all data across all comfort pros. Primary person setting up campaigns and automations. |
 | Comfort Pro | Sales staff (currently 1, growing) | Primary daily user of the estimate pipeline. Sees only their assigned estimates and leads. Builds quotes in pricebook. Manages their follow-up queue: can snooze sequences per customer with notes, edit messages before auto-send, and mark call tasks as completed. Views their own commission dashboard. Receives real-time notifications when leads engage (open emails, click links, reply to SMS). Needs the system to be as simple as Housecall Pro — productive within 10 minutes of first use. |
 | CSR | Office staff | Creates initial records when calls come in, can assign comfort pros to estimates. Creates and manages inbound leads from external sources (Facebook ads, Google ads, website forms) via the Leads tab — can update lead status, add notes, and move qualified leads to HCP with a single button click. Views inbox and unmatched SMS threads. Limited access — no campaign creation or settings management. |
 | Senior CP (V2) | Future role | Manager commission (+1%) earned on their comfort pros' closed jobs. Schema supports this from day one. UI in V2. |
@@ -144,8 +144,8 @@ URL: `proposals.genesishvacr.com/[secure-token]`. Light theme (white/gray backgr
 | 6 | Add-ons | "Recommended for Your System" section. Checkbox cards. PM Plan pre-checked. Others unchecked. Adding/removing updates calculator total in real time. |
 | 7 | Payment schedule | Standard: 50% to schedule, 50% on completion. Large job (Remodel/New Con tag): 50% / 25% rough-in / 25% install complete / $1,000 pending inspection. Shown as visual timeline. |
 | 8 | Why Genesis | 3-4 Google reviews (manually entered in Pipeline settings). Company story (editable text block). Team/install photo if available. |
-| 9 | Signature block | Summary of selections (option, add-ons, financing plan, total, payment schedule). Customer name field. Signature (click-to-sign or draw). Authorization text. "Approve Proposal" button. |
-| 10 | Footer | Genesis logo, phone, website, license number, comfort pro direct contact. |
+| 9 | Signature block | Summary of selections (option, add-ons, financing plan, total, payment schedule). Customer name field. Signature canvas (draw, solid black pen on white background). Printed name shown under signature on PDF. Three disclosure checkboxes: Terms & Conditions (always), Labor Warranty (always), Financing (only when financing plan selected). All must be checked to enable "Approve Proposal" button. |
+| 10 | Footer | Genesis logo, phone, website, license number, comfort pro direct contact. All pulled from Company Settings (admin-configurable). |
 
 ### 4.3 Financing Plans
 
@@ -163,12 +163,13 @@ Synchrony application: financing calculator is illustrative. "Apply for Financin
 
 ### 4.4 Sales Tax
 
-Tax is calculated at proposal generation time using the Washington State Department of Revenue address-based API: `https://webgis.dor.wa.gov/webapi/addressrates.aspx`. Rate is fetched using the job address, cached on the estimate record. Displayed on the proposal page as a separate tax line below the subtotal.
+Tax is **opt-in per estimate** — comfort pro toggles "Include tax" in the quote builder. When enabled, the rate is auto-looked up from the Washington State Department of Revenue address-based API: `https://webgis.dor.wa.gov/webapi/addressrates.aspx` using the customer's address. Rate is cached on the estimate record (`tax_rate`, `tax_amount`). Quote builder summary shows tax per tier. Proposal page displays tax when > 0.
 
-- Customer sees: Subtotal + Tax line + Total (full-total display)
-- Monthly view shows: "Est. $[X]/mo + $[tax]/mo" with tax shown separately
+- When tax is included: Customer sees Subtotal + Tax line + Total
+- When tax is not included: Only total shown (flat rate)
 - Commission is always calculated on pre-tax revenue — tax line is stripped before commission math
 - Fallback: if WA DOR API is unavailable, use 9.2% with "Estimated tax rate" disclaimer
+- Re-lookup button allows refreshing the rate if the address changes
 
 ### 4.5 Payment Schedule Trigger
 
