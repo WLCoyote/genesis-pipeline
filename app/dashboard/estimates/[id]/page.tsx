@@ -152,7 +152,7 @@ export default async function EstimateDetailPage({
               <span className="ml-3">Assigned to {est.users.name}</span>
             )}
           </span>
-          {est.proposal_token && (
+          {est.proposal_token && !est.proposal_signed_at && (
             <a
               href={`/proposals/${est.proposal_token}`}
               target="_blank"
@@ -160,6 +160,16 @@ export default async function EstimateDetailPage({
               className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-600 text-white text-xs font-medium rounded-md hover:bg-blue-700 transition-colors"
             >
               View Proposal
+            </a>
+          )}
+          {est.proposal_pdf_url && (
+            <a
+              href={est.proposal_pdf_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-600 text-white text-xs font-medium rounded-md hover:bg-green-700 transition-colors"
+            >
+              Download Signed PDF
             </a>
           )}
         </div>
@@ -209,6 +219,7 @@ export default async function EstimateDetailPage({
               subtotal={est.subtotal}
               taxAmount={est.tax_amount}
               taxRate={est.tax_rate}
+              selectedTier={est.selected_tier ?? null}
             />
           ) : (
             <OptionsList options={options} totalAmount={est.total_amount} />

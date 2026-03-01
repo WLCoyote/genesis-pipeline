@@ -357,20 +357,13 @@ export async function POST(request: NextRequest) {
   }
 
   // --- 9. HCP Sync (non-blocking — Pipeline estimate succeeds even if HCP fails) ---
-  // Skip HCP sync if building from a draft that already has an HCP estimate
-  const skipHcpSync = existingEstimate?.hcp_estimate_id != null;
+  // Always sync to HCP — even for drafts. The original HCP estimate from the CSR
+  // doesn't have the tiered structure Pipeline needs. We create a new structured
+  // estimate in HCP with proper options so hcp_option_ids get stored for sign-time writeback.
   let hcpSyncResult: { hcp_customer_id: string; hcp_estimate_id: string } | null = null;
   let hcpSyncError: string | null = null;
 
-  if (skipHcpSync && existingEstimate?.hcp_estimate_id) {
-    hcpSyncResult = {
-      hcp_customer_id: "",
-      hcp_estimate_id: existingEstimate.hcp_estimate_id,
-    };
-    console.log(`[HCP Sync] Skipped — draft already linked to HCP estimate ${existingEstimate.hcp_estimate_id}`);
-  }
-
-  if (!skipHcpSync) try {
+  try {
     // Look up existing HCP customer ID
     const { data: customerRow } = await supabase
       .from("customers")
