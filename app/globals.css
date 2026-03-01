@@ -8,6 +8,38 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
+  /* Design system fonts */
+  --font-display: var(--font-barlow);
+  --font-body: var(--font-lato);
+
+  /* Design system colors */
+  --color-ds-bg: #f0f3f8;
+  --color-ds-card: #ffffff;
+  --color-ds-border: #dde3ee;
+  --color-ds-blue: #1565c0;
+  --color-ds-blue-lt: #1e88e5;
+  --color-ds-blue-bg: #e8f0fc;
+  --color-ds-orange: #e65100;
+  --color-ds-orange-bg: #fff3e0;
+  --color-ds-green: #2e7d32;
+  --color-ds-green-lt: #43a047;
+  --color-ds-green-bg: #e8f5e9;
+  --color-ds-yellow: #f9a825;
+  --color-ds-yellow-bg: #fffde7;
+  --color-ds-red: #c62828;
+  --color-ds-red-bg: #ffebee;
+  --color-ds-purple: #6a1b9a;
+  --color-ds-purple-bg: #f3e5f5;
+  --color-ds-gray: #6b7a99;
+  --color-ds-gray-lt: #9aaac4;
+  --color-ds-text: #1a2540;
+  --color-ds-text-lt: #4a5878;
+  --color-ds-sidebar: #0a1628;
+
+  /* Design system shadows */
+  --shadow-ds: 0 2px 12px rgba(10,22,40,0.08);
+  --shadow-ds-md: 0 6px 24px rgba(10,22,40,0.12);
+
   /* Estimate status colors */
   --color-status-active: #22c55e;
   --color-status-snoozed: #eab308;

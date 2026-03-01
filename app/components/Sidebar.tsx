@@ -55,20 +55,22 @@ export default function Sidebar({ role, userName, isOpen, onClose }: SidebarProp
 
       {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-64 bg-[#0a1929] border-r border-[#1a3357] flex flex-col transition-transform md:translate-x-0 md:static md:z-auto ${
+        className={`fixed top-0 left-0 z-50 h-full w-[200px] bg-ds-sidebar border-r border-[#1a3050] flex flex-col transition-transform md:translate-x-0 md:static md:z-auto ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         {/* Header */}
-        <div className="p-4 border-b border-[#1a3357]">
-          <h1 className="text-lg font-bold text-white">Genesis Pipeline</h1>
-          <p className="text-xs text-blue-300/60 mt-0.5">
+        <div className="p-4 border-b border-[#1a3050]">
+          <h1 className="font-display text-xl font-black tracking-[2px] uppercase text-white">
+            Genesis
+          </h1>
+          <p className="text-xs text-white/40 mt-0.5 font-body">
             {userName} &middot; {roleLabels[role]}
           </p>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1">
+        <nav className="flex-1 p-2 space-y-0.5">
           {visibleItems.map((item) => {
             const isActive =
               pathname === item.href ||
@@ -83,10 +85,10 @@ export default function Sidebar({ role, userName, isOpen, onClose }: SidebarProp
                 key={item.href}
                 href={item.href}
                 onClick={onClose}
-                className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                className={`block px-3 py-2 rounded-md text-[13px] font-medium transition-colors ${
                   isActive
-                    ? "bg-blue-600/20 text-blue-400"
-                    : "text-blue-100/70 hover:bg-white/5 hover:text-white"
+                    ? "bg-[rgba(21,101,192,0.25)] text-white border-l-[3px] border-l-ds-blue-lt"
+                    : "text-white/50 hover:bg-white/5 hover:text-white/85"
                 }`}
               >
                 {item.label}
@@ -96,7 +98,7 @@ export default function Sidebar({ role, userName, isOpen, onClose }: SidebarProp
         </nav>
 
         {/* Sign out */}
-        <div className="p-4 border-t border-[#1a3357]">
+        <div className="p-4 border-t border-[#1a3050]">
           <SignOutButton />
         </div>
       </aside>

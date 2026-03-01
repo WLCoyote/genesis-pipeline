@@ -21,7 +21,7 @@ export default function DashboardShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex h-screen bg-ds-bg dark:bg-gray-900">
       <Sidebar
         role={role}
         userName={userName}

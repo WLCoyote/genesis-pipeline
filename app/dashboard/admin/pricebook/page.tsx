@@ -37,17 +37,10 @@ export default async function PricebookPage() {
   ]);
 
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Pricebook
-        </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Manage equipment, labor, materials, and add-ons. Synced with Housecall Pro.
-        </p>
-      </div>
-
-      <PricebookManager initialItems={items || []} initialCategories={categories || []} initialSuppliers={suppliers || []} />
-    </div>
+    <PricebookManager
+      initialItems={items || []}
+      initialCategories={categories || []}
+      initialSuppliers={suppliers || []}
+    />
   );
 }

@@ -85,6 +85,8 @@ Estimates were previously built in Housecall Pro and imported into Pipeline. Thi
 
 Comfort pros build estimates in Pipeline using the pricebook. Pipeline calculates the clean total, generates the proposal, and syncs the line items back to HCP via API. HCP is never the source of truth for proposal pricing.
 
+**Pricebook Admin UI (Phase 7.9):** The pricebook management page uses a unified design system (Barlow Condensed headings, Lato body, `ds-` color tokens). Features: 5-column stat cards (total items, avg margin, margin alerts, HCP synced, manual price), margin alert banner, source filter (HCP Material/Service/Pipeline), margin filter (negative/under 20%/20-40%/over 40%), category tabs with item counts, color-coded margin thresholds, paginated table (50/page), hover-reveal row actions. Decomposed into 8 focused components in `app/components/pricebook/`.
+
 ### 3.2 Pricebook Structure
 
 | Category | Examples | Notes |

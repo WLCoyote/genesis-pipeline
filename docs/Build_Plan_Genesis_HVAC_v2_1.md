@@ -532,6 +532,36 @@ Post-deploy QA polish and rebate system. Pushed to GitHub (Vercel build triggere
 
 ---
 
+## PHASE 7.9: UI Design System + Pricebook Overhaul — ✅ COMPLETE
+
+Unified design system (Barlow Condensed + Lato typography, ds- color tokens, refined sidebar) and pricebook page decomposition from 2,187-line monolith to 8 focused components + 707-line orchestrator.
+
+### Phase A: Shared Design Foundation
+1. **Fonts**: Barlow Condensed (display headings: 500/700/800/900) and Lato (body text: 300/400/700) added via `next/font/google` in `layout.tsx`.
+2. **CSS tokens**: 25+ design system tokens added to `@theme inline` in `globals.css` — `ds-` prefixed colors (blue, green, red, yellow, purple, orange, gray), sidebar color, text colors, shadows. `--font-display` and `--font-body` aliases.
+3. **Sidebar**: Narrowed to 200px, `bg-ds-sidebar` (#0a1628), font-display logo with tracking, refined nav items (13px, white/50 default, blue active with left border). DashboardShell bg → `bg-ds-bg`.
+
+### Phase B: Pricebook Page Decomposition
+8 new components in `app/components/pricebook/`:
+
+| Component | Lines | Purpose |
+|---|---|---|
+| `PricebookStats.tsx` | 78 | 5-column stat cards (total items, avg margin, margin alerts, HCP synced, manual price) |
+| `PricebookMarginAlert.tsx` | 35 | Red alert banner when negative-margin items exist, links to margin filter |
+| `PricebookToolbar.tsx` | 92 | Search + source filter + margin filter + show inactive toggle |
+| `PricebookCategoryTabs.tsx` | 69 | Horizontal pill tabs with per-category item counts |
+| `PricebookTable.tsx` | 271 | Table wrapper + thead + pagination (50/page) |
+| `PricebookTableRow.tsx` | 250 | Color-coded margins, source badges, category tags, hover actions |
+| `PricebookItemModal.tsx` | 548 | Create/edit item modal (extracted from monolith) |
+| `PricebookBulkEditModal.tsx` | 212 | Bulk edit modal (extracted from monolith) |
+
+**New features**: Source filter (All/HCP Material/HCP Service/Pipeline), Margin filter (All/Negative/Under 20%/20-40%/Over 40%), client-side pagination (50/page, auto-reset on filter change), stat cards row, margin alert banner, color-coded margin thresholds (green ≥40%, muted 20-40%, yellow 0-20%, red <0% with warning icon), category tag colors per row, hover-reveal action buttons.
+
+### Files Modified
+`layout.tsx`, `globals.css`, `Sidebar.tsx`, `DashboardShell.tsx`, `PricebookManager.tsx` (rewritten), `pricebook/page.tsx`. 8 new component files in `app/components/pricebook/`.
+
+---
+
 ## PHASE 8: Commission Tracking — NOT STARTED
 
 Two-stage commission from close to confirmed payout. See PRD v4.0 Section 6.
