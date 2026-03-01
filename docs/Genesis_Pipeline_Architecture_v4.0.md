@@ -249,6 +249,7 @@ Also stores QBO OAuth tokens (encrypted), HCP lead source cache, `company_info` 
 | refrigerant_type | TEXT | Refrigerant type (e.g., R-410A, R-22, R-454B). Used for colored indicator dots. |
 | supplier_id | UUID FK → pricebook_suppliers | Which distributor/vendor this item comes from. NULL = unassigned. |
 | manual_price | BOOLEAN | Default false. When true, item is skipped by markup tier auto-fill and bulk recalculation. |
+| is_favorite | BOOLEAN | Default false. When true, item appears in Quick Picks grid in the quote builder pricebook panel. Added in Phase 7.6 (sql/023). |
 
 #### pricebook_categories
 
@@ -263,7 +264,7 @@ Also stores QBO OAuth tokens (encrypted), HCP lead source cache, `company_info` 
 | display_order | INTEGER | Sort order for category pills. |
 | is_active | BOOLEAN | Inactive categories hidden from UI. |
 
-RLS: all authenticated can SELECT, admin only for write. Seeded with 6 defaults: Equipment, Labor, Material, Add-On, Service Plan, Accessory.
+RLS: all authenticated can SELECT, admin only for write. Seeded with 12 categories: Equipment, Labor, Material, Add-On, Service Plan, Accessory (original 6), Indoor, Cased Coil, Outdoor, Equipment Warranty, Labor Warranty, Maintenance Plan (added in Phase 7.6 sql/023).
 
 #### pricebook_suppliers
 
@@ -676,6 +677,7 @@ Admin creates campaign, selects audience via tag/segment filters, sets "not cont
 | `/app/(dashboard)/settings` | Admin settings: sequences, pricebook, financing plans, large-job tags, commission tiers, team, QBO connection. |
 | `/app/proposals/[token]/layout.tsx` | Standalone dark layout for proposals. Barlow Condensed + Lato fonts. No dashboard chrome. |
 | `/app/proposals/[token]/page.tsx` | Server component. Fetches estimate by token, handles signed/expired/inactive states. No auth — token-gated. |
+| `/app/components/quote-builder/` | Quote builder UI (Phase 7.6 overhaul). 12 files: types.ts, utils.ts, QuoteBuilder.tsx (parent state), Topbar, Steps, TotalsBar, CustomerStep, TiersStep (3-column), AddonsStep, FinancingStep, ReviewStep, PricebookPanel (right sidebar). |
 | `/app/components/proposal/` | 8 client components: ProposalPage (state), ProposalHeader, TierCards, AddonCards, FinancingCalculator, PaymentSchedule, SignatureBlock, StickyBottomBar, WhyGenesis. |
 | `/app/components/ProposalEngagementPanel.tsx` | Shows proposal engagement stats on estimate detail: opens, time on page, most viewed tier, device, financing/addon interactions, signature status, event timeline. |
 | `/app/components/LineItemsView.tsx` | Displays estimate_line_items grouped by tier for Pipeline-built estimates (replaces OptionsList). Shows addons, subtotal/tax/total breakdown. |

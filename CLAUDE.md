@@ -196,6 +196,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete. 
 | Phase 7.3b | Unsent estimates — HCP polling pulls drafts, Pipeline/Unsent tabs on estimates page, Build Quote button pre-loads customer into quote builder, draft→active on quote creation | **Complete** |
 | Phase 7.4 | Proposal tracking in dashboard (ProposalEngagementPanel, LineItemsView, dual data model, View Proposal button, sequence template variables updated) | **Complete** |
 | Phase 7.5 | Proposal polish — flat-rate PDF, signature fix (black pen), company settings page, disclosure checkboxes, Synchrony pre-approval button, favicon, dynamic terms/company info | **Complete** |
+| Phase 7.6 | Quote builder UI overhaul — 3-column tiers, steps bar, live totals bar, pricebook sidebar panel, save draft/preview/send, category restructure, favorites | **Not started** |
 | Phase 8 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
 | v0.2 | HCP webhooks, analytics | Future |
@@ -206,10 +207,10 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete. 
 
 | Feature | Notes |
 | ----- | ----- |
-| Tax toggle in quote builder | Include/exclude tax option per estimate |
-| Edit estimates / revise proposals | Signed proposals should be locked |
-| Quote builder UI overhaul | HTML mockup in `docs/genesis-quote-builder-ui.html` — 3-column tiers, steps bar, live totals, pricebook panel |
-| Quote builder line item category restructure | Labor → Indoor → Cased Coil → Outdoor → Install Materials → Equipment Warranty → Labor Warranty → Maintenance Plan |
+| ~~Tax toggle in quote builder~~ | **Done** (Phase 7.5) |
+| ~~Edit estimates / revise proposals~~ | **Done** (Phase 7.5 — edit button + lock signed) |
+| Quote builder UI overhaul | **Phase 7.6** — 3-column tiers, steps bar, live totals, pricebook panel, save draft/preview/send |
+| ~~Quote builder line item category restructure~~ | **Phase 7.6** — Indoor, Cased Coil, Outdoor, Equipment Warranty, Labor Warranty, Maintenance Plan |
 | Install materials builder | Pricebook tool to bundle install materials |
 | Maintenance plan builder | Service plans, subscriptions |
 | Configurable payment terms | 50/50 default, 4-payment option, configurable in quote builder |

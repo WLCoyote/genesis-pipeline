@@ -427,10 +427,41 @@ Second E2E test revealed 3 more issues, all fixed:
 **Pending user feature requests (not yet built):**
 - Tax toggle in quote builder — DONE (moved to Phase 7.5)
 - Edit estimates / revise proposals — partially done (button + lock done; full tier/item pre-loading deferred to quote builder overhaul)
-- Quote builder UI overhaul (3-column tiers, steps bar, live totals, pricebook panel — HTML mockup in `docs/genesis-quote-builder-ui.html`)
-- Quote builder line item category restructure (Labor → Indoor → Cased Coil → Outdoor → Install Materials → Equipment Warranty → Labor Warranty → Maintenance Plan)
-- Install materials builder, maintenance plan builder
-- Configurable payment terms in quote builder
+
+---
+
+## PHASE 7.6: Quote Builder UI Overhaul — NOT STARTED
+
+Rewrites the quote builder from a vertical stacked form to a professional 3-column tier comparison view with persistent pricebook sidebar, live totals bar, step navigation, and full save/preview/send workflow. HTML mockup: `docs/genesis-quote-builder-ui.html`.
+
+### Key Decisions
+- **Steps bar**: Free navigation (5 steps: Customer → Build Tiers → Add-Ons → Financing → Review & Send)
+- **Quick picks**: `is_favorite` boolean on pricebook_items, toggled from pricebook admin
+- **Save/Send**: Save Draft + Preview + Send to Customer (3 buttons in topbar)
+- **Categories**: Add Indoor, Cased Coil, Outdoor, Equipment Warranty, Labor Warranty, Maintenance Plan to DB. Existing categories stay. Empty categories hidden on proposal.
+- **Financing in builder**: Live monthly per tier in totals bar using `cash / (1 - fee_pct) / months`
+
+### Build Order
+1. **Phase A**: DB migration `sql/023_quote_builder_overhaul.sql` — add `is_favorite` to pricebook_items, new categories, `category` on estimate_line_items
+2. **Phase B**: Types + utils extraction into `app/components/quote-builder/types.ts` and `utils.ts`
+3. **Phase C**: Layout shell — QuoteBuilder parent + Topbar + Steps + TotalsBar
+4. **Phase D**: Step content — CustomerStep, TiersStep (3-column), AddonsStep, FinancingStep, ReviewStep
+5. **Phase E**: PricebookPanel (right sidebar: search, tabs, favorites, items, tier target selector)
+6. **Phase F**: Server page updates (expand financing plan data, add is_favorite to query)
+7. **Phase G**: Draft save endpoint (`POST /api/quotes/draft`), create endpoint updates
+8. **Phase H**: PricebookManager favorites toggle
+
+### Component Architecture (split from ~1100-line monolith)
+```
+app/components/quote-builder/
+  types.ts, utils.ts
+  QuoteBuilder.tsx (parent: state + handlers + layout)
+  QuoteBuilderTopbar.tsx, QuoteBuilderSteps.tsx, QuoteBuilderTotalsBar.tsx
+  QuoteBuilderCustomerStep.tsx (includes template selector)
+  QuoteBuilderTiersStep.tsx (3-column tier cards, categorized items)
+  QuoteBuilderAddonsStep.tsx, QuoteBuilderFinancingStep.tsx, QuoteBuilderReviewStep.tsx
+  QuoteBuilderPricebookPanel.tsx (right sidebar)
+```
 
 ---
 
