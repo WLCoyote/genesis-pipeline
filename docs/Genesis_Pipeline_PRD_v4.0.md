@@ -90,10 +90,16 @@ Comfort pros build estimates in Pipeline using the pricebook. Pipeline calculate
 | Category | Examples | Notes |
 |----------|----------|-------|
 | Equipment | Heat pumps, furnaces, AC units, mini-splits | Manufacturer, model number, tonnage, SEER rating, display name, install price. Gensco price feed integration in Phase 2. |
+| Indoor / Outdoor / Cased Coil | Equipment sub-categories for tier-level grouping | Used in quote builder's 3-column tier comparison. |
 | Labor | Standard install, complex install, new construction | Flat rates by job type. Admin-configurable. |
 | Materials | Refrigerant, lineset, disconnect, pad | Unit cost items. Quantity set per estimate. |
 | Add-Ons | Smart thermostat, air quality monitor, CO detector | Shown on proposal as optional checkbox items. Commission-eligible. |
 | Service Plans | Genesis PM Plan (annual) | Always shown on proposal. Pre-checked. Recurring revenue. Commission-eligible. |
+| Electrical | Panels, circuits, electrical work | Material-type items for electrical components. |
+| Controls | Thermostats, zone controls, smart home | Material-type items for system controls. |
+| Exclusion | Items explicitly excluded from scope | Service-type items. Shown on proposal to set scope expectations. |
+| Equipment/Labor Warranty | Extended warranty options | Shown in tier comparison with warranty terms. |
+| Maintenance Plan | PM plans, service agreements | Recurring revenue items. |
 
 ### 3.3 Option Naming Convention
 
@@ -139,12 +145,12 @@ URL: `proposals.genesishvacr.com/[secure-token]`. Light theme (white/gray backgr
 | 1 | Header | Genesis logo, "Your Custom Proposal", comfort pro name and avatar, proposal date. |
 | 2 | Hero | "Hi [First Name], here's your custom proposal." Comfort pro intro. Service address. |
 | 3 | Price toggle | Three buttons: Monthly (default) \| Full Price \| Cash Price. Controls how all prices display across the page. |
-| 4 | Equipment options | One card per option. Display name, spec line, description, price per toggle selection, rebate badge if applicable, "Most Popular" or "Best Value" badge if set by comfort pro. "Select This Option" button. |
+| 4 | Equipment options | One card per option. Tier name and tagline from `tier_metadata` (saved with estimate). **Feature bullets** shown as green checkmarks (marketing copy, e.g., "Up to 18 SEER2 efficiency"). **Equipment Included** condensed list below features (item names + spec lines, no prices). Price per toggle selection, rebate badge if applicable, "Most Popular" badge on `is_recommended` tier. "Select This Option" button. |
 | 5 | Financing calculator | Shows when Monthly toggle active. Dropdown: Plan 930 (default), Plan 980, Plan 943, Pay in Full. Monthly payment updates in real time. Shows financed total, dealer fee, and cash savings. "Apply for Financing" opens Synchrony link. |
 | 6 | Add-ons | "Recommended for Your System" section. Checkbox cards. PM Plan pre-checked. Others unchecked. Adding/removing updates calculator total in real time. |
 | 7 | Payment schedule | Standard: 50% to schedule, 50% on completion. Large job (Remodel/New Con tag): 50% / 25% rough-in / 25% install complete / $1,000 pending inspection. Shown as visual timeline. |
 | 8 | Why Genesis | 3-4 Google reviews (manually entered in Pipeline settings). Company story (editable text block). Team/install photo if available. |
-| 9 | Signature block | Summary of selections (option, add-ons, financing plan, total, payment schedule). Customer name field. Signature canvas (draw, solid black pen on white background). Printed name shown under signature on PDF. Three disclosure checkboxes: Terms & Conditions (always), Labor Warranty (always), Financing (only when financing plan selected). All must be checked to enable "Approve Proposal" button. |
+| 9 | Signature block | Summary of selections (option, add-ons, financing plan, total, payment schedule). Customer name field. Signature canvas (draw, solid black pen on white background). Printed name shown under signature on PDF. Three disclosure checkboxes: Terms & Conditions (always), Labor Warranty (always), Financing (only when financing plan selected). All must be checked to enable "Approve Proposal" button. **Sticky bottom bar CTA is also disabled until all disclosures are checked** — clicking disabled CTA scrolls to the signature/terms section. |
 | 10 | Footer | Genesis logo, phone, website, license number, comfort pro direct contact. All pulled from Company Settings (admin-configurable). |
 
 ### 4.3 Financing Plans
@@ -400,7 +406,7 @@ Agent skill examples: "How's the pipeline looking?" → /stats. "Which proposals
 | Phase 4 | Deployment, E2E testing | In progress — blocked on A2P approval |
 | Phase 5 | Team launch (onboard users, training) | Not started |
 | Phase 6 | Pricebook & pricing tools | **Complete.** 6.1–6.5 (CRUD, import, markup, bulk), 6.6A–6.6D (schema, templates, quote builder, financing), 6.7 (HCP sync), 6.8 (WA DOR tax lookup). |
-| Phase 7 | Proposal engine | 7.1 complete (interactive proposal page, dark theme, 8 components). 7.2 complete (engagement tracking API + client events). 7.3–7.4 not started. |
+| Phase 7 | Proposal engine | **Complete.** 7.1 (proposal page), 7.2 (engagement tracking), 7.3 (signature + PDF + HCP writeback), 7.3b (unsent estimates), 7.4 (dashboard tracking), 7.5 (proposal polish), 7.6 (quote builder overhaul). 7.7 (QA fixes + proposal polish) in progress. |
 | Phase 8 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
 

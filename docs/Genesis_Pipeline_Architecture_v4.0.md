@@ -264,7 +264,7 @@ Also stores QBO OAuth tokens (encrypted), HCP lead source cache, `company_info` 
 | display_order | INTEGER | Sort order for category pills. |
 | is_active | BOOLEAN | Inactive categories hidden from UI. |
 
-RLS: all authenticated can SELECT, admin only for write. Seeded with 12 categories: Equipment, Labor, Material, Add-On, Service Plan, Accessory (original 6), Indoor, Cased Coil, Outdoor, Equipment Warranty, Labor Warranty, Maintenance Plan (added in Phase 7.6 sql/023).
+RLS: all authenticated can SELECT, admin only for write. Seeded with 15 categories: Equipment, Labor, Material, Add-On, Service Plan, Accessory (original 6), Indoor, Cased Coil, Outdoor, Equipment Warranty, Labor Warranty, Maintenance Plan (added in Phase 7.6 sql/023), Electrical, Exclusion, Controls (added in Phase 7.7 sql/024).
 
 #### pricebook_suppliers
 
@@ -314,6 +314,7 @@ RLS: all authenticated can SELECT, admin only for write. Seeded with Gensco, Fer
 | template_id | UUID FK → quote_templates | Which template was used to build this quote. NULL if built from scratch. |
 | payment_schedule_type | ENUM | `standard` \| `large_job`. Determined by HCP tags at estimate creation. |
 | online_estimate_url | TEXT | HCP customer-facing URL if manually set. Not auto-populated (HCP API does not expose it). |
+| tier_metadata | JSONB | Stores per-tier metadata: `[{tier_number, tier_name, tagline, feature_bullets: string[], is_recommended}]`. Saved by quote builder (draft + create). Used by proposal page for tier names/taglines/features instead of hardcoded values. Added in sql/024. |
 
 #### markup_tiers
 
@@ -396,6 +397,8 @@ Replaces the old `estimate_options` table for estimates built in Pipeline priceb
 | line_total | DECIMAL(10,2) | `quantity * unit_price`. Computed column. |
 | is_addon | BOOLEAN | True = shown as optional checkbox on proposal. Customer can add/remove. |
 | is_selected | BOOLEAN | For addons: whether customer checked it on the proposal. Updated at signing. |
+| category | TEXT | Pricebook category slug (e.g., indoor, outdoor, labor). Added in sql/023. |
+| sort_order | INTEGER | Display order within option group. Added in sql/023. |
 | hcp_option_id | TEXT | HCP option ID after sync. Used for approve/decline API calls. |
 
 #### commission_tiers
@@ -548,6 +551,13 @@ These routes are called by the dashboard UI. They require an authenticated Supab
 | `/api/admin/pricebook/suppliers` | GET/POST | List/create pricebook suppliers. Admin write, any auth read. |
 | `/api/admin/markup-tiers` | GET/PUT | Read/replace markup tier table. Admin write, any auth read. |
 | `/api/admin/labor-calculator` | GET/PUT | Read/save labor calculator inputs (settings JSONB). Admin write. |
+| `/api/quotes/create` | POST | Create estimate from quote builder. Saves line items, tiers, HCP sync. Stores `tier_metadata` JSONB + `category` on line items. |
+| `/api/quotes/draft` | POST | Save/update draft estimate. Creates/updates estimate + line items with `status=draft`. Generates `proposal_token` on new drafts (Phase 7.7). Stores `tier_metadata`. |
+| `/api/quotes/templates` | GET/POST | Quote template CRUD. |
+| `/api/quotes/templates/[id]` | GET/PUT/DELETE | Individual quote template management. |
+| `/api/admin/financing-plans` | GET/POST | Financing plan CRUD. Admin only. |
+| `/api/admin/financing-plans/[id]` | PUT/DELETE | Individual financing plan management. Admin only. |
+| `/api/tax/lookup` | GET | WA DOR tax rate lookup by address. |
 
 See `docs/API_Routes.md` for the complete route map with auth methods and additional detail.
 

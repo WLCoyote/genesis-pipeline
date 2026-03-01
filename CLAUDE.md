@@ -173,7 +173,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul). E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023 needs to be run in Supabase before new quote builder is usable.
+Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul). Phase 7.7 (QA fixes + proposal polish) in progress. E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023 needs to be run in Supabase before new quote builder is usable. sql/024 adds tier_metadata + new categories.
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -197,6 +197,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 7.4 | Proposal tracking in dashboard (ProposalEngagementPanel, LineItemsView, dual data model, View Proposal button, sequence template variables updated) | **Complete** |
 | Phase 7.5 | Proposal polish — flat-rate PDF, signature fix (black pen), company settings page, disclosure checkboxes, Synchrony pre-approval button, favicon, dynamic terms/company info | **Complete** |
 | Phase 7.6 | Quote builder UI overhaul — 3-column tiers, steps bar, live totals bar, pricebook sidebar panel, save draft/preview/send, category restructure, favorites | **Complete** — all 8 phases (A-H) done. 12 components, draft endpoint, favorites toggle. Needs sql/023 run in Supabase. |
+| Phase 7.7 | Quote builder QA fixes + proposal polish — cost/margin display, tier metadata persistence, feature bullets, draft restoration, preview flow, proposal terms gating, PDF URL fix, HCP sync fix | **In progress** — sql/024 migration, 6 sub-phases (15 files) |
 | Phase 8 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
 | v0.2 | HCP webhooks, analytics | Future |
@@ -211,6 +212,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | ~~Edit estimates / revise proposals~~ | **Done** (Phase 7.5 — edit button + lock signed) |
 | ~~Quote builder UI overhaul~~ | **Done** (Phase 7.6) — 3-column tiers, steps bar, live totals, pricebook panel, save draft/preview/send |
 | ~~Quote builder line item category restructure~~ | **Done** (Phase 7.6) — Indoor, Cased Coil, Outdoor, Equipment Warranty, Labor Warranty, Maintenance Plan |
+| Quote builder QA + proposal polish | **In progress** (Phase 7.7) — cost/margin, tier metadata, feature bullets, draft restore, preview, terms gating, PDF fix, HCP sync |
 | Install materials builder | Pricebook tool to bundle install materials |
 | Maintenance plan builder | Service plans, subscriptions |
 | Configurable payment terms | 50/50 default, 4-payment option, configurable in quote builder |
