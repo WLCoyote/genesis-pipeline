@@ -13,14 +13,14 @@ export default function PaymentSchedule({
 
   const steps = isLargeJob
     ? [
-        { label: "Deposit", pct: 50, desc: "Due at signing" },
+        { label: "Deposit", pct: 50, desc: "Due when scheduled" },
         { label: "Rough-in", pct: 25, desc: "After rough-in complete" },
-        { label: "Completion", pct: 25, desc: "After final inspection" },
-        { label: "Retention", pct: 0, amount: 1000, desc: "After 30-day warranty check" },
+        { label: "Install", pct: 25, desc: "After install complete" },
+        { label: "Final", pct: 0, amount: 1000, desc: "After final inspection" },
       ]
     : [
-        { label: "Deposit", pct: 50, desc: "Due at signing" },
-        { label: "Completion", pct: 50, desc: "Upon installation complete" },
+        { label: "Deposit", pct: 50, desc: "Due when scheduled" },
+        { label: "Completion", pct: 50, desc: "Upon install complete" },
       ];
 
   return (

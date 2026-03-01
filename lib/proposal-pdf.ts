@@ -385,14 +385,14 @@ function ProposalDocument({ data }: { data: ProposalPdfData }) {
         React.createElement(Text, { style: styles.paymentTitle }, "Payment Schedule"),
         ...(data.paymentScheduleType === "large_job"
           ? [
-              React.createElement(Text, { style: styles.paymentText, key: "p1" }, `1. 25% deposit upon acceptance: ${fmt(data.totalAmount * 0.25)}`),
-              React.createElement(Text, { style: styles.paymentText, key: "p2" }, `2. 25% at equipment delivery: ${fmt(data.totalAmount * 0.25)}`),
-              React.createElement(Text, { style: styles.paymentText, key: "p3" }, `3. 25% at rough-in completion: ${fmt(data.totalAmount * 0.25)}`),
-              React.createElement(Text, { style: styles.paymentText, key: "p4" }, `4. 25% final payment at completion: ${fmt(data.totalAmount * 0.25)}`),
+              React.createElement(Text, { style: styles.paymentText, key: "p1" }, `1. 50% deposit when scheduled: ${fmt(data.totalAmount * 0.5)}`),
+              React.createElement(Text, { style: styles.paymentText, key: "p2" }, `2. 25% after rough-in complete: ${fmt(data.totalAmount * 0.25)}`),
+              React.createElement(Text, { style: styles.paymentText, key: "p3" }, `3. 25% after install complete: ${fmt(data.totalAmount * 0.25)}`),
+              React.createElement(Text, { style: styles.paymentText, key: "p4" }, `4. Final $1,000 after final inspection`),
             ]
           : [
-              React.createElement(Text, { style: styles.paymentText, key: "p1" }, `1. 50% deposit upon acceptance: ${fmt(data.totalAmount * 0.5)}`),
-              React.createElement(Text, { style: styles.paymentText, key: "p2" }, `2. 50% upon completion: ${fmt(data.totalAmount * 0.5)}`),
+              React.createElement(Text, { style: styles.paymentText, key: "p1" }, `1. 50% deposit when scheduled: ${fmt(data.totalAmount * 0.5)}`),
+              React.createElement(Text, { style: styles.paymentText, key: "p2" }, `2. 50% upon install complete: ${fmt(data.totalAmount * 0.5)}`),
             ])
       ),
 

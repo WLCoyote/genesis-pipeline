@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useCallback } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import SignatureCanvas from "react-signature-canvas";
 
 interface SignatureBlockProps {
@@ -31,6 +31,31 @@ export default function SignatureBlock({
   isSubmitting,
 }: SignatureBlockProps) {
   const sigRef = useRef<SignatureCanvas>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [canvasWidth, setCanvasWidth] = useState(600);
+
+  // Sync canvas intrinsic width with container width to prevent pointer offset
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const updateWidth = () => {
+      const w = container.clientWidth;
+      if (w > 0 && w !== canvasWidth) {
+        setCanvasWidth(w);
+        // Clear and reset after resize since canvas resets on dimension change
+        sigRef.current?.clear();
+        onSignatureChange(null);
+      }
+    };
+
+    updateWidth();
+
+    const ro = new ResizeObserver(updateWidth);
+    ro.observe(container);
+    return () => ro.disconnect();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleEnd = useCallback(() => {
     if (sigRef.current && !sigRef.current.isEmpty()) {
@@ -133,8 +158,8 @@ export default function SignatureBlock({
         >
           By signing below, you authorize Genesis Heating, Cooling &
           Refrigeration to proceed with the selected installation package. A
-          deposit of 50% is due at signing. Remaining balance due upon
-          completion.
+          deposit of 50% is due when the job is scheduled. Remaining balance
+          due upon completion of installation.
         </p>
 
         {/* Selection preview */}
@@ -310,6 +335,7 @@ export default function SignatureBlock({
             )}
           </div>
           <div
+            ref={containerRef}
             style={{
               background: "rgba(255,255,255,0.04)",
               border: "1.5px solid #1a3357",
@@ -322,12 +348,13 @@ export default function SignatureBlock({
               penColor="#fff"
               backgroundColor="transparent"
               canvasProps={{
-                width: 600,
+                width: canvasWidth,
                 height: 120,
                 style: {
                   width: "100%",
                   height: 120,
                   cursor: "crosshair",
+                  display: "block",
                 },
               }}
               onEnd={handleEnd}

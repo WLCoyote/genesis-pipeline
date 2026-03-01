@@ -131,7 +131,7 @@ export default function FinancingCalculator({
         className="proposal-fin-plans"
         style={{
           display: "grid",
-          gridTemplateColumns: `repeat(${Math.min(plans.length, 3)}, 1fr)`,
+          gridTemplateColumns: `repeat(${Math.min(plans.length, 4)}, 1fr)`,
           gap: 14,
         }}
       >
@@ -179,7 +179,7 @@ export default function FinancingCalculator({
                   lineHeight: 1,
                 }}
               >
-                {plan.apr === 0 ? "0%" : `${plan.apr}%`}
+                {plan.apr === 0 ? "0%" : `${(plan.apr * 100).toFixed(2)}%`}
               </div>
               <div
                 style={{

@@ -3,6 +3,26 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
+// ---- Copy button with feedback ----
+
+function CopyButton({ url }: { url: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={() => {
+        navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      }}
+      className={`w-full px-4 py-2 text-white rounded-md text-sm font-medium ${
+        copied ? "bg-green-600" : "bg-blue-600 hover:bg-blue-700"
+      }`}
+    >
+      {copied ? "Copied!" : "Copy Proposal Link"}
+    </button>
+  );
+}
+
 // ---- Slim types (only what we need from server props) ----
 
 interface PricebookItemSlim {
@@ -571,16 +591,7 @@ export default function QuoteBuilder({
             Proposal link ready to send
           </p>
           <div className="space-y-3">
-            <button
-              onClick={() => {
-                navigator.clipboard.writeText(
-                  `${window.location.origin}${createdEstimate.proposal_url}`
-                );
-              }}
-              className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm font-medium"
-            >
-              Copy Proposal Link
-            </button>
+            <CopyButton url={`${window.location.origin}${createdEstimate.proposal_url}`} />
             <button
               onClick={() =>
                 router.push(`/dashboard/estimates/${createdEstimate.estimate_id}`)

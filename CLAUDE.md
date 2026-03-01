@@ -170,7 +170,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete.
+Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete. E2E bug fixes done (sql/021).
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |

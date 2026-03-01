@@ -307,6 +307,7 @@ RLS: all authenticated can SELECT, admin only for write. Seeded with Gensco, Fer
 | proposal_signature_data | TEXT | Base64 drawn signature canvas data. NULL if typed only. |
 | proposal_signed_ip | TEXT | IP address of signing device. Legal record. |
 | proposal_pdf_url | TEXT | Supabase Storage URL of signed proposal PDF. |
+| selected_tier | INTEGER CHECK (1,2,3) | Which tier (1=Standard, 2=Enhanced, 3=Premium) customer selected at signing. Added in sql/021. |
 | selected_financing_plan_id | UUID FK → financing_plans | Which financing plan customer selected at signing. |
 | subtotal | DECIMAL(10,2) | Pre-tax total for the signed option + addons. |
 | template_id | UUID FK → quote_templates | Which template was used to build this quote. NULL if built from scratch. |

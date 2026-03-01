@@ -392,6 +392,21 @@ New page: `app/proposals/[token]/page.tsx` — **no auth**, token-gated. Standal
 
 ---
 
+### E2E Bug Fixes (Post-7.4) — ✅ COMPLETE
+
+First full end-to-end test revealed 6 bugs, all fixed:
+
+1. **Sign endpoint 500:** `selected_tier` column missing from `estimates` table. Added via `sql/021_selected_tier.sql`.
+2. **React #418 hydration error:** Proposal layout had nested `<html>` + `<body>` inside root layout. Removed duplicate tags, uses wrapper `<div>` with body style override instead.
+3. **Signature canvas offset:** Canvas intrinsic width (600px) didn't match CSS width (100%). Added `ResizeObserver` to dynamically sync canvas dimensions to container.
+4. **Financing % display:** `FinancingCalculator.tsx` showed raw decimal (0.0999%) instead of percentage (9.99%). Fixed with `(apr * 100).toFixed(2)`.
+5. **Payment schedule text:** "Due at signing" changed to "Due when scheduled" in PaymentSchedule, SignatureBlock authorization text, and proposal PDF. Large job terms updated: 50% schedule, 25% rough-in, 25% install, $1,000 final inspection.
+6. **Copy button no feedback:** Added "Copied!" state with green background toggle (2 seconds) to QuoteBuilder success screen.
+
+**Also fixed:** Financing plan grid now supports up to 4 plans (was capped at 3).
+
+---
+
 ## PHASE 8: Commission Tracking — NOT STARTED
 
 Two-stage commission from close to confirmed payout. See PRD v4.0 Section 6.
