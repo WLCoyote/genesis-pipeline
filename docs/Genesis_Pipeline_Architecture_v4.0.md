@@ -251,6 +251,8 @@ Also stores QBO OAuth tokens (encrypted), HCP lead source cache, `company_info` 
 | manual_price | BOOLEAN | Default false. When true, item is skipped by markup tier auto-fill and bulk recalculation. |
 | is_favorite | BOOLEAN | Default false. When true, item appears in Quick Picks grid in the quote builder pricebook panel. Added in Phase 7.6 (sql/023). |
 
+**Form Field Visibility:** The pricebook create/edit modal in `PricebookManager.tsx` uses `getVisibleFields(category)` to show only relevant fields per category group. Equipment categories show all fields (system_type, efficiency_rating, refrigerant, manufacturer, etc.). Parts show manufacturer/supplier/part_number but not system_type. Labor/Service/Warranty/Exclusion/Rebate progressively hide spec fields. Universal fields (name, category, description, cost, price, subcategory, manual_price, push_to_hcp, active) are always visible.
+
 #### pricebook_categories
 
 *Built in Phase 6.5. Dynamic categories replacing hardcoded CHECK constraint. Admin can add new categories.*

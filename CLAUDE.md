@@ -183,7 +183,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 3 | Frontend dashboard + dark mode | Complete |
 | Phase 4 | Deployment & E2E testing | In progress — blocked on A2P campaign approval for outbound SMS |
 | Phase 5 | Team launch | Not started |
-| Phase 6.1–6.5 | Pricebook CRUD, HCP import/sync, markup tiers, labor calc, manual price flag, bulk recalculate from tiers, bulk actions, cascading nav, dynamic categories, suppliers, bulk edit, refrigerant indicators, rich HCP descriptions | **Complete** |
+| Phase 6.1–6.5 | Pricebook CRUD, HCP import/sync, markup tiers, labor calc, manual price flag, bulk recalculate from tiers, bulk actions, cascading nav, dynamic categories, suppliers, bulk edit, refrigerant indicators, rich HCP descriptions, adaptive form fields by category | **Complete** |
 | Phase 6.6A | Database migrations (quote templates, estimate line items, financing plans, proposal engagement, large job tags + estimate columns) | **Complete** |
 | Phase 6.6B | Quote templates CRUD (admin/user template management) | **Complete** |
 | Phase 6.6C | Quote builder page (customer lookup, template/item selection, tier builder, create estimate) | **Complete** — segmented tabs, qty picker, HCP sync restructure done |
@@ -215,6 +215,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | ~~Quote builder line item category restructure~~ | **Done** (Phase 7.6) — Indoor, Cased Coil, Outdoor, Equipment Warranty, Labor Warranty, Maintenance Plan |
 | ~~Quote builder QA + proposal polish~~ | **Done** (Phase 7.7) — cost/margin, tier metadata, feature bullets, draft restore, preview, terms gating, PDF fix |
 | ~~Rebates on proposals~~ | **Done** (Phase 7.8) — pricebook "Rebate" category, per-tier picker, subtracted from totals, green discount lines on proposal |
+| ~~Adaptive pricebook form fields~~ | **Done** (Phase 6.5) — form adapts to category: Equipment shows all specs, Parts hides system type, Labor/Service/Warranty/Exclusion/Rebate show minimal fields. Universal: name, category, description, cost, price, subcategory, manual price, push to HCP, active. |
 | Install materials builder | Pricebook tool to bundle install materials |
 | Maintenance plan builder | Service plans, subscriptions |
 | Configurable payment terms | 50/50 default, 4-payment option, configurable in quote builder |

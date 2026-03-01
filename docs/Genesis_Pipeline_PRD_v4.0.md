@@ -111,6 +111,24 @@ Every equipment item in the pricebook has three fields that appear on the propos
 | Spec Line | 3 Ton SVZ \| Hyper Heat \| -13°F Rated | Small text below display name. Technical detail for informed customers. |
 | Description | Industry-leading cold weather performance. Heats and cools with one system, no gas line required. | 2-sentence value statement. Comfort pro can customize per proposal. |
 
+### 3.3b Form Fields by Category
+
+The pricebook create/edit form adapts field visibility based on the selected category:
+
+| Fields | Equipment / Indoor / Outdoor / Cased Coil | Material / Accessory / Electrical / Controls | Labor | Service / Maintenance Plan | Warranty | Exclusion | Rebate |
+|--------|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+| Name, Category, Description, Active | all | all | all | all | all | all | all |
+| Cost, Price, Subcategory, Manual Price, Push to HCP | all | all | all | all | all | all | all |
+| System Type, Efficiency Rating | Y | — | — | — | — | — | — |
+| Refrigerant, Spec Line, Manufacturer, Model, Part#, Supplier | Y | Y | — | — | — | — | — |
+| Rebate Amount | Y | Y | — | — | — | — | — |
+| Unit of Measure | Y | Y | Y | — | — | — | — |
+| Taxable | Y | Y | Y | Y | Y | — | — |
+| Commissionable | Y | Y | Y | Y | — | — | — |
+| Add-on | Y | Y | Y | Y | Y | — | — |
+
+Implemented via `getVisibleFields()` in `PricebookManager.tsx`. Hidden fields retain their values when switching categories.
+
 ### 3.4 Gensco Integration (Phase 2)
 
 Gensco is Genesis's primary equipment supplier. In Phase 2, Pipeline connects to Gensco's price feed to auto-update equipment costs when supplier pricing changes. The pricebook schema is designed for this from day one — each equipment item has a `gensco_sku` field and a `last_price_sync` timestamp. Admin can trigger a manual sync or configure automatic nightly updates.

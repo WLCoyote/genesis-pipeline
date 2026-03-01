@@ -250,6 +250,7 @@ SQL migration `013_markup_tiers.sql`:
 - **Refrigerant indicators**: colored dots in dedicated column. R-410A (pink), R-22 (green), R-454B (gray/red ring), R-32 (blue/green ring), R-134A (light blue), R-404A (orange), R-290 (silver/red ring). Dropdown in create/edit modal.
 - **Rich HCP descriptions**: sync to HCP now includes description, manufacturer, model, system type, efficiency, refrigerant, and spec line in the description field (HCP API only supports name + description for spec data).
 - **Category management modal**: "+" button next to category pills to add new categories.
+- **Adaptive form fields by category**: create/edit modal shows only relevant fields per category group. Equipment shows system type, efficiency, refrigerant, manufacturer, specs. Parts shows manufacturer, supplier, part number. Labor/Service shows cost, price, UOM, taxable, commissionable. Warranty/Exclusion/Rebate show minimal fields. Universal fields (name, category, description, cost, price, subcategory, manual price, push to HCP, active) always visible. Implemented via `getVisibleFields()` in `PricebookManager.tsx`.
 - API routes: `GET/POST /api/admin/pricebook/categories`, `GET/POST /api/admin/pricebook/suppliers`, bulk PUT extended with `action` routing (category, activate, deactivate, price_adjust, edit).
 
 ### Step 6.6A: Database Migrations — NOT STARTED

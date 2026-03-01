@@ -72,6 +72,38 @@ export default function PricebookManager({ initialItems, initialCategories, init
     () => categories.filter((c) => c.hcp_type === "material").map((c) => c.slug),
     [categories]
   );
+
+  // Adaptive form field visibility by category group
+  type FieldGroup = 'subcategory' | 'systemType' | 'refrigerant' | 'specLine' | 'cost' |
+    'manufacturer' | 'supplier' | 'partNumber' | 'unitOfMeasure' | 'rebateAmount' |
+    'taxable' | 'commissionable' | 'addon' | 'price' | 'pushToHcp';
+
+  const getVisibleFields = useCallback((category: string): Set<FieldGroup> => {
+    const EQUIPMENT = ['equipment', 'indoor', 'outdoor', 'cased_coil'];
+    const PARTS = ['material', 'accessory', 'electrical', 'controls'];
+    // Universal: shown for every category
+    const UNIVERSAL: FieldGroup[] = ['subcategory','cost','price','pushToHcp'];
+    const ALL_PRODUCT: FieldGroup[] = [...UNIVERSAL,'refrigerant','specLine','manufacturer',
+      'supplier','partNumber','unitOfMeasure','rebateAmount','taxable','commissionable','addon'];
+
+    if (EQUIPMENT.includes(category))
+      return new Set([...ALL_PRODUCT, 'systemType'] as FieldGroup[]);
+    if (PARTS.includes(category))
+      return new Set(ALL_PRODUCT);
+    if (category === 'labor')
+      return new Set<FieldGroup>([...UNIVERSAL,'unitOfMeasure','taxable','commissionable','addon']);
+    if (['service_plan','maintenance_plan'].includes(category))
+      return new Set<FieldGroup>([...UNIVERSAL,'taxable','commissionable','addon']);
+    if (['equipment_warranty','labor_warranty'].includes(category))
+      return new Set<FieldGroup>([...UNIVERSAL,'taxable','addon']);
+    if (category === 'exclusion')
+      return new Set<FieldGroup>(UNIVERSAL);
+    if (category === 'rebate')
+      return new Set<FieldGroup>(UNIVERSAL);
+    // Unknown categories: show everything
+    return new Set([...ALL_PRODUCT, 'systemType'] as FieldGroup[]);
+  }, []);
+
   const [subcategoryFilter, setSubcategoryFilter] = useState<string>("all");
   const [manufacturerFilter, setManufacturerFilter] = useState<string>("all");
   const [systemTypeFilter, setSystemTypeFilter] = useState<string>("all");
@@ -108,6 +140,7 @@ export default function PricebookManager({ initialItems, initialCategories, init
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const visibleFields = useMemo(() => getVisibleFields(form.category), [form.category, getVisibleFields]);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [syncStatus, setSyncStatus] = useState("");
@@ -1394,6 +1427,7 @@ export default function PricebookManager({ initialItems, initialCategories, init
                 </div>
 
                 {/* Subcategory */}
+                {visibleFields.has('subcategory') && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Subcategory
@@ -1416,9 +1450,10 @@ export default function PricebookManager({ initialItems, initialCategories, init
                     </datalist>
                   </div>
                 </div>
+                )}
 
-                {/* System Type + Efficiency — for equipment */}
-                {form.category === "equipment" && (
+                {/* System Type + Efficiency — for equipment categories */}
+                {visibleFields.has('systemType') && (
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -1464,6 +1499,7 @@ export default function PricebookManager({ initialItems, initialCategories, init
                 )}
 
                 {/* Refrigerant Type */}
+                {visibleFields.has('refrigerant') && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Refrigerant Type
@@ -1483,8 +1519,10 @@ export default function PricebookManager({ initialItems, initialCategories, init
                     ))}
                   </select>
                 </div>
+                )}
 
                 {/* Spec Line */}
+                {visibleFields.has('specLine') && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Spec Line
@@ -1499,6 +1537,7 @@ export default function PricebookManager({ initialItems, initialCategories, init
                     placeholder="e.g., 3 Ton SVZ | Hyper Heat | -13°F Rated"
                   />
                 </div>
+                )}
 
                 {/* Description */}
                 <div>
@@ -1517,7 +1556,9 @@ export default function PricebookManager({ initialItems, initialCategories, init
                 </div>
 
                 {/* Price + Cost row */}
-                <div className="grid grid-cols-2 gap-3">
+                {(visibleFields.has('price') || visibleFields.has('cost')) && (
+                <div className={visibleFields.has('price') && visibleFields.has('cost') ? "grid grid-cols-2 gap-3" : ""}>
+                  {visibleFields.has('price') && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Unit Price ($)
@@ -1533,6 +1574,8 @@ export default function PricebookManager({ initialItems, initialCategories, init
                       placeholder="0.00"
                     />
                   </div>
+                  )}
+                  {visibleFields.has('cost') && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Cost ($)
@@ -1562,23 +1605,24 @@ export default function PricebookManager({ initialItems, initialCategories, init
                       placeholder="0.00"
                     />
                   </div>
+                  )}
                 </div>
-                {/* Manual price checkbox — shown only for markup-eligible categories */}
-                {markupCategories.includes(form.category) && (
-                  <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 -mt-1">
-                    <input
-                      type="checkbox"
-                      checked={form.manual_price}
-                      onChange={(e) =>
-                        setForm({ ...form, manual_price: e.target.checked })
-                      }
-                      className="rounded border-gray-300 dark:border-gray-600"
-                    />
-                    Manual price (skip tier recalculation)
-                  </label>
                 )}
+                {/* Manual price checkbox */}
+                <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 -mt-1">
+                  <input
+                    type="checkbox"
+                    checked={form.manual_price}
+                    onChange={(e) =>
+                      setForm({ ...form, manual_price: e.target.checked })
+                    }
+                    className="rounded border-gray-300 dark:border-gray-600"
+                  />
+                  Manual price (skip tier recalculation)
+                </label>
 
                 {/* Manufacturer + Model */}
+                {visibleFields.has('manufacturer') && (
                 <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -1607,8 +1651,10 @@ export default function PricebookManager({ initialItems, initialCategories, init
                     />
                   </div>
                 </div>
+                )}
 
                 {/* Supplier */}
+                {visibleFields.has('supplier') && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Supplier
@@ -1638,9 +1684,12 @@ export default function PricebookManager({ initialItems, initialCategories, init
                     </button>
                   </div>
                 </div>
+                )}
 
                 {/* Part Number + UOM */}
-                <div className="grid grid-cols-2 gap-3">
+                {(visibleFields.has('partNumber') || visibleFields.has('unitOfMeasure')) && (
+                <div className={visibleFields.has('partNumber') && visibleFields.has('unitOfMeasure') ? "grid grid-cols-2 gap-3" : ""}>
+                  {visibleFields.has('partNumber') && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Part Number
@@ -1654,6 +1703,8 @@ export default function PricebookManager({ initialItems, initialCategories, init
                       className="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                     />
                   </div>
+                  )}
+                  {visibleFields.has('unitOfMeasure') && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                       Unit of Measure
@@ -1668,9 +1719,12 @@ export default function PricebookManager({ initialItems, initialCategories, init
                       placeholder="e.g., each, ft, hr"
                     />
                   </div>
+                  )}
                 </div>
+                )}
 
                 {/* Rebate */}
+                {visibleFields.has('rebateAmount') && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Rebate Amount ($)
@@ -1686,9 +1740,11 @@ export default function PricebookManager({ initialItems, initialCategories, init
                     placeholder="0.00"
                   />
                 </div>
+                )}
 
                 {/* Checkboxes */}
                 <div className="space-y-2">
+                  {visibleFields.has('taxable') && (
                   <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                     <input
                       type="checkbox"
@@ -1700,6 +1756,8 @@ export default function PricebookManager({ initialItems, initialCategories, init
                     />
                     Taxable
                   </label>
+                  )}
+                  {visibleFields.has('commissionable') && (
                   <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                     <input
                       type="checkbox"
@@ -1714,6 +1772,9 @@ export default function PricebookManager({ initialItems, initialCategories, init
                     />
                     Commissionable
                   </label>
+                  )}
+                  {visibleFields.has('addon') && (
+                  <>
                   <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                     <input
                       type="checkbox"
@@ -1741,6 +1802,8 @@ export default function PricebookManager({ initialItems, initialCategories, init
                       Pre-checked by default
                     </label>
                   )}
+                  </>
+                  )}
                   <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                     <input
                       type="checkbox"
@@ -1753,8 +1816,8 @@ export default function PricebookManager({ initialItems, initialCategories, init
                     Active
                   </label>
 
-                  {/* Push to HCP checkbox — only for Pipeline-only items being edited */}
-                  {editingId && (
+                  {/* Push to HCP checkbox — only for items being edited, and category supports it */}
+                  {visibleFields.has('pushToHcp') && editingId && (
                     <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
                       <input
                         type="checkbox"
