@@ -173,7 +173,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 in progress (polish, restructure & notifications — work streams A+B complete, C in progress). E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023 + sql/024 + sql/025 run in Supabase.
+Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 complete (polish, restructure, notifications, ds- consistency pass). E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023 + sql/024 + sql/025 + sql/026 run in Supabase.
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -203,7 +203,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 8.0 | Estimates page UI overhaul — stat cards, pill tabs (Pipeline/Unsent/Won/Lost), grid table with avatars + urgency chips + hover actions, pagination, rep/time/status filters, EstimateTable decomposed to 4 components | **Complete** |
 | Phase 8.1A | Estimate detail page UI overhaul — topbar, flex layout with 320px right rail, timeline connectors (channel-colored circles + lines), ds- restyled: FollowUpTimeline, EstimateActions, CustomerInfo (avatar), ConversationThread, LineItemsView (green accepted tier), ProposalEngagementPanel (signed badge + stats grid), OptionsList, ExecuteStepButton, SnoozeForm, EditMessageForm | **Complete** |
 | Phase 8.1B | Sequences page UI overhaul — SequenceEditor decomposed to 4 components (SequenceHeader, SequenceTokenBar, SequenceStepCard, SequenceAddStep), timeline connectors, channel-colored step cards, shared token bar, add-step with channel options | **Complete** |
-| Phase 8.2 | Polish, restructure & notifications — font swap (Outfit), estimate detail scroll fix, customer address mapping, leads simplification, analytics dashboard, import→settings, HCP category paths, team edit fields, notification system | **In progress** — work streams A+B complete, C next |
+| Phase 8.2 | Polish, restructure & notifications — font swap (Outfit), estimate detail scroll fix, customer address mapping, leads simplification, analytics dashboard, import→settings, HCP category paths, team edit fields, notification system, ds- consistency pass (all pages except quote builder) | **Complete** — sql/025 + sql/026 run in Supabase |
 | Phase 8.3 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
 | v0.2 | HCP webhooks, analytics | Future |
@@ -232,8 +232,9 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | ~~Analytics dashboard~~ | **Done** (Phase 8.2B2) — replaced Overview with 4-section analytics (stats, activity, rep performance, feed) |
 | ~~Import to Settings~~ | **Done** (Phase 8.2B3) — HCP pricebook sync + CSV import moved to Settings, full-sync endpoint added |
 | ~~HCP category paths~~ | **Done** (Phase 8.2B4) — hcp_category_path column, BFS path building, stored on import/sync |
-| Team edit fields (email, phone) | Phase 8.2C1 — in progress |
-| Notification system (email alerts) | Phase 8.2C2 — not started |
+| ~~Team edit fields (email, phone)~~ | **Done** (Phase 8.2C1) — 3-column edit grid (email, phone, role) in TeamMemberList |
+| ~~Notification system (email alerts)~~ | **Done** (Phase 8.2C2) — preferences table, Resend dispatcher, branded email templates, settings UI, wired into sign + status endpoints |
+| ~~ds- design system consistency pass~~ | **Done** (Phase 8.2) — all pages except Quote Builder updated with ds- topbars + tokens |
 | Install materials builder | Pricebook tool to bundle install materials |
 | Maintenance plan builder | Service plans, subscriptions |
 | Configurable payment terms | 50/50 default, 4-payment option, configurable in quote builder |

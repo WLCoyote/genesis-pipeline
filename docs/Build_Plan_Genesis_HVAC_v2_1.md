@@ -640,7 +640,7 @@ Decomposed `SequenceEditor.tsx` (243 lines) into lean orchestrator (135 lines) +
 
 ---
 
-## PHASE 8.2: Polish, Restructure & Notifications — IN PROGRESS
+## PHASE 8.2: Polish, Restructure & Notifications ✅ COMPLETE
 
 Quick fixes, page restructuring, and notification system build-out. Broken into 4 work streams.
 
@@ -668,12 +668,28 @@ Deleted `PipelineCards.tsx`. Sidebar renamed "Overview" → "Analytics". 4 new c
 
 **B4. HCP Category Path** — Added `hcp_category_path` text column to `pricebook_items` (sql/025). Modified `lib/hcp-pricebook.ts` BFS to build path map during traversal (e.g., "Heat Pump > American Standard > 14 SEER2"). Updated import + full-sync routes to store path. Added `material_category_path` to `HcpMaterial` interface.
 
-### Work Stream C: Team & Notifications — NOT STARTED
+### Work Stream C: Team & Notifications ✅ COMPLETE
 
-**C1.** Expand team edit fields (email, phone)
-**C2.** Notification system (preferences table, dispatcher, email templates, settings UI)
+**C1. Expand Team Edit Fields** — Added email and phone editing to team page. `TeamMemberList.tsx` edit mode now expands to a 3-column grid (email, phone, role) with save/cancel. API route (`app/api/admin/users/route.ts`) accepts `email` and `phone` in PATCH body.
 
-### Files Modified/Created (A + B)
+**C2. Notification System** — Full email notification system:
+- **sql/026** — `notification_preferences` table (user_id, event_type, email_enabled) with RLS + marketing email setting
+- **`lib/notifications.ts`** — Central dispatcher: creates in-app notifications + sends branded emails via Resend. Notifies assigned rep + all admins. Sends to marketing email on proposal signs. Respects per-user preferences (default: all enabled).
+- **`lib/email-templates.ts`** — Branded HTML email template (dark header, customer/estimate details, orange CTA button)
+- **`app/api/admin/notification-preferences/route.ts`** — GET (admin sees all users' prefs) + PUT (upsert preferences)
+- **`app/components/NotificationSettings.tsx`** — Toggle grid in Settings: team members as rows, event types as columns
+- Wired into `app/api/proposals/[token]/sign/route.ts` (replaced inline notification code with dispatcher)
+- Wired into `app/api/estimates/[id]/status/route.ts` (dispatch on won/lost)
+
+### Design System Consistency Pass ✅ COMPLETE
+
+Updated all remaining dashboard pages with ds- design system tokens:
+- **8 page wrappers** updated with consistent ds- topbar (font-display, uppercase, tracking): import, labor-calculator, markup-tiers, inbox, financing-plans, team, quote-templates, settings
+- **8 components** updated with ds- tokens: LaborCalculator, MarkupTiersEditor, InboxThreads, FinancingPlanManager, TeamMemberList, QuoteTemplateManager, SettingsForm, NotificationSettings
+- Buttons → `bg-ds-blue/ds-green/ds-orange`, badges → `ds-blue-bg/ds-green-bg/ds-red-bg/ds-yellow-bg`, headings → `font-display font-bold text-ds-text`
+- **Only Quote Builder remains** for ds- token pass (functional UI already overhauled in Phase 7.6, ~2,350 lines across 9 files)
+
+### Files Modified/Created (all work streams)
 - `app/layout.tsx` — font swap (Barlow Condensed → Outfit)
 - `app/components/ConversationThread.tsx` — scroll fix
 - `app/dashboard/estimates/[id]/page.tsx` — layout restructure
@@ -688,11 +704,21 @@ Deleted `PipelineCards.tsx`. Sidebar renamed "Overview" → "Analytics". 4 new c
 - `app/components/analytics/RecentActivity.tsx` — NEW
 - `app/components/Sidebar.tsx` — renamed Overview→Analytics, removed Import CSV
 - `app/components/PricebookManager.tsx` — removed import button/state/handler
-- `app/components/SettingsForm.tsx` — added HCP sync + data import sections
+- `app/components/SettingsForm.tsx` — added HCP sync + data import + notification sections, ds- tokens
 - `app/api/admin/pricebook/full-sync/route.ts` — NEW
 - `sql/025_pricebook_category_path.sql` — NEW (run in Supabase)
+- `sql/026_notification_preferences.sql` — NEW (run in Supabase)
 - `lib/hcp-pricebook.ts` — category path in BFS + HcpMaterial interface
 - `app/api/admin/pricebook/import/route.ts` — stores hcp_category_path
+- `app/api/admin/users/route.ts` — accepts email + phone in PATCH
+- `app/components/TeamMemberList.tsx` — email/phone edit fields, ds- tokens
+- `lib/notifications.ts` — NEW (notification dispatcher)
+- `lib/email-templates.ts` — NEW (branded HTML email template)
+- `app/api/admin/notification-preferences/route.ts` — NEW
+- `app/components/NotificationSettings.tsx` — NEW
+- `app/api/proposals/[token]/sign/route.ts` — wired notification dispatcher
+- `app/api/estimates/[id]/status/route.ts` — wired notification dispatcher
+- 8 page wrappers + 6 components — ds- topbar + token updates
 
 ---
 

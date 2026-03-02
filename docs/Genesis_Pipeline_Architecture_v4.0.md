@@ -128,6 +128,20 @@ Realtime enabled for live conversation updates.
 | message | TEXT | Human-readable notification text. |
 | read | BOOLEAN | Default false. Drives badge counter. |
 
+#### notification_preferences
+
+*Added Phase 8.2C2 — per-user email notification toggles.*
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| user_id | UUID FK → users | |
+| event_type | TEXT | `estimate_approved` \| `estimate_declined` \| `lead_assigned` \| `declining_soon` |
+| email_enabled | BOOLEAN | Default true. Controls whether email is sent for this event type. |
+| created_at | TIMESTAMPTZ | |
+
+UNIQUE(user_id, event_type). RLS: users read/write own rows, service role manages all.
+
 #### leads
 
 | Column | Type | Notes |
@@ -536,6 +550,9 @@ These routes are called by the dashboard UI. They require an authenticated Supab
 | `/api/follow-up-events/[id]` | PUT | Edit pending event content (30-min edit window). |
 | `/api/notifications` | GET | User notifications. |
 | `/api/notifications/[id]/read` | PUT | Mark notification as read. |
+| `/api/admin/notification-preferences` | GET | Admin: all users + prefs. Non-admin: own prefs only. Returns event_types list. |
+| `/api/admin/notification-preferences` | PUT | Upsert notification preferences. Body: `{ user_id?, preferences: [{ event_type, email_enabled }] }`. Admin can set for any user. |
+| `/api/admin/pricebook/full-sync` | POST | Full HCP pricebook sync — updates existing items AND imports new ones. Admin only. |
 | `/api/admin/settings` | GET/PUT | Read/write system settings (pipeline settings, company_info, proposal_terms). Uses upsert. Admin only. |
 | `/api/admin/import-csv` | POST | CSV estimate import. Admin only. |
 | `/api/admin/sequences` | GET/PUT | Read/write follow-up sequences. Admin only. |
