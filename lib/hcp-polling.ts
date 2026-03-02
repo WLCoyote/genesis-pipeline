@@ -272,6 +272,27 @@ async function handleNewEstimate(
     return false;
   }
 
+  // Extract address from estimate-level address object
+  const hcpAddress = (hcpEstimate.address || null) as {
+    street?: string | null;
+    street_line_2?: string | null;
+    city?: string | null;
+    state?: string | null;
+    zip?: string | null;
+  } | null;
+
+  let customerAddress: string | null = null;
+  if (hcpAddress?.street) {
+    const parts = [hcpAddress.street];
+    if (hcpAddress.street_line_2) parts.push(hcpAddress.street_line_2);
+    const cityStateZip = [
+      hcpAddress.city,
+      hcpAddress.state ? `${hcpAddress.state} ${hcpAddress.zip || ""}`.trim() : hcpAddress.zip,
+    ].filter(Boolean).join(", ");
+    if (cityStateZip) parts.push(cityStateZip);
+    customerAddress = parts.join(", ");
+  }
+
   // Upsert local customer
   let customerId: string;
   const { data: existingCustomer } = await supabase
@@ -289,6 +310,7 @@ async function handleNewEstimate(
         name: customerName,
         ...(hcpCustomer.email ? { email: hcpCustomer.email } : {}),
         ...(hcpCustomer.mobile_number ? { phone: hcpCustomer.mobile_number } : {}),
+        ...(customerAddress ? { address: customerAddress } : {}),
       })
       .eq("id", existingCustomer.id);
   } else {
@@ -299,6 +321,7 @@ async function handleNewEstimate(
         name: customerName,
         email: (hcpCustomer.email as string) || null,
         phone: (hcpCustomer.mobile_number as string) || null,
+        address: customerAddress,
         lead_source: (hcpEstimate.lead_source as string) || null,
       })
       .select("id")

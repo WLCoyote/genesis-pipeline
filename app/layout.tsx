@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Barlow_Condensed, Lato } from "next/font/google";
+import { Geist, Geist_Mono, Outfit, Lato } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -12,10 +12,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const barlowCondensed = Barlow_Condensed({
+const outfit = Outfit({
   variable: "--font-barlow",
   subsets: ["latin"],
-  weight: ["500", "700", "800", "900"],
+  weight: ["500", "600", "700", "800", "900"],
   display: "swap",
 });
 
@@ -46,7 +46,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${barlowCondensed.variable} ${lato.variable} antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100`}
+        className={`${geistSans.variable} ${geistMono.variable} ${outfit.variable} ${lato.variable} antialiased bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100`}
       >
         {children}
       </body>

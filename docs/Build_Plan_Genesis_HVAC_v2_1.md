@@ -640,11 +640,67 @@ Decomposed `SequenceEditor.tsx` (243 lines) into lean orchestrator (135 lines) +
 
 ---
 
-## PHASE 8.2: Commission Tracking — NOT STARTED
+## PHASE 8.2: Polish, Restructure & Notifications — IN PROGRESS
+
+Quick fixes, page restructuring, and notification system build-out. Broken into 4 work streams.
+
+### Work Stream A: Quick Fixes ✅ COMPLETE
+
+**A1. Replace Display Font** — Swapped Barlow Condensed → Outfit (geometric sans-serif) in `app/layout.tsx`. CSS variable `--font-barlow` retained for indirection, zero other file changes needed.
+
+**A2. Fix Estimate Detail Scroll** — Fixed `ConversationThread.tsx` auto-scroll using container `scrollTop` instead of `scrollIntoView`. Restructured estimate detail page layout: outer container fills viewport height (`h-[calc(100vh-3.5rem)]`), left column and right rail both `overflow-y-auto` for independent scrolling.
+
+**A3. Fix Missing Customer Addresses** — HCP polling (`lib/hcp-polling.ts`) was not mapping `hcpEstimate.address` to `customers.address`. Added address extraction from estimate-level address object (street, street_line_2, city, state, zip) → formatted string stored on customer upsert (both insert and update paths).
+
+### Work Stream B: Page Restructuring ✅ COMPLETE
+
+**B1. Simplify Leads Page** — Removed Estimates tab and all estimate-related code (query, JSX, imports). Deleted `LeadsTabs.tsx`. Applied ds- styling (topbar with Outfit heading, ds- status colors). Leads-only page now.
+
+**B2. Analytics Dashboard** — Rewrote admin overview page as analytics dashboard with 4 sections:
+- **AnalyticsStats** — 5 gradient cards: Pipeline Value, Close Rate (90d), Avg Days to Close, Won This Month, Active Estimates
+- **ActivitySummary** — 4 metrics: Follow-ups this week, Proposals viewed, Signed this month, Overdue follow-ups
+- **RepPerformance** — Table: Rep name, Active estimates, Pipeline $, Close rate, Last activity
+- **RecentActivity** — Feed of last 20 events (signed, SMS, email, call, new lead)
+
+Deleted `PipelineCards.tsx`. Sidebar renamed "Overview" → "Analytics". 4 new components in `app/components/analytics/`.
+
+**B3. Move Imports to Settings** — Removed "Import from HCP" button from PricebookManager. Added "HCP Pricebook Sync" section to Settings page (Import New + Full Update buttons). Added "Data Import" section linking to CSV import tool. Created `app/api/admin/pricebook/full-sync/route.ts` (updates existing items AND imports new). Removed "Import CSV" from sidebar nav.
+
+**B4. HCP Category Path** — Added `hcp_category_path` text column to `pricebook_items` (sql/025). Modified `lib/hcp-pricebook.ts` BFS to build path map during traversal (e.g., "Heat Pump > American Standard > 14 SEER2"). Updated import + full-sync routes to store path. Added `material_category_path` to `HcpMaterial` interface.
+
+### Work Stream C: Team & Notifications — NOT STARTED
+
+**C1.** Expand team edit fields (email, phone)
+**C2.** Notification system (preferences table, dispatcher, email templates, settings UI)
+
+### Files Modified/Created (A + B)
+- `app/layout.tsx` — font swap (Barlow Condensed → Outfit)
+- `app/components/ConversationThread.tsx` — scroll fix
+- `app/dashboard/estimates/[id]/page.tsx` — layout restructure
+- `lib/hcp-polling.ts` — address mapping
+- `app/dashboard/leads/page.tsx` — rewritten (leads-only)
+- `app/components/LeadsTabs.tsx` — DELETED
+- `app/dashboard/admin/page.tsx` — rewritten (analytics)
+- `app/components/PipelineCards.tsx` — DELETED
+- `app/components/analytics/AnalyticsStats.tsx` — NEW
+- `app/components/analytics/ActivitySummary.tsx` — NEW
+- `app/components/analytics/RepPerformance.tsx` — NEW
+- `app/components/analytics/RecentActivity.tsx` — NEW
+- `app/components/Sidebar.tsx` — renamed Overview→Analytics, removed Import CSV
+- `app/components/PricebookManager.tsx` — removed import button/state/handler
+- `app/components/SettingsForm.tsx` — added HCP sync + data import sections
+- `app/api/admin/pricebook/full-sync/route.ts` — NEW
+- `sql/025_pricebook_category_path.sql` — NEW (run in Supabase)
+- `lib/hcp-pricebook.ts` — category path in BFS + HcpMaterial interface
+- `app/api/admin/pricebook/import/route.ts` — stores hcp_category_path
+
+---
+
+## PHASE 8.3: Commission Tracking — NOT STARTED
 
 Two-stage commission from close to confirmed payout. See PRD v4.0 Section 6.
 
-### Step 8.2a: Database — Commission Tables
+### Step 8.3a: Database — Commission Tables
 
 Create SQL migrations for:
 - `commission_tiers` — period (monthly/quarterly/annual), min_revenue, max_revenue, rate_pct, is_active.
@@ -657,7 +713,7 @@ Seed default tier structure (admin-configurable rates 5-8%).
 
 **VERIFY:** Tables created. Tier structure seeded. RLS working.
 
-### Step 8.2b: Commission Calculation Logic
+### Step 8.3b: Commission Calculation Logic
 
 Create `lib/commission.ts`:
 - `getTierRate(userId, periodRevenue)` — looks up cumulative revenue against tier table
@@ -668,7 +724,7 @@ Called automatically: estimated at proposal signing (Phase 7), confirmed by cron
 
 **VERIFY:** Estimated commission calculates correctly at signing. Tier rate lookup works.
 
-### Step 8.2c: QBO Integration
+### Step 8.3c: QBO Integration
 
 Create `lib/qbo.ts`:
 - OAuth 2.0 flow: `/api/auth/qbo` callback for token exchange
@@ -681,7 +737,7 @@ QBO OAuth connection UI in Settings page (admin only).
 
 **VERIFY:** QBO OAuth connects. Can query invoices. Paid status detected correctly.
 
-### Step 8.2d: Commission Confirmation Cron
+### Step 8.3d: Commission Confirmation Cron
 
 New cron job: `/api/cron/confirm-commission` — 1x daily.
 

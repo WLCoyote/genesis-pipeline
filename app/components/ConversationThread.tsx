@@ -21,11 +21,15 @@ export default function ConversationThread({
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when messages change
+  // Scroll to bottom within the messages container (not the page)
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = containerRef.current;
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
   }, [messages]);
 
   // Subscribe to new messages in real-time
@@ -111,7 +115,7 @@ export default function ConversationThread({
         </div>
       ) : (
         <>
-          <div className="h-64 overflow-y-auto space-y-2 p-4 bg-ds-bg dark:bg-gray-700/50">
+          <div ref={containerRef} className="h-64 overflow-y-auto space-y-2 p-4 bg-ds-bg dark:bg-gray-700/50">
             {messages.length === 0 ? (
               <p className="text-[13px] text-ds-gray-lt dark:text-gray-500 text-center py-8 italic">
                 No messages yet.

@@ -244,6 +244,7 @@ Also stores QBO OAuth tokens (encrypted), HCP lead source cache, `company_info` 
 | hcp_type | ENUM | `material` \| `service`. Determines sync behavior — materials can push, services read-only. |
 | hcp_category_uuid | TEXT | HCP category ID for reference. |
 | hcp_category_name | TEXT | HCP category display name. |
+| hcp_category_path | TEXT | Full HCP category hierarchy path (e.g., "Heat Pump > American Standard > 14 SEER2"). Populated during import. |
 | system_type | TEXT | System type for equipment (e.g., Heat Pump, Furnace). |
 | efficiency_rating | TEXT | Efficiency rating for equipment (e.g., 14 SEER2, 16 SEER2). |
 | refrigerant_type | TEXT | Refrigerant type (e.g., R-410A, R-22, R-454B). Used for colored indicator dots. |
@@ -546,7 +547,8 @@ These routes are called by the dashboard UI. They require an authenticated Supab
 | `/api/admin/pricebook` | POST | Create pricebook item. Admin only. |
 | `/api/admin/pricebook/[id]` | PUT | Update item + auto-sync to HCP (materials). Rich description includes specs. Admin only. |
 | `/api/admin/pricebook/[id]` | DELETE | Soft-delete (set inactive). Admin only. |
-| `/api/admin/pricebook/import` | POST | Import all materials + services from HCP (additive only). Admin only. |
+| `/api/admin/pricebook/import` | POST | Import all materials + services from HCP (additive only). Stores hcp_category_path. Admin only. |
+| `/api/admin/pricebook/full-sync` | POST | Full HCP sync — updates existing items AND imports new ones. Admin only. |
 | `/api/admin/pricebook/bulk` | PUT | Bulk actions: `action=category\|activate\|deactivate\|price_adjust\|edit`. Admin only. |
 | `/api/admin/pricebook/bulk` | POST | Bulk sync selected active materials to HCP. Admin only. |
 | `/api/admin/pricebook/categories` | GET/POST | List/create dynamic pricebook categories. Admin write, any auth read. |

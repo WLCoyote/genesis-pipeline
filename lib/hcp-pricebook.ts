@@ -34,6 +34,7 @@ export interface HcpMaterial {
   part_number: string | null;
   material_category_uuid: string | null;
   material_category_name: string | null;
+  material_category_path: string | null; // full path e.g. "Heat Pump > American Standard > 14 SEER2"
   flat_rate_enabled: boolean;
   image: string | null;
 }
@@ -143,35 +144,47 @@ async function fetchCategoriesAtLevel(parentUuid?: string): Promise<HcpMaterialC
 }
 
 // Recursively fetch all categories at every nesting level
-async function fetchAllMaterialCategories(): Promise<HcpMaterialCategory[]> {
+// Returns categories AND a map of category UUID → full path string
+async function fetchAllMaterialCategories(): Promise<{
+  categories: HcpMaterialCategory[];
+  pathMap: Map<string, string>;
+}> {
   const all: HcpMaterialCategory[] = [];
+  const pathMap = new Map<string, string>();
 
   // Start with root categories (no parent_uuid)
   const roots = await fetchCategoriesAtLevel();
   all.push(...roots);
+  for (const root of roots) {
+    pathMap.set(root.uuid, root.name);
+  }
   console.log(`[HCP Pricebook] Root categories: ${roots.length}`);
 
-  // BFS through subcategories
+  // BFS through subcategories, building paths as we go
   const queue = [...roots];
   while (queue.length > 0) {
     const parent = queue.shift()!;
+    const parentPath = pathMap.get(parent.uuid) || parent.name;
     const children = await fetchCategoriesAtLevel(parent.uuid);
     if (children.length > 0) {
       all.push(...children);
+      for (const child of children) {
+        pathMap.set(child.uuid, `${parentPath} > ${child.name}`);
+      }
       queue.push(...children);
       console.log(`[HCP Pricebook] "${parent.name}" has ${children.length} subcategories`);
     }
   }
 
   console.log(`[HCP Pricebook] Total categories (all levels): ${all.length}`);
-  return all;
+  return { categories: all, pathMap };
 }
 
 // ---------- Materials ----------
 
 export async function fetchAllHcpMaterials(): Promise<HcpMaterial[]> {
   // Step 1: Get all material categories (recursively, all nesting levels)
-  const categories = await fetchAllMaterialCategories();
+  const { categories, pathMap } = await fetchAllMaterialCategories();
 
   if (categories.length === 0) {
     console.log("[HCP Pricebook] No material categories found");
@@ -204,6 +217,11 @@ export async function fetchAllHcpMaterials(): Promise<HcpMaterial[]> {
 
       const data = await res.json();
       const items = (data.data || []) as HcpMaterial[];
+      // Attach category path to each material
+      const catPath = pathMap.get(cat.uuid) || cat.name;
+      for (const item of items) {
+        item.material_category_path = catPath;
+      }
       all.push(...items);
 
       const totalInCategory = data.total_count || 0;

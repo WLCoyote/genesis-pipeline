@@ -23,14 +23,13 @@ const navItems: NavItem[] = [
   { href: "/dashboard/quote-builder", label: "New Quote", roles: ["admin", "comfort_pro"] },
   { href: "/dashboard/leads", label: "Leads", roles: ["admin", "csr"] },
   { href: "/dashboard/inbox", label: "Inbox", roles: ["admin", "csr"] },
-  { href: "/dashboard/admin", label: "Overview", roles: ["admin"] },
+  { href: "/dashboard/admin", label: "Analytics", roles: ["admin"] },
   { href: "/dashboard/admin/sequences", label: "Sequences", roles: ["admin"] },
   { href: "/dashboard/admin/pricebook", label: "Pricebook", roles: ["admin"] },
   { href: "/dashboard/admin/quote-templates", label: "Templates", roles: ["admin"] },
   { href: "/dashboard/admin/financing-plans", label: "Financing Plans", roles: ["admin"] },
   { href: "/dashboard/admin/settings", label: "Settings", roles: ["admin"] },
   { href: "/dashboard/admin/team", label: "Team", roles: ["admin"] },
-  { href: "/dashboard/import", label: "Import CSV", roles: ["admin"] },
 ];
 
 export default function Sidebar({ role, userName, isOpen, onClose }: SidebarProps) {

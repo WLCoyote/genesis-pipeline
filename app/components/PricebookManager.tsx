@@ -79,10 +79,6 @@ export default function PricebookManager({ initialItems, initialCategories, init
   const [newSupplierName, setNewSupplierName] = useState("");
   const [supplierSaving, setSupplierSaving] = useState(false);
 
-  // Import
-  const [importing, setImporting] = useState(false);
-  const [importResult, setImportResult] = useState("");
-
   // Equipment drill-down
   const isEquipmentFilter = categoryFilter === "equipment";
 
@@ -179,29 +175,6 @@ export default function PricebookManager({ initialItems, initialCategories, init
   const filterKey = `${categoryFilter}-${subcategoryFilter}-${manufacturerFilter}-${systemTypeFilter}-${efficiencyFilter}-${searchQuery}-${showInactive}-${sourceFilter}-${marginFilter}`;
 
   // ——— Handlers ———
-
-  const handleImport = async () => {
-    setImporting(true);
-    setImportResult("");
-    try {
-      const res = await fetch("/api/admin/pricebook/import", { method: "POST" });
-      const data = await res.json();
-      if (!res.ok) {
-        setImportResult(`Error: ${data.error}`);
-      } else {
-        const skipped = (data.materials_skipped || 0) + (data.services_skipped || 0);
-        setImportResult(
-          `Imported ${data.materials_imported} materials, ${data.services_imported} services` +
-          (skipped > 0 ? ` (${skipped} already in Pipeline, skipped)` : "")
-        );
-        router.refresh();
-      }
-    } catch {
-      setImportResult("Import failed — network error");
-    } finally {
-      setImporting(false);
-    }
-  };
 
   const openCreate = () => {
     setForm(EMPTY_FORM);
@@ -454,13 +427,6 @@ export default function PricebookManager({ initialItems, initialCategories, init
           >
             + Add Item
           </button>
-          <button
-            onClick={handleImport}
-            disabled={importing}
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-ds-card dark:bg-gray-700 text-ds-text-lt dark:text-gray-300 border border-ds-border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
-          >
-            {importing ? "Importing..." : "Import from HCP"}
-          </button>
           <Link
             href="/dashboard/admin/pricebook/markup-tiers"
             className="px-4 py-2 text-sm font-medium rounded-lg bg-ds-card dark:bg-gray-700 text-ds-text-lt dark:text-gray-300 border border-ds-border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
@@ -473,9 +439,6 @@ export default function PricebookManager({ initialItems, initialCategories, init
           >
             Labor Calculator
           </Link>
-          {importResult && (
-            <span className="text-sm text-ds-gray dark:text-gray-400">{importResult}</span>
-          )}
         </div>
       </div>
 

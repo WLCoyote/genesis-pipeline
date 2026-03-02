@@ -60,6 +60,7 @@ export async function POST() {
           part_number: m.part_number || null,
           hcp_category_uuid: m.material_category_uuid || null,
           hcp_category_name: m.material_category_name || null,
+          hcp_category_path: m.material_category_path || null,
           category: "material",
           is_active: true,
         }));

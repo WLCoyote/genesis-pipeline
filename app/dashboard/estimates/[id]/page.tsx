@@ -107,9 +107,9 @@ export default async function EstimateDetailPage({
   const isTerminal = est.status === "won" || est.status === "lost";
 
   return (
-    <div>
+    <div className="flex flex-col -m-4 md:-m-6 h-[calc(100vh-3.5rem)]">
       {/* Topbar */}
-      <div className="bg-ds-card dark:bg-gray-800 border-b border-ds-border dark:border-gray-700 px-7 flex items-center justify-between h-14 -mx-6 -mt-6 mb-0">
+      <div className="bg-ds-card dark:bg-gray-800 border-b border-ds-border dark:border-gray-700 px-7 flex items-center justify-between h-14 shrink-0">
         <div className="flex items-center gap-3">
           <Link
             href="/dashboard/estimates"
@@ -190,7 +190,7 @@ export default async function EstimateDetailPage({
 
       {/* Paused / snoozed banner */}
       {!sequenceIsActive && !isTerminal && (
-        <div className="bg-gradient-to-r from-ds-yellow-bg to-[#fffde7] border-b border-ds-yellow/40 px-7 py-2.5 flex items-center gap-2.5 -mx-6">
+        <div className="bg-gradient-to-r from-ds-yellow-bg to-[#fffde7] border-b border-ds-yellow/40 px-7 py-2.5 flex items-center gap-2.5 shrink-0">
           <span className="text-[13px]">⏸</span>
           <span className="text-[12px] text-[#795500] dark:text-yellow-300 font-bold">
             Sequence is paused — no follow-ups will be sent.
@@ -205,9 +205,9 @@ export default async function EstimateDetailPage({
       )}
 
       {/* Two-column layout: main + right rail */}
-      <div className="flex flex-col lg:flex-row">
-        {/* Left column — main content */}
-        <div className="flex-1 space-y-4 py-5 pr-0 lg:pr-5">
+      <div className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-hidden">
+        {/* Left column — main content (scrolls independently) */}
+        <div className="flex-1 space-y-4 py-5 px-6 pr-0 lg:pr-5 overflow-y-auto">
           <FollowUpTimeline
             estimateId={id}
             events={events}
@@ -225,8 +225,8 @@ export default async function EstimateDetailPage({
           />
         </div>
 
-        {/* Right rail */}
-        <div className="w-full lg:w-80 shrink-0 bg-ds-card dark:bg-gray-800 lg:border-l border-t lg:border-t-0 border-ds-border dark:border-gray-700 lg:-mr-6 lg:-my-0">
+        {/* Right rail (scrolls independently) */}
+        <div className="w-full lg:w-80 shrink-0 bg-ds-card dark:bg-gray-800 lg:border-l border-t lg:border-t-0 border-ds-border dark:border-gray-700 overflow-y-auto">
           <EstimateActions
             estimateId={id}
             status={est.status}

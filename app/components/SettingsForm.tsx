@@ -93,6 +93,12 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
   const [syncResult, setSyncResult] = useState("");
   const [sourceCount, setSourceCount] = useState(hcpLeadSourceCount ?? 0);
 
+  // HCP Pricebook import/sync
+  const [importing, setImporting] = useState(false);
+  const [importResult, setImportResult] = useState("");
+  const [fullSyncing, setFullSyncing] = useState(false);
+  const [fullSyncResult, setFullSyncResult] = useState("");
+
   const handleSave = async () => {
     setSaving(true);
     setError("");
@@ -266,6 +272,92 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
             </div>
           ))}
         </div>
+      </div>
+
+      {/* HCP Pricebook Sync */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">HCP Pricebook Sync</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Import or sync pricebook items from Housecall Pro. Per-item &quot;Push to HCP&quot; is still available in the Pricebook page.
+        </p>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={async () => {
+              setImporting(true);
+              setImportResult("");
+              try {
+                const res = await fetch("/api/admin/pricebook/import", { method: "POST" });
+                const data = await res.json();
+                if (!res.ok) {
+                  setImportResult(`Error: ${data.error}`);
+                } else {
+                  const skipped = (data.materials_skipped || 0) + (data.services_skipped || 0);
+                  setImportResult(
+                    `Imported ${data.materials_imported} materials, ${data.services_imported} services` +
+                    (skipped > 0 ? ` (${skipped} skipped)` : "")
+                  );
+                }
+              } catch {
+                setImportResult("Import failed — network error");
+              } finally {
+                setImporting(false);
+              }
+            }}
+            disabled={importing}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
+          >
+            {importing ? "Importing..." : "Import New from HCP"}
+          </button>
+          <button
+            onClick={async () => {
+              setFullSyncing(true);
+              setFullSyncResult("");
+              try {
+                const res = await fetch("/api/admin/pricebook/full-sync", { method: "POST" });
+                const data = await res.json();
+                if (!res.ok) {
+                  setFullSyncResult(`Error: ${data.error}`);
+                } else {
+                  setFullSyncResult(
+                    `Updated ${data.updated} items, imported ${data.imported} new items`
+                  );
+                }
+              } catch {
+                setFullSyncResult("Sync failed — network error");
+              } finally {
+                setFullSyncing(false);
+              }
+            }}
+            disabled={fullSyncing}
+            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
+          >
+            {fullSyncing ? "Syncing..." : "Full HCP Pricebook Update"}
+          </button>
+          {importResult && (
+            <span className={`text-sm ${importResult.startsWith("Error") ? "text-red-600" : "text-green-600 dark:text-green-400"}`}>
+              {importResult}
+            </span>
+          )}
+          {fullSyncResult && (
+            <span className={`text-sm ${fullSyncResult.startsWith("Error") ? "text-red-600" : "text-green-600 dark:text-green-400"}`}>
+              {fullSyncResult}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Data Import */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Data Import</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Upload CSV files from Housecall Pro to import customers and estimates.
+        </p>
+        <a
+          href="/dashboard/import"
+          className="inline-block px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        >
+          Open CSV Import Tool
+        </a>
       </div>
 
       {/* Bottom save button */}
