@@ -30,6 +30,8 @@ export default function TeamMemberList({
   const [invites, setInvites] = useState(initialInvites);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editRole, setEditRole] = useState<UserRole>("comfort_pro");
+  const [editEmail, setEditEmail] = useState("");
+  const [editPhone, setEditPhone] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -44,6 +46,8 @@ export default function TeamMemberList({
   const handleEditStart = (user: User) => {
     setEditingId(user.id);
     setEditRole(user.role);
+    setEditEmail(user.email);
+    setEditPhone(user.phone || "");
     setError("");
   };
 
@@ -54,7 +58,7 @@ export default function TeamMemberList({
     const res = await fetch("/api/admin/users", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: userId, role: editRole }),
+      body: JSON.stringify({ id: userId, role: editRole, email: editEmail, phone: editPhone }),
     });
 
     if (!res.ok) {
@@ -62,7 +66,11 @@ export default function TeamMemberList({
       setError(data.error || "Failed to update user.");
     } else {
       setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, role: editRole } : u))
+        prev.map((u) =>
+          u.id === userId
+            ? { ...u, role: editRole, email: editEmail, phone: editPhone || null }
+            : u
+        )
       );
       setEditingId(null);
     }
@@ -267,36 +275,54 @@ export default function TeamMemberList({
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 ml-4">
+              <div className={`flex items-center gap-3 ${editingId === u.id ? "flex-1" : "ml-4"}`}>
                 {editingId === u.id ? (
-                  <>
-                    <select
-                      value={editRole}
-                      onChange={(e) =>
-                        setEditRole(e.target.value as UserRole)
-                      }
-                      className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm dark:bg-gray-700 dark:text-gray-100"
-                    >
-                      {roleOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      onClick={() => handleEditSave(u.id)}
-                      disabled={saving}
-                      className="text-sm text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50"
-                    >
-                      Save
-                    </button>
-                    <button
-                      onClick={() => setEditingId(null)}
-                      className="text-sm text-gray-500 dark:text-gray-400 hover:underline"
-                    >
-                      Cancel
-                    </button>
-                  </>
+                  <div className="flex flex-col gap-2 w-full">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <input
+                        type="email"
+                        value={editEmail}
+                        onChange={(e) => setEditEmail(e.target.value)}
+                        placeholder="Email"
+                        className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm dark:bg-gray-700 dark:text-gray-100"
+                      />
+                      <input
+                        type="tel"
+                        value={editPhone}
+                        onChange={(e) => setEditPhone(e.target.value)}
+                        placeholder="Phone"
+                        className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm dark:bg-gray-700 dark:text-gray-100"
+                      />
+                      <select
+                        value={editRole}
+                        onChange={(e) =>
+                          setEditRole(e.target.value as UserRole)
+                        }
+                        className="px-2 py-1 border border-gray-300 dark:border-gray-600 rounded text-sm dark:bg-gray-700 dark:text-gray-100"
+                      >
+                        {roleOptions.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-2 justify-end">
+                      <button
+                        onClick={() => handleEditSave(u.id)}
+                        disabled={saving}
+                        className="text-sm text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setEditingId(null)}
+                        className="text-sm text-gray-500 dark:text-gray-400 hover:underline"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
                 ) : (
                   <>
                     <span className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded">

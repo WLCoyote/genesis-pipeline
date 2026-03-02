@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { sendEstimateNotifications } from "@/lib/notifications";
 
 export async function PATCH(
   request: NextRequest,
@@ -127,6 +128,32 @@ export async function PATCH(
         .update({ status: "skipped" })
         .eq("estimate_id", id)
         .in("status", ["scheduled", "pending_review", "snoozed"]);
+
+      // Send notifications
+      try {
+        const { data: estDetail } = await serviceClient
+          .from("estimates")
+          .select("estimate_number, total_amount, assigned_to, customers(name)")
+          .eq("id", id)
+          .single();
+
+        if (estDetail) {
+          const customer = estDetail.customers as unknown as { name: string } | null;
+          await sendEstimateNotifications(
+            {
+              type: est.status === "won" ? "estimate_approved" : "estimate_declined",
+              estimateId: id,
+              estimateNumber: estDetail.estimate_number || id,
+              customerName: customer?.name || "Unknown",
+              message: `Estimate ${est.status === "won" ? "won" : "lost"}: ${customer?.name || "Unknown"} — ${estDetail.estimate_number || id}`,
+              amount: estDetail.total_amount,
+            },
+            estDetail.assigned_to
+          );
+        }
+      } catch (err) {
+        console.error("[Status] Notification dispatch failed:", err);
+      }
     }
 
     return NextResponse.json({ success: true, estimate_status: est?.status });

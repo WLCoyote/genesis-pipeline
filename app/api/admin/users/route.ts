@@ -22,7 +22,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { id, role, is_active } = await request.json();
+  const { id, role, is_active, email, phone } = await request.json();
 
   if (!id) {
     return NextResponse.json(
@@ -39,12 +39,18 @@ export async function PATCH(request: NextRequest) {
     );
   }
 
-  const updates: Record<string, string | boolean> = {};
+  const updates: Record<string, string | boolean | null> = {};
   if (role && ["admin", "comfort_pro", "csr"].includes(role)) {
     updates.role = role;
   }
   if (typeof is_active === "boolean") {
     updates.is_active = is_active;
+  }
+  if (typeof email === "string") {
+    updates.email = email.trim();
+  }
+  if (typeof phone === "string") {
+    updates.phone = phone.trim() || null;
   }
 
   if (Object.keys(updates).length === 0) {

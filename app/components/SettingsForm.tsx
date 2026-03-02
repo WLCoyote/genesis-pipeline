@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import NotificationSettings from "@/app/components/NotificationSettings";
 
 interface SettingsFormProps {
   initialSettings: Record<string, number | string | boolean>;
@@ -359,6 +360,9 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
           Open CSV Import Tool
         </a>
       </div>
+
+      {/* Email Notifications */}
+      <NotificationSettings />
 
       {/* Bottom save button */}
       <div className="flex justify-end">

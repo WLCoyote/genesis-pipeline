@@ -10,6 +10,7 @@ import { after } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
 import { generateProposalPdf, type ProposalPdfData } from "@/lib/proposal-pdf";
 import { sendProposalConfirmationEmail } from "@/lib/proposal-email";
+import { sendEstimateNotifications } from "@/lib/notifications";
 import {
   approveHcpOption,
   declineHcpOptions,
@@ -642,34 +643,21 @@ async function runPostSignTasks(ctx: {
     }
   }
 
-  // e. Create notifications
-  const notifyUsers = new Set<string>();
-  if (ctx.assignedTo) notifyUsers.add(ctx.assignedTo);
-
-  // Also notify admins
-  const { data: admins } = await supabase
-    .from("users")
-    .select("id")
-    .eq("role", "admin")
-    .eq("is_active", true);
-
-  for (const admin of admins || []) {
-    notifyUsers.add(admin.id);
-  }
-
-  const notifMessage = `Proposal signed: ${ctx.customer?.name || ctx.signedName} accepted ${tierNames[ctx.selectedTier] || `Option ${ctx.selectedTier}`} — ${ctx.estimateNumber}`;
-
-  for (const userId of notifyUsers) {
-    try {
-      await supabase.from("notifications").insert({
-        user_id: userId,
+  // e. Create notifications + send emails
+  try {
+    await sendEstimateNotifications(
+      {
         type: "estimate_approved",
-        estimate_id: ctx.estimateId,
-        message: notifMessage,
-      });
-    } catch (err) {
-      console.error(`[Sign] Notification failed for user ${userId}:`, err);
-    }
+        estimateId: ctx.estimateId,
+        estimateNumber: ctx.estimateNumber,
+        customerName: ctx.customer?.name || ctx.signedName,
+        message: `Proposal signed: ${ctx.customer?.name || ctx.signedName} accepted ${tierNames[ctx.selectedTier] || `Option ${ctx.selectedTier}`} — ${ctx.estimateNumber}`,
+        amount: ctx.totalAmount,
+      },
+      ctx.assignedTo
+    );
+  } catch (err) {
+    console.error("[Sign] Notification dispatch failed:", err);
   }
 
   // f. Skip remaining follow-up sequence steps
