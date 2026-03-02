@@ -173,7 +173,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 complete (polish, restructure, notifications, ds- consistency pass). E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023 + sql/024 + sql/025 + sql/026 run in Supabase.
+Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 complete (polish, restructure, notifications, ds- consistency pass including Quote Builder, Outfit font weight refinement). E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023 + sql/024 + sql/025 + sql/026 run in Supabase.
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -199,11 +199,11 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 7.6 | Quote builder UI overhaul — 3-column tiers, steps bar, live totals bar, pricebook sidebar panel, save draft/preview/send, category restructure, favorites | **Complete** — all 8 phases (A-H) done. 12 components, draft endpoint, favorites toggle. Needs sql/023 run in Supabase. |
 | Phase 7.7 | Quote builder QA fixes + proposal polish — cost/margin display, tier metadata persistence, feature bullets, draft restoration, preview flow, proposal terms gating, PDF URL fix, HCP sync fix | **Complete** — sql/024 migration, 6 sub-phases, 15 files modified |
 | Phase 7.8 | UI polish + rebates — removed redundant totals bar, dark navy sidebar, expanded pricebook search (all fields), pricebook-managed rebates per tier (picker, stored in tier_metadata, subtracted from totals, shown on proposal) | **Complete** |
-| Phase 7.9 | UI design system + pricebook overhaul — Barlow Condensed + Lato fonts, ds- color tokens, sidebar 200px, PricebookManager decomposed to 8 components + orchestrator, stat cards, margin alerts, source/margin filters, pagination | **Complete** |
+| Phase 7.9 | UI design system + pricebook overhaul — Outfit + Lato fonts, ds- color tokens, sidebar 200px, PricebookManager decomposed to 8 components + orchestrator, stat cards, margin alerts, source/margin filters, pagination | **Complete** |
 | Phase 8.0 | Estimates page UI overhaul — stat cards, pill tabs (Pipeline/Unsent/Won/Lost), grid table with avatars + urgency chips + hover actions, pagination, rep/time/status filters, EstimateTable decomposed to 4 components | **Complete** |
 | Phase 8.1A | Estimate detail page UI overhaul — topbar, flex layout with 320px right rail, timeline connectors (channel-colored circles + lines), ds- restyled: FollowUpTimeline, EstimateActions, CustomerInfo (avatar), ConversationThread, LineItemsView (green accepted tier), ProposalEngagementPanel (signed badge + stats grid), OptionsList, ExecuteStepButton, SnoozeForm, EditMessageForm | **Complete** |
 | Phase 8.1B | Sequences page UI overhaul — SequenceEditor decomposed to 4 components (SequenceHeader, SequenceTokenBar, SequenceStepCard, SequenceAddStep), timeline connectors, channel-colored step cards, shared token bar, add-step with channel options | **Complete** |
-| Phase 8.2 | Polish, restructure & notifications — font swap (Outfit), estimate detail scroll fix, customer address mapping, leads simplification, analytics dashboard, import→settings, HCP category paths, team edit fields, notification system, ds- consistency pass (all pages except quote builder) | **Complete** — sql/025 + sql/026 run in Supabase |
+| Phase 8.2 | Polish, restructure & notifications — font swap (Outfit), Outfit weight refinement (400/600 strategy), estimate detail scroll fix, customer address mapping, leads simplification, analytics dashboard, import→settings, HCP category paths, team edit fields, notification system, ds- consistency pass (all pages including Quote Builder) | **Complete** — sql/025 + sql/026 run in Supabase |
 | Phase 8.3 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
 | v0.2 | HCP webhooks, analytics | Future |
@@ -234,7 +234,9 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | ~~HCP category paths~~ | **Done** (Phase 8.2B4) — hcp_category_path column, BFS path building, stored on import/sync |
 | ~~Team edit fields (email, phone)~~ | **Done** (Phase 8.2C1) — 3-column edit grid (email, phone, role) in TeamMemberList |
 | ~~Notification system (email alerts)~~ | **Done** (Phase 8.2C2) — preferences table, Resend dispatcher, branded email templates, settings UI, wired into sign + status endpoints |
-| ~~ds- design system consistency pass~~ | **Done** (Phase 8.2) — all pages except Quote Builder updated with ds- topbars + tokens |
+| ~~ds- design system consistency pass~~ | **Done** (Phase 8.2) — all pages updated with ds- topbars + tokens (Quote Builder completed post-8.2) |
+| ~~Quote Builder ds- token pass~~ | **Done** (post-8.2) — 9 components updated: bg-ds-card, border-ds-border, font-display text-ds-text, replaced inline fontFamily + gradient |
+| ~~Outfit font weight refinement~~ | **Done** (post-8.2) — 45 files, 70 elements: titles → font-semibold (600), subheaders/names → font-normal (400) |
 | Install materials builder | Pricebook tool to bundle install materials |
 | Maintenance plan builder | Service plans, subscriptions |
 | Configurable payment terms | 50/50 default, 4-payment option, configurable in quote builder |

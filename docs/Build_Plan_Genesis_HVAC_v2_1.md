@@ -687,7 +687,22 @@ Updated all remaining dashboard pages with ds- design system tokens:
 - **8 page wrappers** updated with consistent ds- topbar (font-display, uppercase, tracking): import, labor-calculator, markup-tiers, inbox, financing-plans, team, quote-templates, settings
 - **8 components** updated with ds- tokens: LaborCalculator, MarkupTiersEditor, InboxThreads, FinancingPlanManager, TeamMemberList, QuoteTemplateManager, SettingsForm, NotificationSettings
 - Buttons → `bg-ds-blue/ds-green/ds-orange`, badges → `ds-blue-bg/ds-green-bg/ds-red-bg/ds-yellow-bg`, headings → `font-display font-bold text-ds-text`
-- **Only Quote Builder remains** for ds- token pass (functional UI already overhauled in Phase 7.6, ~2,350 lines across 9 files)
+
+**Quote Builder ds- Token Pass (completed post-8.2):**
+- All 9 Quote Builder components updated with ds- tokens: QuoteBuilder, Topbar, Steps, CustomerStep, TiersStep, AddonsStep, FinancingStep, ReviewStep, PricebookPanel
+- Cards → `bg-ds-card`, borders → `border-ds-border`, headings → `font-display text-ds-text`, buttons → `bg-ds-blue/ds-orange`
+- Replaced 3 inline `fontFamily: 'Barlow Condensed'` with `font-display` class
+- Replaced submit button inline gradient with `bg-ds-orange`
+- Preserved tier-specific color distinctions (gray/blue/orange for Good/Better/Best)
+
+**Outfit Font Weight Refinement (completed post-8.2):**
+- Added weight 400 (Regular) to Outfit import in `layout.tsx`
+- 70 `font-display` elements recalibrated across 45 files:
+  - Page titles: `font-black` (900) → `font-semibold` (600)
+  - Stats/dollar amounts: `font-black`/`font-extrabold` → `font-semibold` (600)
+  - Subheaders/names: `font-bold` (700) → `font-normal` (400)
+  - Modal titles/section labels: `font-bold` → `font-normal` (400)
+- Design system is now fully consistent across all pages including Quote Builder
 
 ### Files Modified/Created (all work streams)
 - `app/layout.tsx` — font swap (Barlow Condensed → Outfit)
