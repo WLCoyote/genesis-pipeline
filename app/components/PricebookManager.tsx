@@ -410,32 +410,32 @@ export default function PricebookManager({ initialItems, initialCategories, init
 
   return (
     <div>
-      {/* Page header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="font-display text-2xl font-semibold text-ds-text dark:text-gray-100 tracking-tight">
+      {/* Topbar */}
+      <div className="bg-ds-card dark:bg-gray-800 border-b border-ds-border dark:border-gray-700 px-7 flex items-center justify-between h-14 -mx-4 md:-mx-6 -mt-4 md:-mt-6 mb-5">
+        <div className="flex items-center gap-3">
+          <h1 className="font-display text-[22px] font-semibold uppercase tracking-[1px] text-ds-text dark:text-gray-100">
             Pricebook
           </h1>
-          <p className="text-sm text-ds-gray dark:text-gray-400 mt-0.5 font-body">
-            Manage equipment, labor, materials, and add-ons. Synced with Housecall Pro.
-          </p>
+          <span className="text-[12px] text-ds-gray-lt dark:text-gray-500">
+            Synced with Housecall Pro
+          </span>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2">
           <button
             onClick={openCreate}
-            className="px-4 py-2 text-sm font-semibold rounded-lg bg-ds-blue text-white hover:bg-blue-700 transition-colors"
+            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-ds-blue text-white hover:bg-blue-700 transition-colors"
           >
             + Add Item
           </button>
           <Link
             href="/dashboard/admin/pricebook/markup-tiers"
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-ds-card dark:bg-gray-700 text-ds-text-lt dark:text-gray-300 border border-ds-border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-white/80 dark:bg-gray-700 text-ds-text-lt dark:text-gray-300 border border-ds-border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
           >
             Markup Tiers
           </Link>
           <Link
             href="/dashboard/admin/pricebook/labor-calculator"
-            className="px-4 py-2 text-sm font-medium rounded-lg bg-ds-card dark:bg-gray-700 text-ds-text-lt dark:text-gray-300 border border-ds-border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-white/80 dark:bg-gray-700 text-ds-text-lt dark:text-gray-300 border border-ds-border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
           >
             Labor Calculator
           </Link>
