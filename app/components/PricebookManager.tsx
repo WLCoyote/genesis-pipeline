@@ -5,6 +5,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import type { PricebookItem, PricebookCategory, PricebookCategoryRow, PricebookSupplier, MarkupTier } from "@/lib/types";
 
+import Button from "./ui/Button";
+import Modal from "./ui/Modal";
+import FormField, { inputCls, selectCls } from "./ui/FormField";
+import PageTopbar from "./ui/PageTopbar";
 import PricebookStats from "./pricebook/PricebookStats";
 import PricebookMarginAlert from "./pricebook/PricebookMarginAlert";
 import PricebookToolbar from "./pricebook/PricebookToolbar";
@@ -410,37 +414,23 @@ export default function PricebookManager({ initialItems, initialCategories, init
 
   return (
     <div>
-      {/* Topbar */}
-      <div className="bg-ds-card dark:bg-gray-800 border-b border-ds-border dark:border-gray-700 px-7 flex items-center justify-between h-14 -mx-4 md:-mx-6 -mt-4 md:-mt-6 mb-5">
-        <div className="flex items-center gap-3">
-          <h1 className="font-display text-[22px] font-semibold uppercase tracking-[1px] text-ds-text dark:text-gray-100">
-            Pricebook
-          </h1>
-          <span className="text-[12px] text-ds-gray-lt dark:text-gray-500">
-            Synced with Housecall Pro
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={openCreate}
-            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-ds-blue text-white hover:bg-blue-700 transition-colors"
-          >
-            + Add Item
-          </button>
-          <Link
-            href="/dashboard/admin/pricebook/markup-tiers"
-            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-white/80 dark:bg-gray-700 text-ds-text-lt dark:text-gray-300 border border-ds-border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-          >
-            Markup Tiers
-          </Link>
-          <Link
-            href="/dashboard/admin/pricebook/labor-calculator"
-            className="px-3 py-1.5 text-xs font-medium rounded-lg bg-white/80 dark:bg-gray-700 text-ds-text-lt dark:text-gray-300 border border-ds-border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-          >
-            Labor Calculator
-          </Link>
-        </div>
-      </div>
+      <PageTopbar title="Pricebook" subtitle="Synced with Housecall Pro">
+        <Button variant="primary" size="xs" onClick={openCreate}>
+          + Add Item
+        </Button>
+        <Link
+          href="/dashboard/admin/pricebook/markup-tiers"
+          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-white/80 dark:bg-gray-700 text-ds-text-lt dark:text-gray-300 border border-ds-border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+        >
+          Markup Tiers
+        </Link>
+        <Link
+          href="/dashboard/admin/pricebook/labor-calculator"
+          className="px-3 py-1.5 text-xs font-medium rounded-lg bg-white/80 dark:bg-gray-700 text-ds-text-lt dark:text-gray-300 border border-ds-border dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
+        >
+          Labor Calculator
+        </Link>
+      </PageTopbar>
 
       {/* Stats row */}
       <PricebookStats items={items} />
@@ -614,57 +604,38 @@ export default function PricebookManager({ initialItems, initialCategories, init
       />
 
       {/* Add Category Modal */}
-      {catModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 dark:bg-black/60" onClick={() => setCatModalOpen(false)} />
-          <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm mx-4">
-            <div className="p-6">
-              <h2 className="text-lg font-display font-normal text-ds-text dark:text-gray-100 mb-4">Add Category</h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Category Name</label>
-                  <input type="text" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100" placeholder="e.g., Accessory" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">HCP Type</label>
-                  <select value={newCatHcpType} onChange={(e) => setNewCatHcpType(e.target.value as "material" | "service")} className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100">
-                    <option value="material">Material (physical items, syncs to HCP)</option>
-                    <option value="service">Service (labor/plans, read-only in HCP)</option>
-                  </select>
-                </div>
-              </div>
-              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-ds-border dark:border-gray-700">
-                <button onClick={() => setCatModalOpen(false)} className="px-4 py-2 text-sm text-ds-gray dark:text-gray-400 hover:text-ds-text dark:hover:text-gray-200">Cancel</button>
-                <button onClick={handleAddCategory} disabled={catSaving || !newCatName.trim()} className="px-4 py-2 text-sm font-medium rounded-lg bg-ds-blue text-white hover:bg-blue-700 disabled:opacity-50">
-                  {catSaving ? "Adding..." : "Add Category"}
-                </button>
-              </div>
-            </div>
-          </div>
+      <Modal open={catModalOpen} onClose={() => setCatModalOpen(false)} title="Add Category" maxWidth="max-w-sm">
+        <div className="space-y-4">
+          <FormField label="Category Name">
+            <input type="text" value={newCatName} onChange={(e) => setNewCatName(e.target.value)} className={inputCls} placeholder="e.g., Accessory" />
+          </FormField>
+          <FormField label="HCP Type">
+            <select value={newCatHcpType} onChange={(e) => setNewCatHcpType(e.target.value as "material" | "service")} className={selectCls}>
+              <option value="material">Material (physical items, syncs to HCP)</option>
+              <option value="service">Service (labor/plans, read-only in HCP)</option>
+            </select>
+          </FormField>
         </div>
-      )}
+        <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-ds-border dark:border-gray-700">
+          <button onClick={() => setCatModalOpen(false)} className="px-4 py-2 text-sm text-ds-gray dark:text-gray-400 hover:text-ds-text dark:hover:text-gray-200">Cancel</button>
+          <button onClick={handleAddCategory} disabled={catSaving || !newCatName.trim()} className="px-4 py-2 text-sm font-medium rounded-lg bg-ds-blue text-white hover:bg-blue-700 disabled:opacity-50">
+            {catSaving ? "Adding..." : "Add Category"}
+          </button>
+        </div>
+      </Modal>
 
       {/* Add Supplier Modal */}
-      {supplierModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/40 dark:bg-black/60" onClick={() => setSupplierModalOpen(false)} />
-          <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm mx-4">
-            <div className="p-6">
-              <h2 className="text-lg font-display font-normal text-ds-text dark:text-gray-100 mb-4">Add Supplier</h2>
-              <div>
-                <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Supplier Name</label>
-                <input type="text" value={newSupplierName} onChange={(e) => setNewSupplierName(e.target.value)} className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100" placeholder="e.g., Gensco, Ferguson" />
-              </div>
-              <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-ds-border dark:border-gray-700">
-                <button onClick={() => setSupplierModalOpen(false)} className="px-4 py-2 text-sm text-ds-gray dark:text-gray-400 hover:text-ds-text dark:hover:text-gray-200">Cancel</button>
-                <button onClick={handleAddSupplier} disabled={supplierSaving || !newSupplierName.trim()} className="px-4 py-2 text-sm font-medium rounded-lg bg-ds-blue text-white hover:bg-blue-700 disabled:opacity-50">
-                  {supplierSaving ? "Adding..." : "Add Supplier"}
-                </button>
-              </div>
-            </div>
-          </div>
+      <Modal open={supplierModalOpen} onClose={() => setSupplierModalOpen(false)} title="Add Supplier" maxWidth="max-w-sm">
+        <FormField label="Supplier Name">
+          <input type="text" value={newSupplierName} onChange={(e) => setNewSupplierName(e.target.value)} className={inputCls} placeholder="e.g., Gensco, Ferguson" />
+        </FormField>
+        <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-ds-border dark:border-gray-700">
+          <button onClick={() => setSupplierModalOpen(false)} className="px-4 py-2 text-sm text-ds-gray dark:text-gray-400 hover:text-ds-text dark:hover:text-gray-200">Cancel</button>
+          <button onClick={handleAddSupplier} disabled={supplierSaving || !newSupplierName.trim()} className="px-4 py-2 text-sm font-medium rounded-lg bg-ds-blue text-white hover:bg-blue-700 disabled:opacity-50">
+            {supplierSaving ? "Adding..." : "Add Supplier"}
+          </button>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

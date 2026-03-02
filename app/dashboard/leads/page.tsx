@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { UserRole } from "@/lib/types";
+import PageTopbar from "@/app/components/ui/PageTopbar";
 import CreateLeadForm from "@/app/components/CreateLeadForm";
 import LeadCard from "@/app/components/LeadCard";
 import ArchivedLeadsSection from "@/app/components/ArchivedLeadsSection";
@@ -79,19 +80,16 @@ export default async function LeadsPage({
 
   return (
     <div>
-      {/* Topbar */}
-      <div className="bg-ds-card dark:bg-gray-800 border-b border-ds-border dark:border-gray-700 px-7 flex items-center justify-between h-14 -mx-4 md:-mx-6 -mt-4 md:-mt-6 mb-5">
-        <div className="flex items-center gap-3">
-          <h1 className="font-display text-[22px] font-semibold uppercase tracking-[1px] text-ds-text dark:text-gray-100">
-            Leads
-          </h1>
-          {activeLeads.length > 0 && (
+      <PageTopbar
+        title="Leads"
+        subtitle={
+          activeLeads.length > 0 ? (
             <span className="px-2.5 py-0.5 rounded-full text-[12px] font-bold bg-ds-blue-bg text-ds-blue">
               {activeLeads.length} active
             </span>
-          )}
-        </div>
-      </div>
+          ) : undefined
+        }
+      />
 
       <div className="mb-4">
         <CreateLeadForm comfortPros={pros} prefillPhone={prefillPhone} leadSources={leadSources} />

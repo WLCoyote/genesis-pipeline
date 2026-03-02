@@ -1,5 +1,7 @@
 "use client";
 
+import Button from "@/app/components/ui/Button";
+
 interface SequenceHeaderProps {
   name: string;
   isActive: boolean;
@@ -77,20 +79,25 @@ export default function SequenceHeader({
 
       {/* Action buttons */}
       <div className="flex items-center gap-2">
-        <button
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={onToggle}
           disabled={toggling}
-          className="px-4 py-[7px] rounded-[7px] text-[13px] font-bold border border-ds-border dark:border-gray-600 text-ds-gray dark:text-gray-300 hover:border-ds-blue hover:text-ds-blue disabled:opacity-50 transition-colors cursor-pointer bg-transparent"
+          className="text-ds-gray dark:text-gray-300 hover:border-ds-blue hover:text-ds-blue"
         >
           {toggling ? "..." : isActive ? "⏸ Pause" : "▶ Resume"}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="primary"
+          size="sm"
+          shadow
           onClick={onSave}
           disabled={saving}
-          className="px-4 py-[7px] rounded-[7px] text-[13px] font-bold bg-ds-blue text-white shadow-[0_3px_10px_rgba(21,101,192,0.3)] hover:bg-ds-blue-lt disabled:opacity-50 transition-colors cursor-pointer border-none"
+          className="border-none"
         >
           {saving ? "Saving..." : "💾 Save Changes"}
-        </button>
+        </Button>
       </div>
     </div>
   );

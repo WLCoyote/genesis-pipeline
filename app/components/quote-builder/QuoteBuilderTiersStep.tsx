@@ -8,6 +8,7 @@ import {
   groupItemsByCategory,
   TIER_BADGES,
 } from "./utils";
+import SectionHeader from "@/app/components/ui/SectionHeader";
 
 interface Props {
   tiers: TierForm[];
@@ -63,9 +64,7 @@ export default function QuoteBuilderTiersStep({
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text">
-          Equipment Tiers — Add items from pricebook →
-        </h3>
+        <SectionHeader>Equipment Tiers — Add items from pricebook →</SectionHeader>
         <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">
           <input
             type="checkbox"

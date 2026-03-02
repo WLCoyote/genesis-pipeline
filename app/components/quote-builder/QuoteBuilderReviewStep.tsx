@@ -2,6 +2,9 @@
 
 import type { TierForm, TierTotals, FinancingPlanFull, UserSlim } from "./types";
 import { formatCurrency, calculateMonthly, groupItemsByCategory } from "./utils";
+import SectionHeader from "@/app/components/ui/SectionHeader";
+import Button from "@/app/components/ui/Button";
+import Card from "@/app/components/ui/Card";
 
 interface Props {
   customerName: string;
@@ -59,9 +62,7 @@ export default function QuoteBuilderReviewStep({
 
   return (
     <div className="max-w-4xl mx-auto space-y-5">
-      <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text">
-        Review & Send
-      </h3>
+      <SectionHeader>Review & Send</SectionHeader>
 
       {/* Warnings */}
       {warnings.length > 0 && (
@@ -75,7 +76,7 @@ export default function QuoteBuilderReviewStep({
       )}
 
       {/* Customer summary */}
-      <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm p-5">
+      <Card>
         <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Customer</div>
         <div className="font-display text-sm text-ds-text font-normal">{customerName || "—"}</div>
         <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
@@ -84,7 +85,7 @@ export default function QuoteBuilderReviewStep({
         {assignedUser && (
           <div className="text-xs text-gray-400 mt-1">Assigned to: {assignedUser.name}</div>
         )}
-      </div>
+      </Card>
 
       {/* Tier summaries */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -163,21 +164,24 @@ export default function QuoteBuilderReviewStep({
 
       {/* Financing summary */}
       {selectedFinancingPlan && (
-        <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm p-5">
+        <Card>
           <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Financing</div>
           <div className="text-sm text-ds-text">{selectedFinancingPlan.label}</div>
-        </div>
+        </Card>
       )}
 
       {/* Submit */}
       <div className="flex justify-end">
-        <button
+        <Button
+          variant="warning"
+          size="lg"
           onClick={onSubmit}
           disabled={!canSend || saving}
-          className="px-8 py-3 rounded-xl text-sm font-extrabold tracking-wider uppercase text-white bg-ds-orange hover:bg-orange-500 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:-translate-y-px"
+          type="button"
+          className="font-extrabold tracking-wider uppercase shadow-lg hover:-translate-y-px"
         >
           {saving ? "Creating Quote..." : "Create Quote & Send"}
-        </button>
+        </Button>
       </div>
     </div>
   );

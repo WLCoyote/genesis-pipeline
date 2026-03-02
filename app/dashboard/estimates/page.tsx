@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { UserRole } from "@/lib/types";
+import PageTopbar from "@/app/components/ui/PageTopbar";
 import EstimateTable from "@/app/components/EstimateTable";
 import UpdateEstimatesButton from "@/app/components/UpdateEstimatesButton";
 
@@ -108,28 +109,18 @@ export default async function EstimatesPage() {
 
   return (
     <div>
-      {/* Topbar */}
-      <div className="bg-ds-card dark:bg-gray-800 border-b border-ds-border dark:border-gray-700 px-7 flex items-center justify-between h-14 -mx-6 -mt-6 mb-5">
-        <div className="flex items-center gap-4">
-          <h1 className="font-display text-2xl font-semibold tracking-[1px] uppercase text-ds-text dark:text-gray-100">
-            Estimates
-          </h1>
-          <span className="text-xs text-ds-gray dark:text-gray-500">
-            {role === "admin"
-              ? "All estimates across your team"
-              : "Your assigned estimates"}
-          </span>
-        </div>
-        <div className="flex items-center gap-2.5">
-          <Link
-            href="/dashboard/quote-builder"
-            className="px-4 py-[7px] rounded-[7px] text-[13px] font-bold bg-ds-blue text-white shadow-[0_3px_10px_rgba(21,101,192,0.3)] hover:bg-ds-blue-lt transition-colors no-underline"
-          >
-            New Quote
-          </Link>
-          {["admin", "csr", "comfort_pro"].includes(role) && <UpdateEstimatesButton />}
-        </div>
-      </div>
+      <PageTopbar
+        title="Estimates"
+        subtitle={role === "admin" ? "All estimates across your team" : "Your assigned estimates"}
+      >
+        <Link
+          href="/dashboard/quote-builder"
+          className="px-4 py-[7px] rounded-[7px] text-[13px] font-bold bg-ds-blue text-white shadow-[0_3px_10px_rgba(21,101,192,0.3)] hover:bg-ds-blue-lt transition-colors no-underline"
+        >
+          New Quote
+        </Link>
+        {["admin", "csr", "comfort_pro"].includes(role) && <UpdateEstimatesButton />}
+      </PageTopbar>
 
       <EstimateTable estimates={rows} role={role} />
     </div>

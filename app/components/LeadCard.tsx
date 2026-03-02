@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import MoveToHcpButton from "./MoveToHcpButton";
+import Button from "@/app/components/ui/Button";
 
 interface ComfortPro {
   id: string;
@@ -318,19 +319,23 @@ export default function LeadCard({
         </div>
 
         <div className="flex gap-2 mt-3">
-          <button
+          <Button
+            variant="primary"
+            size="md"
             onClick={handleSave}
             disabled={saving || !firstName.trim()}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="bg-blue-600 hover:bg-blue-700"
           >
             {saving ? "Saving..." : "Save"}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="md"
             onClick={handleCancel}
-            className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+            className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -386,13 +391,15 @@ export default function LeadCard({
             </>
           )}
           {isAdmin && (
-            <button
+            <Button
+              variant="ghost"
+              size="xs"
               onClick={handleDelete}
               disabled={deleting}
-              className="px-2 py-1 text-xs text-red-500 hover:text-red-700 border border-red-200 dark:border-red-800 rounded transition-colors cursor-pointer disabled:opacity-50"
+              className="text-red-500 hover:text-red-700 border border-red-200 dark:border-red-800"
             >
               {deleting ? "..." : "Delete"}
-            </button>
+            </Button>
           )}
         </div>
       </div>

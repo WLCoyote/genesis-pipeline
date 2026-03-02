@@ -1,5 +1,7 @@
 "use client";
 
+import StatCard from "@/app/components/ui/StatCard";
+
 interface EstimateStatsProps {
   pipelineValue: number;
   pipelineCount: number;
@@ -28,31 +30,31 @@ export default function EstimateStats({
     {
       label: "Pipeline Value",
       value: formatK(pipelineValue),
-      color: "text-ds-blue",
+      color: "blue" as const,
       sub: `${pipelineCount} active estimates`,
     },
     {
       label: "Unsent Quotes",
       value: unsentCount.toString(),
-      color: "text-ds-orange",
+      color: "orange" as const,
       sub: "Need to be sent",
     },
     {
       label: "Won This Month",
       value: wonThisMonth.toString(),
-      color: "text-ds-green",
+      color: "green" as const,
       sub: `${formatK(wonAmount)} closed`,
     },
     {
       label: "Avg Quote Value",
       value: formatK(avgQuoteValue),
-      color: "text-ds-text dark:text-gray-100",
+      color: "text" as const,
       sub: "Per estimate",
     },
     {
       label: "Close Rate",
       value: `${closeRate}%`,
-      color: "text-ds-blue",
+      color: "blue" as const,
       sub: "Last 90 days",
     },
   ];
@@ -60,20 +62,13 @@ export default function EstimateStats({
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3.5 mb-4">
       {stats.map((stat) => (
-        <div
+        <StatCard
           key={stat.label}
-          className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl px-4 py-4 shadow-ds hover:-translate-y-0.5 transition-transform"
-        >
-          <div className="text-[10px] font-bold uppercase tracking-[2px] text-ds-gray dark:text-gray-400 mb-1.5">
-            {stat.label}
-          </div>
-          <div className={`font-display text-[32px] font-semibold leading-none ${stat.color}`}>
-            {stat.value}
-          </div>
-          <div className="text-[11px] text-ds-gray dark:text-gray-500 mt-1">
-            {stat.sub}
-          </div>
-        </div>
+          label={stat.label}
+          value={stat.value}
+          color={stat.color}
+          subtext={stat.sub}
+        />
       ))}
     </div>
   );

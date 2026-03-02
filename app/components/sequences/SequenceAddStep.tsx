@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { FollowUpChannel } from "@/lib/types";
+import Button from "@/app/components/ui/Button";
 
 interface SequenceAddStepProps {
   onAdd: (channel: FollowUpChannel) => void;
@@ -48,13 +49,15 @@ export default function SequenceAddStep({ onAdd }: SequenceAddStepProps) {
           >
             ✉️ Add Email
           </button>
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             type="button"
             onClick={() => setShowOptions(false)}
-            className="px-3 py-2.5 rounded-lg text-ds-gray dark:text-gray-400 text-[12px] font-bold border border-ds-border dark:border-gray-600 cursor-pointer hover:bg-ds-bg dark:hover:bg-gray-700 transition-colors bg-transparent"
+            className="text-ds-gray dark:text-gray-400"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       )}
     </div>

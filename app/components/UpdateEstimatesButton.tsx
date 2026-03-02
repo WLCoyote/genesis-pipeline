@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Button from "@/app/components/ui/Button";
 
 export default function UpdateEstimatesButton() {
   const router = useRouter();
@@ -53,13 +54,16 @@ export default function UpdateEstimatesButton() {
 
   return (
     <div className="flex items-center gap-3">
-      <button
+      <Button
+        variant="warning"
+        size="sm"
+        shadow
+        className="border-none shadow-[0_3px_10px_rgba(230,81,0,0.25)]"
         onClick={handleUpdate}
         disabled={loading}
-        className="px-4 py-[7px] rounded-[7px] text-[13px] font-bold bg-ds-orange text-white shadow-[0_3px_10px_rgba(230,81,0,0.25)] hover:bg-[#ff6d00] disabled:opacity-50 transition-colors cursor-pointer border-none"
       >
         {loading ? "Updating..." : "Update Estimates"}
-      </button>
+      </Button>
       {result && (
         <span
           className={`text-xs ${

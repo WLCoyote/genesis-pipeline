@@ -166,6 +166,7 @@ These come up often enough to call out explicitly:
 * **`estimates.estimate_number` has a unique constraint.** Always use `ON CONFLICT` for imports.
 * **Cross-app endpoints** use `/api/v1/` prefix, `GENESIS_INTERNAL_API_KEY` auth, and standard `{data, error, meta}` response envelope. See `GENESIS_CONVENTIONS_v2.1.md`.
 * **Internal dashboard endpoints** do NOT need `/api/v1/` prefix or the conventions envelope. They use Supabase Auth sessions.
+* **Use the shared UI components** in `app/components/ui/` (Button, PageTopbar, Card, SectionHeader, StatCard, Modal, FormField + inputCls/selectCls/textareaCls). Don't duplicate inline patterns that already have a component.
 
 ---
 
@@ -173,7 +174,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 complete (polish, restructure, notifications, ds- consistency pass including Quote Builder, Outfit font weight refinement). E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023 + sql/024 + sql/025 + sql/026 run in Supabase.
+Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 complete (polish, restructure, notifications, ds- consistency pass including Quote Builder, Outfit font weight refinement). Phase 8.3 complete (design system component library — 7 reusable UI components, 45+ files refactored). E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023 + sql/024 + sql/025 + sql/026 run in Supabase.
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -204,7 +205,9 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 8.1A | Estimate detail page UI overhaul — topbar, flex layout with 320px right rail, timeline connectors (channel-colored circles + lines), ds- restyled: FollowUpTimeline, EstimateActions, CustomerInfo (avatar), ConversationThread, LineItemsView (green accepted tier), ProposalEngagementPanel (signed badge + stats grid), OptionsList, ExecuteStepButton, SnoozeForm, EditMessageForm | **Complete** |
 | Phase 8.1B | Sequences page UI overhaul — SequenceEditor decomposed to 4 components (SequenceHeader, SequenceTokenBar, SequenceStepCard, SequenceAddStep), timeline connectors, channel-colored step cards, shared token bar, add-step with channel options | **Complete** |
 | Phase 8.2 | Polish, restructure & notifications — font swap (Outfit), Outfit weight refinement (400/600 strategy), estimate detail scroll fix, customer address mapping, leads simplification, analytics dashboard, import→settings, HCP category paths, team edit fields, notification system, ds- consistency pass (all pages including Quote Builder) | **Complete** — sql/025 + sql/026 run in Supabase |
-| Phase 8.3 | Commission tracking (two-stage, QBO) | Not started |
+| Phase 8.3 | Design system component library — 7 reusable UI components (Button, PageTopbar, Card, SectionHeader, StatCard, Modal, FormField) in `app/components/ui/`, swapped across 45+ files. No visual changes. | **Complete** |
+| Phase 8.4 | Commission tracking (two-stage, QBO) | Not started |
+| Phase 8.5 | Commission dashboard | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
 | v0.2 | HCP webhooks, analytics | Future |
 | Phase 2+ | Campaigns & segmentation | Future |
@@ -237,6 +240,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | ~~ds- design system consistency pass~~ | **Done** (Phase 8.2) — all pages updated with ds- topbars + tokens (Quote Builder completed post-8.2) |
 | ~~Quote Builder ds- token pass~~ | **Done** (post-8.2) — 9 components updated: bg-ds-card, border-ds-border, font-display text-ds-text, replaced inline fontFamily + gradient |
 | ~~Outfit font weight refinement~~ | **Done** (post-8.2) — 45 files, 70 elements: titles → font-semibold (600), subheaders/names → font-normal (400) |
+| ~~Design system component library~~ | **Done** (Phase 8.3) — 7 components in `app/components/ui/`: Button (7 variants × 4 sizes), PageTopbar, Card, SectionHeader, StatCard, Modal, FormField + inputCls/selectCls/textareaCls constants. Swapped across 45+ files. |
 | Install materials builder | Pricebook tool to bundle install materials |
 | Maintenance plan builder | Service plans, subscriptions |
 | Configurable payment terms | 50/50 default, 4-payment option, configurable in quote builder |

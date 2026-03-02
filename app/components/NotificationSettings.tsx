@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Button from "@/app/components/ui/Button";
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
   estimate_approved: "Proposal Signed",
@@ -182,13 +183,15 @@ export default function NotificationSettings() {
       )}
 
       <div className="mt-4 flex items-center gap-3">
-        <button
+        <Button
+          variant="primary"
+          size="md"
           onClick={handleSave}
           disabled={saving}
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="bg-blue-600 hover:bg-blue-700"
         >
           {saving ? "Saving..." : "Save Notification Preferences"}
-        </button>
+        </Button>
         {saveResult && (
           <span
             className={`text-sm ${

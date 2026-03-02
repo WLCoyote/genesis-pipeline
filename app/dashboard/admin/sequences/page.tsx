@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import PageTopbar from "@/app/components/ui/PageTopbar";
 import SequenceEditor from "@/app/components/SequenceEditor";
 
 export default async function SequencesPage() {
@@ -26,17 +27,7 @@ export default async function SequencesPage() {
 
   return (
     <div>
-      {/* Topbar */}
-      <div className="bg-ds-card dark:bg-gray-800 border-b border-ds-border dark:border-gray-700 px-7 flex items-center justify-between h-14 -mx-6 -mt-6 mb-5">
-        <div className="flex items-center gap-4">
-          <h1 className="font-display text-2xl font-semibold tracking-[1px] uppercase text-ds-text dark:text-gray-100">
-            Follow-Up Sequences
-          </h1>
-          <span className="text-xs text-ds-gray dark:text-gray-500">
-            Automated follow-up steps for estimates
-          </span>
-        </div>
-      </div>
+      <PageTopbar title="Follow-Up Sequences" subtitle="Automated follow-up steps for estimates" />
 
       <div className="space-y-6">
         {(sequences || []).map((seq: any) => (

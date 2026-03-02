@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import Button from "@/app/components/ui/Button";
+import Modal from "@/app/components/ui/Modal";
 
 interface PricebookItemSlim {
   id: string;
@@ -377,12 +379,14 @@ export default function QuoteTemplateManager({
           placeholder="Search templates..."
           className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm"
         />
-        <button
+        <Button
+          variant="primary"
+          size="md"
           onClick={openCreate}
-          className="px-3 py-2 text-sm font-medium text-white bg-ds-blue hover:bg-blue-700 rounded-md whitespace-nowrap"
+          className="whitespace-nowrap"
         >
           + New Template
-        </button>
+        </Button>
       </div>
 
       {/* Templates list */}
@@ -428,18 +432,22 @@ export default function QuoteTemplateManager({
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <button
+                <Button
+                  variant="ghost"
+                  size="xs"
                   onClick={() => openEdit(t.id)}
-                  className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+                  className="text-blue-600 dark:text-blue-400 hover:underline"
                 >
                   Edit
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="xs"
                   onClick={() => handleDelete(t.id)}
-                  className="text-red-600 dark:text-red-400 hover:underline text-sm"
+                  className="text-red-600 dark:text-red-400 hover:underline"
                 >
                   Delete
-                </button>
+                </Button>
               </div>
             </div>
           </div>
@@ -453,17 +461,9 @@ export default function QuoteTemplateManager({
       </div>
 
       {/* Edit/Create Modal */}
-      {editing && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl my-8">
-            {/* Modal header */}
-            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="font-display text-lg font-normal text-ds-text dark:text-gray-100">
-                {editing.id ? "Edit Template" : "New Template"}
-              </h2>
-            </div>
-
-            <div className="p-6">
+      <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? "Edit Template" : "New Template"} maxWidth="max-w-4xl">
+        {editing && (
+          <>
               {error && (
                 <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded text-sm">
                   {error}
@@ -718,27 +718,28 @@ export default function QuoteTemplateManager({
                   </div>
                 </div>
               )}
-            </div>
-
             {/* Modal footer */}
-            <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-              <button
+            <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <Button
+                variant="ghost"
+                size="md"
                 onClick={() => setEditing(null)}
-                className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
                 onClick={handleSave}
                 disabled={saving || !editing.name}
-                className="px-4 py-2 text-sm font-medium text-white bg-ds-blue hover:bg-blue-700 rounded-md disabled:opacity-50"
               >
                 {saving ? "Saving..." : editing.id ? "Save Changes" : "Create Template"}
-              </button>
+              </Button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </div>
   );
 }

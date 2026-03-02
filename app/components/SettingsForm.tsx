@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import NotificationSettings from "@/app/components/NotificationSettings";
+import Button from "@/app/components/ui/Button";
 
 interface SettingsFormProps {
   initialSettings: Record<string, number | string | boolean>;
@@ -139,13 +140,14 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
         <div className="flex items-center gap-3">
           {saved && <span className="text-sm text-green-600 dark:text-green-400">Settings saved</span>}
           {error && <span className="text-sm text-red-600">{error}</span>}
-          <button
+          <Button
+            variant="primary"
+            size="md"
             onClick={handleSave}
             disabled={saving}
-            className="px-5 py-2 bg-ds-blue text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             {saving ? "Saving..." : "Save All Settings"}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -282,7 +284,9 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
           Import or sync pricebook items from Housecall Pro. Per-item &quot;Push to HCP&quot; is still available in the Pricebook page.
         </p>
         <div className="flex flex-wrap items-center gap-3">
-          <button
+          <Button
+            variant="primary"
+            size="md"
             onClick={async () => {
               setImporting(true);
               setImportResult("");
@@ -305,11 +309,13 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
               }
             }}
             disabled={importing}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
+            className="bg-blue-600 hover:bg-blue-700"
           >
             {importing ? "Importing..." : "Import New from HCP"}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="success"
+            size="md"
             onClick={async () => {
               setFullSyncing(true);
               setFullSyncResult("");
@@ -330,10 +336,10 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
               }
             }}
             disabled={fullSyncing}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 transition-colors"
+            className="bg-green-600 hover:bg-green-700"
           >
             {fullSyncing ? "Syncing..." : "Full HCP Pricebook Update"}
-          </button>
+          </Button>
           {importResult && (
             <span className={`text-sm ${importResult.startsWith("Error") ? "text-red-600" : "text-green-600 dark:text-green-400"}`}>
               {importResult}
@@ -366,13 +372,14 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
 
       {/* Bottom save button */}
       <div className="flex justify-end">
-        <button
+        <Button
+          variant="primary"
+          size="md"
           onClick={handleSave}
           disabled={saving}
-          className="px-5 py-2 bg-ds-blue text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
           {saving ? "Saving..." : "Save All Settings"}
-        </button>
+        </Button>
       </div>
     </div>
   );

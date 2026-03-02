@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FollowUpEvent } from "@/lib/types";
+import Button from "@/app/components/ui/Button";
 
 interface EditMessageFormProps {
   event: FollowUpEvent;
@@ -70,20 +71,25 @@ export default function EditMessageForm({ event, onClose }: EditMessageFormProps
       {error && <p className="text-[12px] text-ds-red dark:text-red-400">{error}</p>}
 
       <div className="flex gap-2">
-        <button
+        <Button
           type="submit"
+          variant="primary"
+          size="sm"
+          shadow
+          className="border-none"
           disabled={loading}
-          className="px-4 py-[7px] bg-ds-blue text-white text-[13px] font-bold rounded-[7px] shadow-[0_3px_10px_rgba(21,101,192,0.3)] hover:bg-ds-blue-lt disabled:opacity-50 transition-colors cursor-pointer border-none"
         >
           {loading ? "Saving..." : "Save Changes"}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
+          className="text-ds-gray hover:text-ds-text dark:text-gray-400 dark:hover:text-gray-200 border-none"
           onClick={onClose}
-          className="px-4 py-[7px] text-[13px] text-ds-gray dark:text-gray-400 hover:text-ds-text dark:hover:text-gray-200 transition-colors cursor-pointer bg-transparent border-none"
         >
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

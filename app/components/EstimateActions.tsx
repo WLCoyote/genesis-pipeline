@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { EstimateStatus, FollowUpEvent, EstimateOption } from "@/lib/types";
 import SnoozeForm from "./SnoozeForm";
 import EditMessageForm from "./EditMessageForm";
+import Button from "@/app/components/ui/Button";
 
 interface NextDueStep {
   day_offset: number;
@@ -152,7 +153,10 @@ export default function EstimateActions({
             <div className="text-[13px] font-bold text-ds-green dark:text-green-300">
               Day {nextDueStep.day_offset} · {nextDueStep.is_call_task ? "Call task" : nextDueStep.channel.toUpperCase()} ready
             </div>
-            <button
+            <Button
+              variant="success"
+              size="sm"
+              className="border-none"
               onClick={async () => {
                 setSending(true);
                 setSendResult("");
@@ -180,10 +184,9 @@ export default function EstimateActions({
                 setSending(false);
               }}
               disabled={sending}
-              className="px-3 py-1.5 bg-ds-green text-white text-[12px] font-bold rounded-[7px] hover:brightness-110 disabled:opacity-50 transition-all cursor-pointer border-none"
             >
               {sending ? "Sending..." : "Send Now"}
-            </button>
+            </Button>
           </div>
           {sendResult && (
             <div className={`text-[12px] mt-1 font-bold ${sendResult.includes("Failed") ? "text-ds-red" : "text-ds-green dark:text-green-400"}`}>
@@ -217,12 +220,14 @@ export default function EstimateActions({
         <div className="flex flex-wrap gap-2">
           {!isTerminal && (
             <>
-              <button
+              <Button
+                variant="snooze"
+                size="sm"
+                className="flex-1 border-none"
                 onClick={() => setShowSnooze(true)}
-                className="flex-1 px-3 py-2.5 rounded-lg text-[12px] font-bold bg-ds-yellow text-ds-text cursor-pointer hover:brightness-105 transition-all border-none"
               >
                 Snooze
-              </button>
+              </Button>
               <button
                 onClick={() => setShowStatusModal("won")}
                 className="flex-1 px-3 py-2.5 rounded-lg text-[12px] font-bold bg-ds-green-bg text-ds-green border-[1.5px] border-ds-green/30 hover:bg-ds-green hover:text-white transition-colors cursor-pointer"
@@ -239,17 +244,23 @@ export default function EstimateActions({
           )}
 
           {isTerminal && (
-            <button
+            <Button
+              variant="primary"
+              size="sm"
+              shadow
+              className="border-none"
               onClick={handleReactivate}
               disabled={loading === "active"}
-              className="px-4 py-[7px] bg-ds-blue text-white text-[13px] font-bold rounded-[7px] shadow-[0_3px_10px_rgba(21,101,192,0.3)] hover:bg-ds-blue-lt disabled:opacity-50 transition-colors cursor-pointer border-none"
             >
               {loading === "active" ? "..." : "Reactivate"}
-            </button>
+            </Button>
           )}
 
           {!isTerminal && sequenceIsActive && currentStepIndex < totalSteps && (
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
+              className="text-ds-gray dark:text-gray-300 hover:bg-ds-bg dark:hover:bg-gray-700"
               onClick={async () => {
                 if (
                   !confirm(
@@ -272,10 +283,9 @@ export default function EstimateActions({
                 setSkipping(false);
               }}
               disabled={skipping}
-              className="px-3 py-2 border border-ds-border dark:border-gray-600 text-ds-gray dark:text-gray-300 text-[12px] font-bold rounded-[7px] hover:bg-ds-bg dark:hover:bg-gray-700 disabled:opacity-50 transition-colors cursor-pointer bg-transparent"
             >
               {skipping ? "..." : "Skip Step"}
-            </button>
+            </Button>
           )}
         </div>
       )}

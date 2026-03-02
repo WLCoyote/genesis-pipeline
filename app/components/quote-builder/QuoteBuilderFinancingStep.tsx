@@ -2,6 +2,7 @@
 
 import type { FinancingPlanFull, TierForm, TierTotals } from "./types";
 import { formatCurrency, calculateMonthly } from "./utils";
+import Card from "@/app/components/ui/Card";
 
 interface Props {
   financingPlans: FinancingPlanFull[];
@@ -45,13 +46,7 @@ export default function QuoteBuilderFinancingStep({
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Tax Toggle */}
-      <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-5 py-3 border-b border-ds-border dark:border-gray-700">
-          <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text">
-            Sales Tax
-          </h3>
-        </div>
-        <div className="p-5">
+      <Card title="Sales Tax">
           <label className="flex items-center gap-3 cursor-pointer">
             <input
               type="checkbox"
@@ -92,25 +87,22 @@ export default function QuoteBuilderFinancingStep({
               )}
             </div>
           )}
-        </div>
-      </div>
+      </Card>
 
       {/* Financing Plans */}
-      <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-5 py-3 border-b border-ds-border dark:border-gray-700 flex items-center justify-between">
-          <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text">
-            Financing Plans
-          </h3>
-          {selectedFinancingPlanId && (
+      <Card
+        title="Financing Plans"
+        headerRight={
+          selectedFinancingPlanId ? (
             <button
               onClick={() => onSelectPlan(null)}
               className="text-xs font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
             >
               Clear Selection
             </button>
-          )}
-        </div>
-        <div className="p-5">
+          ) : undefined
+        }
+      >
           {financingPlans.length === 0 ? (
             <p className="text-sm text-gray-500 dark:text-gray-400">
               No financing plans available. Add them in Settings.
@@ -154,18 +146,11 @@ export default function QuoteBuilderFinancingStep({
           >
             Get Pre-Approved with Synchrony →
           </a>
-        </div>
-      </div>
+      </Card>
 
       {/* Per-tier monthly preview */}
       {selectedPlan && (
-        <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
-          <div className="px-5 py-3 border-b border-ds-border dark:border-gray-700">
-            <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text">
-              Monthly Payment Preview — {selectedPlan.label}
-            </h3>
-          </div>
-          <div className="p-5">
+        <Card title={`Monthly Payment Preview — ${selectedPlan.label}`}>
             <div className="grid grid-cols-3 gap-4">
               {tiers.map((tier, idx) => {
                 const total = tierTotals[idx]?.total || 0;
@@ -189,8 +174,7 @@ export default function QuoteBuilderFinancingStep({
                 );
               })}
             </div>
-          </div>
-        </div>
+        </Card>
       )}
     </div>
   );

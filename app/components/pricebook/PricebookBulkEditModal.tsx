@@ -1,6 +1,9 @@
 "use client";
 
 import type { PricebookCategoryRow, PricebookSupplier } from "@/lib/types";
+import Button from "@/app/components/ui/Button";
+import Modal from "@/app/components/ui/Modal";
+import { inputCls, selectCls, textareaCls } from "@/app/components/ui/FormField";
 
 const REFRIGERANT_OPTIONS = [
   { value: "R-410A", label: "R-410A" },
@@ -54,8 +57,6 @@ interface PricebookBulkEditModalProps {
   suppliers: PricebookSupplier[];
 }
 
-const inputCls = "w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100";
-
 export default function PricebookBulkEditModal({
   isOpen,
   onClose,
@@ -67,17 +68,9 @@ export default function PricebookBulkEditModal({
   categories,
   suppliers,
 }: PricebookBulkEditModalProps) {
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40 dark:bg-black/60" onClick={onClose} />
-      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <h2 className="text-lg font-display font-normal text-ds-text dark:text-gray-100 mb-1">
-            Bulk Edit
-          </h2>
-          <p className="text-sm text-ds-gray dark:text-gray-400 mb-4">
+    <Modal open={isOpen} onClose={onClose} title="Bulk Edit">
+          <p className="text-sm text-ds-gray dark:text-gray-400 mb-4 -mt-2">
             Editing {selectedCount} item{selectedCount !== 1 ? "s" : ""}. Only filled fields will be updated.
           </p>
 
@@ -85,7 +78,7 @@ export default function PricebookBulkEditModal({
             {/* Category */}
             <div>
               <label className="block text-xs font-medium text-ds-gray dark:text-gray-400 mb-1">Category</label>
-              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={inputCls}>
+              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={selectCls}>
                 <option value="">— No change —</option>
                 {categories.map((c) => <option key={c.slug} value={c.slug}>{c.name}</option>)}
               </select>
@@ -119,14 +112,14 @@ export default function PricebookBulkEditModal({
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-ds-gray dark:text-gray-400 mb-1">Refrigerant Type</label>
-                <select value={form.refrigerant_type} onChange={(e) => setForm({ ...form, refrigerant_type: e.target.value })} className={inputCls}>
+                <select value={form.refrigerant_type} onChange={(e) => setForm({ ...form, refrigerant_type: e.target.value })} className={selectCls}>
                   <option value="">— No change —</option>
                   {REFRIGERANT_OPTIONS.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
               </div>
               <div>
                 <label className="block text-xs font-medium text-ds-gray dark:text-gray-400 mb-1">Supplier</label>
-                <select value={form.supplier_id} onChange={(e) => setForm({ ...form, supplier_id: e.target.value })} className={inputCls}>
+                <select value={form.supplier_id} onChange={(e) => setForm({ ...form, supplier_id: e.target.value })} className={selectCls}>
                   <option value="">— No change —</option>
                   {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                 </select>
@@ -142,7 +135,7 @@ export default function PricebookBulkEditModal({
             {/* Description */}
             <div>
               <label className="block text-xs font-medium text-ds-gray dark:text-gray-400 mb-1">Description</label>
-              <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} className={inputCls} placeholder="No change" />
+              <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} rows={2} className={textareaCls} placeholder="No change" />
             </div>
 
             {/* Spec Line */}
@@ -181,7 +174,7 @@ export default function PricebookBulkEditModal({
                   <select
                     value={form[key]}
                     onChange={(e) => setForm({ ...form, [key]: e.target.value as "" | "true" | "false" })}
-                    className={inputCls}
+                    className={selectCls}
                   >
                     <option value="">— No change —</option>
                     <option value="true">Yes</option>
@@ -194,19 +187,19 @@ export default function PricebookBulkEditModal({
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-ds-border dark:border-gray-700">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-ds-gray dark:text-gray-400 hover:text-ds-text dark:hover:text-gray-200">
+            <Button variant="ghost" size="md" onClick={onClose} className="text-ds-gray hover:text-ds-text dark:text-gray-400 dark:hover:text-gray-200">
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
               onClick={onSave}
               disabled={saving}
-              className="px-4 py-2 text-sm font-medium rounded-lg bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50"
+              className="bg-purple-600 hover:bg-purple-700"
             >
               {saving ? "Updating..." : `Update ${selectedCount} Items`}
-            </button>
+            </Button>
           </div>
-        </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

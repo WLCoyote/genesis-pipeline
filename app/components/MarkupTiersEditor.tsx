@@ -3,6 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { MarkupTier } from "@/lib/types";
+import Button from "@/app/components/ui/Button";
+import Modal from "@/app/components/ui/Modal";
 
 interface MarkupTiersEditorProps {
   initialTiers: MarkupTier[];
@@ -144,26 +146,30 @@ export default function MarkupTiersEditor({ initialTiers }: MarkupTiersEditorPro
               {status}
             </span>
           )}
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={addRow}
-            className="px-3 py-1.5 text-sm font-medium rounded-md bg-ds-bg dark:bg-gray-700 text-ds-text dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+            className="bg-ds-bg dark:bg-gray-700 text-ds-text dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
           >
             + Add Tier
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
             onClick={handleSave}
             disabled={saving}
-            className="px-3 py-1.5 text-sm font-medium rounded-md bg-ds-blue text-white hover:bg-blue-700 disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save All"}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="warning"
+            size="sm"
             onClick={() => setConfirmRecalc(true)}
             disabled={recalculating}
-            className="px-3 py-1.5 text-sm font-medium rounded-md bg-ds-orange text-white hover:brightness-110 disabled:opacity-50"
           >
             {recalculating ? "Recalculating..." : "Recalculate Pricebook"}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -249,12 +255,14 @@ export default function MarkupTiersEditor({ initialTiers }: MarkupTiersEditorPro
                   {calcProfitPct(row.multiplier)}
                 </td>
                 <td className="px-4 py-2 text-right">
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="xs"
                     onClick={() => removeRow(index)}
-                    className="text-red-500 dark:text-red-400 hover:underline text-sm"
+                    className="text-red-500 dark:text-red-400 hover:underline"
                   >
                     Remove
-                  </button>
+                  </Button>
                 </td>
               </tr>
             ))}
@@ -267,38 +275,35 @@ export default function MarkupTiersEditor({ initialTiers }: MarkupTiersEditorPro
       </p>
 
       {/* Recalculate confirmation modal */}
-      {confirmRecalc && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-              Recalculate Pricebook Prices
-            </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              This will update the retail price on all active equipment, material, and addon items
-              based on the current markup tiers. Items with <strong>Manual price</strong> checked
-              will be skipped.
-            </p>
-            <p className="text-sm text-amber-600 dark:text-amber-400 mb-4">
-              This cannot be undone. Make sure your tiers are saved first.
-            </p>
-            <div className="flex justify-end gap-3">
-              <button
-                onClick={() => setConfirmRecalc(false)}
-                className="px-4 py-2 text-sm font-medium rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleRecalculate}
-                disabled={recalculating}
-                className="px-4 py-2 text-sm font-medium rounded-md bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50"
-              >
-                {recalculating ? "Recalculating..." : "Recalculate All"}
-              </button>
-            </div>
-          </div>
+      <Modal open={confirmRecalc} onClose={() => setConfirmRecalc(false)} title="Recalculate Pricebook Prices" maxWidth="max-w-md">
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          This will update the retail price on all active equipment, material, and addon items
+          based on the current markup tiers. Items with <strong>Manual price</strong> checked
+          will be skipped.
+        </p>
+        <p className="text-sm text-amber-600 dark:text-amber-400 mb-4">
+          This cannot be undone. Make sure your tiers are saved first.
+        </p>
+        <div className="flex justify-end gap-3">
+          <Button
+            variant="secondary"
+            size="md"
+            onClick={() => setConfirmRecalc(false)}
+            className="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="warning"
+            size="md"
+            onClick={handleRecalculate}
+            disabled={recalculating}
+            className="bg-amber-600 hover:bg-amber-700"
+          >
+            {recalculating ? "Recalculating..." : "Recalculate All"}
+          </Button>
         </div>
-      )}
+      </Modal>
     </div>
   );
 }

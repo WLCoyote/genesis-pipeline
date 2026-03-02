@@ -2,6 +2,7 @@
 
 import { useRef } from "react";
 import { SequenceStep, FollowUpChannel } from "@/lib/types";
+import Button from "@/app/components/ui/Button";
 
 interface SequenceStepCardProps {
   step: SequenceStep;
@@ -132,12 +133,14 @@ export default function SequenceStepCard({
 
           {/* Remove button */}
           {canRemove && (
-            <button
+            <Button
+              variant="ghost"
+              size="xs"
               onClick={onRemove}
-              className="ml-auto text-[11px] text-ds-red font-bold bg-transparent border-none cursor-pointer px-2 py-1 rounded-[5px] hover:bg-ds-red-bg transition-colors"
+              className="ml-auto text-ds-red hover:bg-ds-red-bg border-none px-2 py-1"
             >
               ✕ Remove
-            </button>
+            </Button>
           )}
         </div>
 

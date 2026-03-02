@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Button from "@/app/components/ui/Button";
 
 interface ComfortPro {
   id: string;
@@ -82,12 +83,14 @@ export default function CreateLeadForm({ comfortPros, prefillPhone, leadSources 
 
   if (!open) {
     return (
-      <button
+      <Button
+        variant="primary"
+        size="md"
         onClick={() => setOpen(true)}
-        className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
+        className="bg-blue-600 hover:bg-blue-700"
       >
         + New Lead
-      </button>
+      </Button>
     );
   }
 
@@ -242,20 +245,24 @@ export default function CreateLeadForm({ comfortPros, prefillPhone, leadSources 
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <div className="flex gap-2 pt-1">
-          <button
+          <Button
+            variant="primary"
+            size="md"
             type="submit"
             disabled={loading}
-            className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="bg-blue-600 hover:bg-blue-700"
           >
             {loading ? "Creating..." : "Create Lead"}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="md"
             type="button"
             onClick={() => setOpen(false)}
-            className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+            className="text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
           >
             Cancel
-          </button>
+          </Button>
         </div>
       </form>
     </div>

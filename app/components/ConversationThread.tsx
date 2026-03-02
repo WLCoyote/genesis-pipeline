@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Message } from "@/lib/types";
+import Button from "@/app/components/ui/Button";
 
 interface ConversationThreadProps {
   estimateId: string;
@@ -169,13 +170,15 @@ export default function ConversationThread({
                 placeholder="Type a reply..."
                 className="flex-1 px-3.5 py-2.5 border-[1.5px] border-ds-border dark:border-gray-600 rounded-lg text-[13px] text-ds-text dark:text-gray-100 bg-ds-bg dark:bg-gray-700 placeholder:text-ds-gray-lt focus:border-ds-blue focus:bg-white dark:focus:bg-gray-600 outline-none transition-colors"
               />
-              <button
+              <Button
                 type="submit"
+                variant="primary"
+                size="md"
+                className="px-5 py-0 border-none rounded-lg"
                 disabled={sending || !reply.trim()}
-                className="px-5 py-0 bg-ds-blue text-white border-none rounded-lg font-bold text-[13px] hover:bg-ds-blue-lt disabled:opacity-50 transition-colors cursor-pointer"
               >
                 {sending ? "..." : "Send"}
-              </button>
+              </Button>
             </form>
             {error && (
               <p className="text-[12px] text-ds-red dark:text-red-400 px-3 pb-3 -mt-1">{error}</p>

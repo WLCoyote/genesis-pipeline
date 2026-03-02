@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Button from "@/app/components/ui/Button";
 
 interface MoveToHcpButtonProps {
   leadId: string;
@@ -41,13 +42,15 @@ export default function MoveToHcpButton({ leadId, customerName }: MoveToHcpButto
 
   return (
     <div>
-      <button
+      <Button
+        variant="success"
+        size="xs"
         onClick={handleMove}
         disabled={loading}
-        className="px-3 py-1.5 bg-green-600 text-white text-xs font-medium rounded-md hover:bg-green-700 disabled:opacity-50 transition-colors whitespace-nowrap"
+        className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
       >
         {loading ? "Moving..." : "Move to HCP"}
-      </button>
+      </Button>
       {error && <p className="text-xs text-red-600 mt-1">{error}</p>}
     </div>
   );

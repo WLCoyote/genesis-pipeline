@@ -1,6 +1,7 @@
 "use client";
 
 import type { UserSlim } from "./types";
+import Button from "@/app/components/ui/Button";
 
 interface Props {
   estimateNumber: string | null;
@@ -54,28 +55,34 @@ export default function QuoteBuilderTopbar({
           ))}
         </select>
 
-        <button
+        <Button
+          variant="secondary"
+          size="xs"
           onClick={onSaveDraft}
           disabled={draftSaving}
-          className="px-4 py-1.5 rounded-lg text-xs font-bold border border-ds-border dark:border-gray-600 text-ds-gray hover:border-ds-blue hover:text-ds-blue transition-colors disabled:opacity-50"
+          className="text-ds-gray hover:border-ds-blue hover:text-ds-blue"
         >
           {draftSaving ? "Saving..." : draftSaved ? "Saved ✓" : "Save Draft"}
-        </button>
+        </Button>
 
-        <button
+        <Button
+          variant="secondary"
+          size="xs"
           onClick={onPreview}
-          className="px-4 py-1.5 rounded-lg text-xs font-bold border border-ds-border dark:border-gray-600 text-ds-gray hover:border-ds-blue hover:text-ds-blue transition-colors"
+          className="text-ds-gray hover:border-ds-blue hover:text-ds-blue"
         >
           Preview
-        </button>
+        </Button>
 
-        <button
+        <Button
+          variant="warning"
+          size="xs"
           onClick={onSend}
           disabled={!canSend || saving}
-          className="px-4 py-1.5 rounded-lg text-xs font-bold text-white bg-ds-orange hover:bg-orange-500 shadow-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="shadow-sm"
         >
           {saving ? "Creating..." : "Send to Customer"}
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { User, UserInvite, UserRole } from "@/lib/types";
+import Button from "@/app/components/ui/Button";
 
 interface TeamMemberListProps {
   users: User[];
@@ -162,12 +163,13 @@ export default function TeamMemberList({
           <h2 className="font-display text-lg font-normal text-ds-text dark:text-gray-100">
             Team Members ({users.length})
           </h2>
-          <button
+          <Button
+            variant="primary"
+            size="md"
             onClick={() => setShowInviteForm(!showInviteForm)}
-            className="px-4 py-2 bg-ds-blue text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors"
           >
             {showInviteForm ? "Cancel" : "Invite Member"}
-          </button>
+          </Button>
         </div>
 
         {/* Invite Form */}
@@ -233,13 +235,14 @@ export default function TeamMemberList({
               </div>
             </div>
             <div className="mt-3 flex justify-end">
-              <button
+              <Button
                 type="submit"
+                variant="primary"
+                size="md"
                 disabled={inviting}
-                className="px-4 py-2 bg-ds-blue text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
                 {inviting ? "Sending..." : "Send Invite"}
-              </button>
+              </Button>
             </div>
           </form>
         )}
@@ -308,19 +311,23 @@ export default function TeamMemberList({
                       </select>
                     </div>
                     <div className="flex items-center gap-2 justify-end">
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="xs"
                         onClick={() => handleEditSave(u.id)}
                         disabled={saving}
-                        className="text-sm text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50"
+                        className="text-blue-600 dark:text-blue-400 hover:underline"
                       >
                         Save
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="xs"
                         onClick={() => setEditingId(null)}
-                        className="text-sm text-gray-500 dark:text-gray-400 hover:underline"
+                        className="text-gray-500 dark:text-gray-400 hover:underline"
                       >
                         Cancel
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 ) : (
@@ -385,12 +392,14 @@ export default function TeamMemberList({
                   <span className="text-xs px-2 py-1 bg-ds-yellow-bg text-[#795500] rounded">
                     {roleLabels[inv.role]} (pending)
                   </span>
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="xs"
                     onClick={() => handleRevokeInvite(inv.id)}
-                    className="text-sm text-red-500 dark:text-red-400 hover:underline"
+                    className="text-red-500 dark:text-red-400 hover:underline"
                   >
                     Revoke
-                  </button>
+                  </Button>
                 </div>
               </div>
             ))}

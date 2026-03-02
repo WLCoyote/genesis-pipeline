@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import QuoteTemplateManager from "@/app/components/QuoteTemplateManager";
+import PageTopbar from "@/app/components/ui/PageTopbar";
 
 export default async function QuoteTemplatesPage() {
   const supabase = await createClient();
@@ -44,12 +45,7 @@ export default async function QuoteTemplatesPage() {
 
   return (
     <div>
-      {/* Topbar */}
-      <div className="bg-ds-card dark:bg-gray-800 border-b border-ds-border dark:border-gray-700 px-7 flex items-center justify-between h-14 -mx-4 md:-mx-6 -mt-4 md:-mt-6 mb-5">
-        <h1 className="font-display text-[22px] font-semibold uppercase tracking-[1px] text-ds-text dark:text-gray-100">
-          Quote Templates
-        </h1>
-      </div>
+      <PageTopbar title="Quote Templates" />
 
       <QuoteTemplateManager
         initialTemplates={templates || []}

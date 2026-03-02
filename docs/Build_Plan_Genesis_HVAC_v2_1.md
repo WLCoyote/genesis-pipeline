@@ -737,11 +737,40 @@ Updated all remaining dashboard pages with ds- design system tokens:
 
 ---
 
-## PHASE 8.3: Commission Tracking — NOT STARTED
+## PHASE 8.3: Design System Component Library ✅ COMPLETE
+
+Extracted 7 most-repeated UI patterns into reusable React components in `app/components/ui/`. No visual changes — components produce identical output to the inline styles they replace.
+
+### Components Built
+
+| Component | File | What It Replaces |
+|-----------|------|-----------------|
+| `Button` | `app/components/ui/Button.tsx` | 7 variants (primary/destructive/success/warning/snooze/secondary/ghost) × 4 sizes (xs/sm/md/lg) |
+| `PageTopbar` | `app/components/ui/PageTopbar.tsx` | Page header bar pattern (13 pages swapped, 2 breakaway exceptions) |
+| `Card` | `app/components/ui/Card.tsx` | Card container with optional titled header |
+| `SectionHeader` | `app/components/ui/SectionHeader.tsx` | Uppercase section label (`font-display text-xs font-semibold uppercase tracking-[2px]`) |
+| `StatCard` | `app/components/ui/StatCard.tsx` | Metric display card with label/value/subtext |
+| `Modal` | `app/components/ui/Modal.tsx` | Fixed overlay dialog (6 modals swapped) |
+| `FormField` | `app/components/ui/FormField.tsx` | Label wrapper + `inputCls`/`selectCls`/`textareaCls` shared constants |
+
+### Files Modified: 45+
+
+All dashboard pages, quote builder components, pricebook components, estimate detail components, sequence components, settings/team/leads/inbox pages.
+
+### Breakaway Exceptions (not swapped)
+
+- Estimate detail topbar (`[id]/page.tsx`) — too custom (back button, status badge, HCP link, metadata)
+- QuoteBuilderTopbar — custom breadcrumbs layout
+- Proposal page — completely different dark theme
+- AnalyticsStats — gradient background cards, different layout from StatCard
+
+---
+
+## PHASE 8.4: Commission Tracking — NOT STARTED
 
 Two-stage commission from close to confirmed payout. See PRD v4.0 Section 6.
 
-### Step 8.3a: Database — Commission Tables
+### Step 8.4a: Database — Commission Tables
 
 Create SQL migrations for:
 - `commission_tiers` — period (monthly/quarterly/annual), min_revenue, max_revenue, rate_pct, is_active.
@@ -754,7 +783,7 @@ Seed default tier structure (admin-configurable rates 5-8%).
 
 **VERIFY:** Tables created. Tier structure seeded. RLS working.
 
-### Step 8.3b: Commission Calculation Logic
+### Step 8.4b: Commission Calculation Logic
 
 Create `lib/commission.ts`:
 - `getTierRate(userId, periodRevenue)` — looks up cumulative revenue against tier table
@@ -765,7 +794,7 @@ Called automatically: estimated at proposal signing (Phase 7), confirmed by cron
 
 **VERIFY:** Estimated commission calculates correctly at signing. Tier rate lookup works.
 
-### Step 8.3c: QBO Integration
+### Step 8.4c: QBO Integration
 
 Create `lib/qbo.ts`:
 - OAuth 2.0 flow: `/api/auth/qbo` callback for token exchange
@@ -778,7 +807,7 @@ QBO OAuth connection UI in Settings page (admin only).
 
 **VERIFY:** QBO OAuth connects. Can query invoices. Paid status detected correctly.
 
-### Step 8.3d: Commission Confirmation Cron
+### Step 8.4d: Commission Confirmation Cron
 
 New cron job: `/api/cron/confirm-commission` — 1x daily.
 

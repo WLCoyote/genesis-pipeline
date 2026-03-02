@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Papa from "papaparse";
+import Button from "@/app/components/ui/Button";
 
 const mappableFields = [
   { key: "customer_name", label: "Customer Name", required: true },
@@ -216,13 +217,15 @@ export default function CsvUploader() {
       {/* Import button */}
       {csvHeaders.length > 0 && (
         <div className="flex items-center gap-3">
-          <button
+          <Button
+            variant="primary"
+            size="md"
             onClick={handleImport}
             disabled={importing || !requiredMapped}
-            className="px-6 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="px-6 bg-blue-600 hover:bg-blue-700"
           >
             {importing ? "Importing..." : "Import"}
-          </button>
+          </Button>
           {!requiredMapped && (
             <span className="text-sm text-red-500">
               Map all required fields before importing.

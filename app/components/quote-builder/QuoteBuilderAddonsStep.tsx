@@ -2,6 +2,7 @@
 
 import type { TierForm, PricebookItemSlim } from "./types";
 import { formatCurrency } from "./utils";
+import SectionHeader from "@/app/components/ui/SectionHeader";
 
 interface Props {
   tiers: TierForm[];
@@ -34,9 +35,7 @@ export default function QuoteBuilderAddonsStep({
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text mb-4">
-        Add-Ons — Toggle per tier
-      </h3>
+      <SectionHeader className="mb-4">Add-Ons — Toggle per tier</SectionHeader>
 
       {/* Cross-tier addon matrix */}
       <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">

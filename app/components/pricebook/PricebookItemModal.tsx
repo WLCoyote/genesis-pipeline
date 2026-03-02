@@ -1,6 +1,9 @@
 "use client";
 
 import { useMemo } from "react";
+import Button from "@/app/components/ui/Button";
+import Modal from "@/app/components/ui/Modal";
+import FormField, { inputCls, selectCls, textareaCls } from "@/app/components/ui/FormField";
 import type { PricebookItem, PricebookCategory, PricebookCategoryRow, PricebookSupplier, MarkupTier } from "@/lib/types";
 
 const REFRIGERANT_OPTIONS = [
@@ -193,17 +196,8 @@ export default function PricebookItemModal({
     return markupTiers.find((t) => cost >= t.min_cost && (t.max_cost === null || cost <= t.max_cost)) ?? null;
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/40 dark:bg-black/60" onClick={onClose} />
-      <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <h2 className="text-lg font-display font-normal text-ds-text dark:text-gray-100 mb-4">
-            {editingId ? "Edit Item" : "Add Pricebook Item"}
-          </h2>
-
+    <Modal open={isOpen} onClose={onClose} title={editingId ? "Edit Item" : "Add Pricebook Item"}>
           {error && (
             <div className="mb-4 p-2 bg-ds-red-bg dark:bg-red-900/20 text-ds-red dark:text-red-400 text-sm rounded-lg">
               {error}
@@ -218,147 +212,133 @@ export default function PricebookItemModal({
 
           <div className="space-y-4">
             {/* Display Name */}
-            <div>
-              <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">
-                Display Name *
-              </label>
+            <FormField label="Display Name" required>
               <input
                 type="text"
                 value={form.display_name}
                 onChange={(e) => setForm({ ...form, display_name: e.target.value })}
-                className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                className={inputCls}
                 placeholder="e.g., Mitsubishi Hyper Heat — Premium System"
               />
-            </div>
+            </FormField>
 
             {/* Category */}
-            <div>
-              <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">
-                Category *
-              </label>
+            <FormField label="Category" required>
               <select
                 value={form.category}
                 onChange={(e) => setForm({ ...form, category: e.target.value as PricebookCategory })}
-                className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                className={selectCls}
               >
                 {categories.map((c) => (
                   <option key={c.slug} value={c.slug}>{c.name}</option>
                 ))}
               </select>
-            </div>
+            </FormField>
 
             {/* Subcategory */}
             {visibleFields.has('subcategory') && (
-              <div>
-                <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Subcategory</label>
+              <FormField label="Subcategory">
                 <input
                   type="text"
                   list="subcategory-options"
                   value={form.hcp_category_name}
                   onChange={(e) => setForm({ ...form, hcp_category_name: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                  className={inputCls}
                   placeholder="Select or type a new subcategory"
                 />
                 <datalist id="subcategory-options">
                   {formSubcategories.map((sub) => <option key={sub} value={sub} />)}
                 </datalist>
-              </div>
+              </FormField>
             )}
 
             {/* System Type + Efficiency */}
             {visibleFields.has('systemType') && (
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">System Type</label>
+                <FormField label="System Type">
                   <input
                     type="text"
                     list="system-type-options"
                     value={form.system_type}
                     onChange={(e) => setForm({ ...form, system_type: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                    className={inputCls}
                     placeholder="e.g., Heat Pump, Furnace"
                   />
                   <datalist id="system-type-options">
                     {formSystemTypes.map((t) => <option key={t} value={t} />)}
                   </datalist>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Efficiency Rating</label>
+                </FormField>
+                <FormField label="Efficiency Rating">
                   <input
                     type="text"
                     list="efficiency-rating-options"
                     value={form.efficiency_rating}
                     onChange={(e) => setForm({ ...form, efficiency_rating: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                    className={inputCls}
                     placeholder="e.g., 14 SEER2"
                   />
                   <datalist id="efficiency-rating-options">
                     {formEfficiencyRatings.map((r) => <option key={r} value={r} />)}
                   </datalist>
-                </div>
+                </FormField>
               </div>
             )}
 
             {/* Refrigerant */}
             {visibleFields.has('refrigerant') && (
-              <div>
-                <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Refrigerant Type</label>
+              <FormField label="Refrigerant Type">
                 <select
                   value={form.refrigerant_type}
                   onChange={(e) => setForm({ ...form, refrigerant_type: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                  className={selectCls}
                 >
                   <option value="">None</option>
                   {REFRIGERANT_OPTIONS.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                 </select>
-              </div>
+              </FormField>
             )}
 
             {/* Spec Line */}
             {visibleFields.has('specLine') && (
-              <div>
-                <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Spec Line</label>
+              <FormField label="Spec Line">
                 <input
                   type="text"
                   value={form.spec_line}
                   onChange={(e) => setForm({ ...form, spec_line: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                  className={inputCls}
                   placeholder="e.g., 3 Ton SVZ | Hyper Heat | -13°F Rated"
                 />
-              </div>
+              </FormField>
             )}
 
             {/* Description */}
-            <div>
-              <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Description</label>
+            <FormField label="Description">
               <textarea
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 rows={2}
-                className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                className={textareaCls}
                 placeholder="Customer-facing value statement"
               />
-            </div>
+            </FormField>
 
             {/* Price + Cost */}
             {(visibleFields.has('price') || visibleFields.has('cost')) && (
               <div className={visibleFields.has('price') && visibleFields.has('cost') ? "grid grid-cols-2 gap-3" : ""}>
                 {visibleFields.has('price') && (
-                  <div>
-                    <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Unit Price ($)</label>
+                  <FormField label="Unit Price ($)">
                     <input
                       type="number"
                       step="0.01"
                       value={form.unit_price}
                       onChange={(e) => setForm({ ...form, unit_price: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                      className={inputCls}
                       placeholder="0.00"
                     />
-                  </div>
+                  </FormField>
                 )}
                 {visibleFields.has('cost') && (
-                  <div>
-                    <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Cost ($)</label>
+                  <FormField label="Cost ($)">
                     <input
                       type="number"
                       step="0.01"
@@ -375,10 +355,10 @@ export default function PricebookItemModal({
                         }
                         setForm({ ...form, ...updates });
                       }}
-                      className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                      className={inputCls}
                       placeholder="0.00"
                     />
-                  </div>
+                  </FormField>
                 )}
               </div>
             )}
@@ -397,36 +377,33 @@ export default function PricebookItemModal({
             {/* Manufacturer + Model */}
             {visibleFields.has('manufacturer') && (
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Manufacturer</label>
+                <FormField label="Manufacturer">
                   <input
                     type="text"
                     value={form.manufacturer}
                     onChange={(e) => setForm({ ...form, manufacturer: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                    className={inputCls}
                   />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Model Number</label>
+                </FormField>
+                <FormField label="Model Number">
                   <input
                     type="text"
                     value={form.model_number}
                     onChange={(e) => setForm({ ...form, model_number: e.target.value })}
-                    className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                    className={inputCls}
                   />
-                </div>
+                </FormField>
               </div>
             )}
 
             {/* Supplier */}
             {visibleFields.has('supplier') && (
-              <div>
-                <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Supplier</label>
+              <FormField label="Supplier">
                 <div className="flex gap-2">
                   <select
                     value={form.supplier_id}
                     onChange={(e) => setForm({ ...form, supplier_id: e.target.value })}
-                    className="flex-1 px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                    className={`flex-1 px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100`}
                   >
                     <option value="">No supplier</option>
                     {suppliers.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -440,51 +417,48 @@ export default function PricebookItemModal({
                     +
                   </button>
                 </div>
-              </div>
+              </FormField>
             )}
 
             {/* Part Number + UOM */}
             {(visibleFields.has('partNumber') || visibleFields.has('unitOfMeasure')) && (
               <div className={visibleFields.has('partNumber') && visibleFields.has('unitOfMeasure') ? "grid grid-cols-2 gap-3" : ""}>
                 {visibleFields.has('partNumber') && (
-                  <div>
-                    <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Part Number</label>
+                  <FormField label="Part Number">
                     <input
                       type="text"
                       value={form.part_number}
                       onChange={(e) => setForm({ ...form, part_number: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                      className={inputCls}
                     />
-                  </div>
+                  </FormField>
                 )}
                 {visibleFields.has('unitOfMeasure') && (
-                  <div>
-                    <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Unit of Measure</label>
+                  <FormField label="Unit of Measure">
                     <input
                       type="text"
                       value={form.unit_of_measure}
                       onChange={(e) => setForm({ ...form, unit_of_measure: e.target.value })}
-                      className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                      className={inputCls}
                       placeholder="e.g., each, ft, hr"
                     />
-                  </div>
+                  </FormField>
                 )}
               </div>
             )}
 
             {/* Rebate */}
             {visibleFields.has('rebateAmount') && (
-              <div>
-                <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Rebate Amount ($)</label>
+              <FormField label="Rebate Amount ($)">
                 <input
                   type="number"
                   step="0.01"
                   value={form.rebate_amount}
                   onChange={(e) => setForm({ ...form, rebate_amount: e.target.value })}
-                  className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100"
+                  className={inputCls}
                   placeholder="0.00"
                 />
-              </div>
+              </FormField>
             )}
 
             {/* Checkboxes */}
@@ -530,19 +504,18 @@ export default function PricebookItemModal({
 
           {/* Actions */}
           <div className="flex items-center justify-end gap-3 mt-6 pt-4 border-t border-ds-border dark:border-gray-700">
-            <button onClick={onClose} className="px-4 py-2 text-sm text-ds-gray dark:text-gray-400 hover:text-ds-text dark:hover:text-gray-200">
+            <Button variant="ghost" size="md" onClick={onClose} className="text-ds-gray hover:text-ds-text dark:text-gray-400 dark:hover:text-gray-200">
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="primary"
+              size="md"
               onClick={onSave}
               disabled={saving}
-              className="px-4 py-2 text-sm font-medium rounded-lg bg-ds-blue text-white hover:bg-blue-700 disabled:opacity-50"
             >
               {saving ? "Saving..." : editingId ? "Save Changes" : "Create Item"}
-            </button>
+            </Button>
           </div>
-        </div>
-      </div>
-    </div>
+    </Modal>
   );
 }

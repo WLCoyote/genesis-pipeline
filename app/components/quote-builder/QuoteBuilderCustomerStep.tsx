@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { CustomerResult, TemplateData } from "./types";
+import Card from "@/app/components/ui/Card";
 
 interface Props {
   selectedCustomer: CustomerResult | null;
@@ -84,18 +85,16 @@ export default function QuoteBuilderCustomerStep({
   return (
     <div className="max-w-3xl mx-auto space-y-5">
       {/* Customer Card */}
-      <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-5 py-3 border-b border-ds-border dark:border-gray-700 flex items-center justify-between">
-          <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text">
-            Customer
-          </h3>
-          {(selectedCustomer || isNewCustomer) && (
+      <Card
+        title="Customer"
+        headerRight={
+          (selectedCustomer || isNewCustomer) ? (
             <button onClick={onClearCustomer} className="text-xs font-bold text-ds-blue">
               Change
             </button>
-          )}
-        </div>
-        <div className="p-5">
+          ) : undefined
+        }
+      >
           {!selectedCustomer && !isNewCustomer ? (
             <div>
               <div className="relative">
@@ -177,22 +176,19 @@ export default function QuoteBuilderCustomerStep({
               </div>
             </div>
           )}
-        </div>
-      </div>
+      </Card>
 
       {/* Template Selector */}
-      <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-5 py-3 border-b border-ds-border dark:border-gray-700 flex items-center justify-between">
-          <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text">
-            Template
-          </h3>
-          {selectedTemplateId && (
+      <Card
+        title="Template"
+        headerRight={
+          selectedTemplateId ? (
             <button onClick={onClearTemplate} className="text-xs font-bold text-red-500 hover:text-red-700">
               Clear Template
             </button>
-          )}
-        </div>
-        <div className="p-5">
+          ) : undefined
+        }
+      >
           {selectedTemplateId ? (
             <p className="text-sm text-ds-green font-medium">
               Template loaded — customize tiers in the next step
@@ -253,8 +249,7 @@ export default function QuoteBuilderCustomerStep({
               </p>
             </div>
           )}
-        </div>
-      </div>
+      </Card>
     </div>
   );
 }

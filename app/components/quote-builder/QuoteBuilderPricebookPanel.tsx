@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import type { PricebookItemSlim, TierForm } from "./types";
 import { formatCurrency, CATEGORY_TABS, CATEGORY_ORDER } from "./utils";
+import SectionHeader from "@/app/components/ui/SectionHeader";
 
 interface Props {
   pricebookItems: PricebookItemSlim[];
@@ -82,9 +83,7 @@ export default function QuoteBuilderPricebookPanel({
     <div className="w-80 shrink-0 bg-ds-card dark:bg-gray-800 border-l border-ds-border dark:border-gray-700 flex flex-col h-full overflow-hidden">
       {/* Header + search */}
       <div className="px-4 pt-3.5 pb-3 border-b border-ds-border dark:border-gray-700 shrink-0">
-        <div className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text mb-2.5">
-          Pricebook
-        </div>
+        <SectionHeader as="div" className="mb-2.5">Pricebook</SectionHeader>
         <input
           type="text"
           placeholder={`Search ${pricebookItems.length} items...`}

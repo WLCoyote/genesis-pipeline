@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { FinancingPlan } from "@/lib/types";
+import Button from "@/app/components/ui/Button";
+import Modal from "@/app/components/ui/Modal";
 
 interface Props {
   initialPlans: FinancingPlan[];
@@ -144,12 +146,13 @@ export default function FinancingPlanManager({ initialPlans }: Props) {
         <span className="text-sm text-gray-500 dark:text-gray-400">
           {plans.filter((p) => p.is_active).length} active plan{plans.filter((p) => p.is_active).length !== 1 ? "s" : ""}
         </span>
-        <button
+        <Button
+          variant="primary"
+          size="sm"
           onClick={openCreate}
-          className="px-3 py-1.5 text-sm font-medium text-white bg-ds-blue hover:bg-blue-700 rounded-md"
         >
           + Add Plan
-        </button>
+        </Button>
       </div>
 
       {/* Plans table */}
@@ -209,26 +212,32 @@ export default function FinancingPlanManager({ initialPlans }: Props) {
                     </span>
                   </td>
                   <td className="px-4 py-2.5 text-right">
-                    <button
+                    <Button
+                      variant="ghost"
+                      size="xs"
                       onClick={() => openEdit(plan)}
-                      className="text-blue-600 dark:text-blue-400 hover:underline text-xs mr-2"
+                      className="text-blue-600 dark:text-blue-400 hover:underline mr-2"
                     >
                       Edit
-                    </button>
+                    </Button>
                     {plan.is_active ? (
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="xs"
                         onClick={() => handleDeactivate(plan.id)}
-                        className="text-red-600 dark:text-red-400 hover:underline text-xs"
+                        className="text-red-600 dark:text-red-400 hover:underline"
                       >
                         Deactivate
-                      </button>
+                      </Button>
                     ) : (
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="xs"
                         onClick={() => handleReactivate(plan.id)}
-                        className="text-green-600 dark:text-green-400 hover:underline text-xs"
+                        className="text-green-600 dark:text-green-400 hover:underline"
                       >
                         Reactivate
-                      </button>
+                      </Button>
                     )}
                   </td>
                 </tr>
@@ -246,13 +255,9 @@ export default function FinancingPlanManager({ initialPlans }: Props) {
       </div>
 
       {/* Edit/Create Modal */}
-      {editing && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg p-6">
-            <h2 className="font-display text-lg font-normal text-ds-text dark:text-gray-100 mb-4">
-              {editing.id ? "Edit Financing Plan" : "Add Financing Plan"}
-            </h2>
-
+      <Modal open={!!editing} onClose={() => setEditing(null)} title={editing?.id ? "Edit Financing Plan" : "Add Financing Plan"}>
+        {editing && (
+          <>
             {error && (
               <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded text-sm">
                 {error}
@@ -374,23 +379,26 @@ export default function FinancingPlanManager({ initialPlans }: Props) {
             </div>
 
             <div className="flex justify-end gap-3 mt-6">
-              <button
+              <Button
+                variant="ghost"
+                size="md"
                 onClick={() => setEditing(null)}
-                className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md"
+                className="text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="primary"
+                size="md"
                 onClick={handleSave}
                 disabled={saving || !editing.plan_code || !editing.label || !editing.fee_pct || !editing.months}
-                className="px-4 py-2 text-sm font-medium text-white bg-ds-blue hover:bg-blue-700 rounded-md disabled:opacity-50"
               >
                 {saving ? "Saving..." : editing.id ? "Save Changes" : "Create Plan"}
-              </button>
+              </Button>
             </div>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </Modal>
     </div>
   );
 }

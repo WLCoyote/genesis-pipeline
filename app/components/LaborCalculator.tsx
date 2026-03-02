@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import type { LaborCalculatorInputs } from "@/lib/types";
+import Button from "@/app/components/ui/Button";
 
 interface LaborCalculatorProps {
   initialInputs: LaborCalculatorInputs | null;
@@ -89,13 +90,14 @@ export default function LaborCalculator({ initialInputs }: LaborCalculatorProps)
               {status}
             </span>
           )}
-          <button
+          <Button
+            variant="primary"
+            size="sm"
             onClick={handleSave}
             disabled={saving}
-            className="px-3 py-1.5 text-sm font-medium rounded-md bg-ds-blue text-white hover:bg-blue-700 disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Inputs"}
-          </button>
+          </Button>
         </div>
       </div>
 

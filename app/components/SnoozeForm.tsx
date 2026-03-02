@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Button from "@/app/components/ui/Button";
 
 interface SnoozeFormProps {
   estimateId: string;
@@ -97,20 +98,24 @@ export default function SnoozeForm({ estimateId, onCancel }: SnoozeFormProps) {
       {error && <p className="text-[12px] text-ds-red dark:text-red-400">{error}</p>}
 
       <div className="flex gap-2">
-        <button
+        <Button
           type="submit"
+          variant="snooze"
+          size="sm"
+          className="border-none"
           disabled={loading}
-          className="px-4 py-2 bg-ds-yellow text-ds-text text-[13px] font-bold rounded-[7px] hover:brightness-105 disabled:opacity-50 transition-all cursor-pointer border-none"
         >
           {loading ? "Snoozing..." : "Snooze"}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
+          variant="ghost"
+          size="sm"
+          className="text-ds-gray hover:text-ds-text dark:text-gray-400 dark:hover:text-gray-200 border-none"
           onClick={onCancel}
-          className="px-4 py-2 text-[13px] text-ds-gray dark:text-gray-400 hover:text-ds-text dark:hover:text-gray-200 transition-colors cursor-pointer bg-transparent border-none"
         >
           Cancel
-        </button>
+        </Button>
       </div>
     </form>
   );

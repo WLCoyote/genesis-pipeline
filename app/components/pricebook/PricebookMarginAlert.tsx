@@ -1,5 +1,7 @@
 "use client";
 
+import Button from "@/app/components/ui/Button";
+
 interface PricebookMarginAlertProps {
   negativeCount: number;
   onShowProblemItems: () => void;
@@ -24,12 +26,14 @@ export default function PricebookMarginAlert({
           Cost exceeds price — losing money on each sale
         </span>
       </div>
-      <button
+      <Button
+        variant="destructive"
+        size="xs"
         onClick={onShowProblemItems}
-        className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-ds-red text-white hover:bg-red-700 transition-colors flex-shrink-0"
+        className="flex-shrink-0"
       >
         Show Problem Items
-      </button>
+      </Button>
     </div>
   );
 }
