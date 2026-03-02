@@ -63,7 +63,7 @@ export default function QuoteBuilderTiersStep({
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text">
+        <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text">
           Equipment Tiers — Add items from pricebook →
         </h3>
         <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">
@@ -134,7 +134,7 @@ export default function QuoteBuilderTiersStep({
                   value={tier.tier_name}
                   onChange={(e) => onUpdateTierField(tier.tier_number, "tier_name", e.target.value)}
                   onClick={(e) => e.stopPropagation()}
-                  className="block font-display text-lg font-black uppercase tracking-wide text-ds-text bg-transparent border-none outline-none w-full p-0"
+                  className="block font-display text-lg font-semibold uppercase tracking-wide text-ds-text bg-transparent border-none outline-none w-full p-0"
                 />
                 <input
                   type="text"
@@ -171,7 +171,7 @@ export default function QuoteBuilderTiersStep({
                 }`}
               >
                 <span
-                  className={`font-display text-2xl font-black ${
+                  className={`font-display text-2xl font-semibold ${
                     tier.is_recommended
                       ? "text-blue-600 dark:text-blue-400"
                       : tier.tier_number === 3

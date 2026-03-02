@@ -200,7 +200,7 @@ export default function PricebookItemModal({
       <div className="absolute inset-0 bg-black/40 dark:bg-black/60" onClick={onClose} />
       <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          <h2 className="text-lg font-display font-bold text-ds-text dark:text-gray-100 mb-4">
+          <h2 className="text-lg font-display font-normal text-ds-text dark:text-gray-100 mb-4">
             {editingId ? "Edit Item" : "Add Pricebook Item"}
           </h2>
 

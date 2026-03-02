@@ -82,7 +82,7 @@ export default function QuoteBuilderPricebookPanel({
     <div className="w-80 shrink-0 bg-ds-card dark:bg-gray-800 border-l border-ds-border dark:border-gray-700 flex flex-col h-full overflow-hidden">
       {/* Header + search */}
       <div className="px-4 pt-3.5 pb-3 border-b border-ds-border dark:border-gray-700 shrink-0">
-        <div className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text mb-2.5">
+        <div className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text mb-2.5">
           Pricebook
         </div>
         <input

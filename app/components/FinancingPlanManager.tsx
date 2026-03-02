@@ -249,7 +249,7 @@ export default function FinancingPlanManager({ initialPlans }: Props) {
       {editing && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg p-6">
-            <h2 className="font-display text-lg font-bold text-ds-text dark:text-gray-100 mb-4">
+            <h2 className="font-display text-lg font-normal text-ds-text dark:text-gray-100 mb-4">
               {editing.id ? "Edit Financing Plan" : "Add Financing Plan"}
             </h2>
 

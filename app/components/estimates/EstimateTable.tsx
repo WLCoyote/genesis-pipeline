@@ -305,7 +305,7 @@ function PipelineMobileCard({ estimate }: { estimate: EstimateRow }) {
         <StatusBadge status={estimate.status} />
       </div>
       <div className="flex items-center justify-between text-sm mt-1">
-        <span className="font-display font-extrabold text-ds-text dark:text-gray-100">{formatAmount(estimate.total_amount)}</span>
+        <span className="font-display font-semibold text-ds-text dark:text-gray-100">{formatAmount(estimate.total_amount)}</span>
         <span className="text-ds-gray dark:text-gray-500 text-xs">Sent {formatDate(estimate.sent_date)}</span>
       </div>
       <div className="mt-2">

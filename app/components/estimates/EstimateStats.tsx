@@ -67,7 +67,7 @@ export default function EstimateStats({
           <div className="text-[10px] font-bold uppercase tracking-[2px] text-ds-gray dark:text-gray-400 mb-1.5">
             {stat.label}
           </div>
-          <div className={`font-display text-[32px] font-black leading-none ${stat.color}`}>
+          <div className={`font-display text-[32px] font-semibold leading-none ${stat.color}`}>
             {stat.value}
           </div>
           <div className="text-[11px] text-ds-gray dark:text-gray-500 mt-1">

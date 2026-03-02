@@ -117,7 +117,7 @@ export default async function EstimateDetailPage({
           >
             ← Back
           </Link>
-          <h1 className="font-display text-[22px] font-black uppercase tracking-[1px] text-ds-text dark:text-gray-100">
+          <h1 className="font-display text-[22px] font-semibold uppercase tracking-[1px] text-ds-text dark:text-gray-100">
             {customer?.name || "Unknown Customer"}
           </h1>
           <StatusBadge status={est.status} />

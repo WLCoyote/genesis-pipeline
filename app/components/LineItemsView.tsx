@@ -60,7 +60,7 @@ export default function LineItemsView({
           {isSigned ? "Accepted Option" : "Estimate Options"}
         </div>
         {totalAmount != null && (
-          <span className={`font-display text-lg font-black ${isSigned ? "text-ds-green" : "text-ds-text dark:text-gray-100"}`}>
+          <span className={`font-display text-lg font-semibold ${isSigned ? "text-ds-green" : "text-ds-text dark:text-gray-100"}`}>
             ${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
           </span>
         )}
@@ -111,7 +111,7 @@ export default function LineItemsView({
                     </span>
                   )}
                 </div>
-                <span className={`font-display text-xl font-black ${isSelected ? "text-ds-green" : "text-ds-text dark:text-gray-100"}`}>
+                <span className={`font-display text-xl font-semibold ${isSelected ? "text-ds-green" : "text-ds-text dark:text-gray-100"}`}>
                   ${tierTotal.toLocaleString("en-US", { minimumFractionDigits: 2 })}
                 </span>
               </div>
@@ -216,7 +216,7 @@ export default function LineItemsView({
           {totalAmount != null && (
             <div className="flex justify-between items-baseline pt-1">
               <span className="text-[13px] font-bold text-ds-text dark:text-gray-100">Total</span>
-              <span className="font-display text-2xl font-black text-ds-text dark:text-gray-100">
+              <span className="font-display text-2xl font-semibold text-ds-text dark:text-gray-100">
                 ${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 2 })}
               </span>
             </div>

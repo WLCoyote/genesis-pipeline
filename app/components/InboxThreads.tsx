@@ -134,7 +134,7 @@ export default function InboxThreads() {
       <div className="w-full md:w-80 shrink-0">
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <span className="font-display text-sm font-bold text-ds-text dark:text-gray-100">
+            <span className="font-display text-sm font-normal text-ds-text dark:text-gray-100">
               Threads ({threads.length})
             </span>
           </div>

@@ -116,7 +116,7 @@ export function PipelineRow({ estimate, isAdmin }: PipelineRowProps) {
       </div>
 
       {/* Amount */}
-      <div className="font-display text-lg font-extrabold text-ds-text dark:text-gray-100">
+      <div className="font-display text-lg font-semibold text-ds-text dark:text-gray-100">
         {formatAmount(estimate.total_amount)}
       </div>
 

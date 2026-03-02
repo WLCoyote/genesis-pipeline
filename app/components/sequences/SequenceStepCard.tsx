@@ -94,7 +94,7 @@ export default function SequenceStepCard({
               min={0}
               value={step.day_offset}
               onChange={(e) => onUpdate("day_offset", parseInt(e.target.value) || 0)}
-              className="w-[52px] px-2 py-1.5 text-center border-[1.5px] border-ds-border dark:border-gray-600 rounded-[7px] font-display text-[16px] font-black text-ds-text dark:text-gray-100 bg-ds-card dark:bg-gray-700 focus:border-ds-blue outline-none"
+              className="w-[52px] px-2 py-1.5 text-center border-[1.5px] border-ds-border dark:border-gray-600 rounded-[7px] font-display text-[16px] font-semibold text-ds-text dark:text-gray-100 bg-ds-card dark:bg-gray-700 focus:border-ds-blue outline-none"
             />
           </div>
 

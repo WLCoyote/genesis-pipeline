@@ -119,13 +119,13 @@ export default function ProposalEngagementPanel({
       <div className="grid grid-cols-2 gap-2.5 mb-3.5">
         <div className="bg-ds-bg dark:bg-gray-700/50 border border-ds-border dark:border-gray-600 rounded-[9px] p-2.5">
           <div className="text-[9px] uppercase tracking-[2px] text-ds-gray dark:text-gray-400 mb-1">Opens</div>
-          <div className="font-display text-[26px] font-black text-ds-text dark:text-gray-100 leading-none">
+          <div className="font-display text-[26px] font-semibold text-ds-text dark:text-gray-100 leading-none">
             {totalOpens}
           </div>
         </div>
         <div className="bg-ds-bg dark:bg-gray-700/50 border border-ds-border dark:border-gray-600 rounded-[9px] p-2.5">
           <div className="text-[9px] uppercase tracking-[2px] text-ds-gray dark:text-gray-400 mb-1">Time on Page</div>
-          <div className="font-display text-[26px] font-black text-ds-text dark:text-gray-100 leading-none">
+          <div className="font-display text-[26px] font-semibold text-ds-text dark:text-gray-100 leading-none">
             {totalMinutes > 0 ? `${totalMinutes}m` : totalSeconds > 0 ? `${totalSeconds}s` : "—"}
           </div>
         </div>

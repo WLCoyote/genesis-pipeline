@@ -159,7 +159,7 @@ export default function TeamMemberList({
       {/* Active Team Members */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
         <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <h2 className="font-display text-lg font-bold text-ds-text dark:text-gray-100">
+          <h2 className="font-display text-lg font-normal text-ds-text dark:text-gray-100">
             Team Members ({users.length})
           </h2>
           <button
@@ -359,7 +359,7 @@ export default function TeamMemberList({
       {invites.length > 0 && (
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="font-display text-lg font-bold text-ds-text dark:text-gray-100">
+            <h2 className="font-display text-lg font-normal text-ds-text dark:text-gray-100">
               Pending Invites ({invites.length})
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">

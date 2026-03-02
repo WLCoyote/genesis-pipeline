@@ -61,7 +61,7 @@ export default function RecentActivity({ activities }: RecentActivityProps) {
                   </p>
                 </div>
                 {item.amount != null && item.amount > 0 && (
-                  <span className="font-display font-bold text-[13px] text-ds-green shrink-0">
+                  <span className="font-display font-semibold text-[13px] text-ds-green shrink-0">
                     ${item.amount.toLocaleString("en-US", { minimumFractionDigits: 0 })}
                   </span>
                 )}

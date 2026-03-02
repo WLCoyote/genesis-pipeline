@@ -102,7 +102,7 @@ export default function LaborCalculator({ initialInputs }: LaborCalculatorProps)
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Inputs */}
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-          <h2 className="font-display text-base font-bold text-ds-text dark:text-gray-100 mb-4">
+          <h2 className="font-display text-base font-normal text-ds-text dark:text-gray-100 mb-4">
             Inputs
           </h2>
           <div className="space-y-4">
@@ -205,7 +205,7 @@ export default function LaborCalculator({ initialInputs }: LaborCalculatorProps)
         {/* Outputs */}
         <div className="space-y-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="font-display text-base font-bold text-ds-text dark:text-gray-100 mb-4">
+            <h2 className="font-display text-base font-normal text-ds-text dark:text-gray-100 mb-4">
               Calculated Rates
             </h2>
             <div className="space-y-3">
@@ -237,7 +237,7 @@ export default function LaborCalculator({ initialInputs }: LaborCalculatorProps)
                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Target $/Hr ({inputs.desired_profit_pct}% profit)
                 </span>
-                <span className="font-display text-lg font-bold text-ds-blue dark:text-blue-400">
+                <span className="font-display text-lg font-semibold text-ds-blue dark:text-blue-400">
                   {formatCurrency(targetRate)}
                 </span>
               </div>
@@ -246,7 +246,7 @@ export default function LaborCalculator({ initialInputs }: LaborCalculatorProps)
 
           {/* Quick reference */}
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="font-display text-base font-bold text-ds-text dark:text-gray-100 mb-4">
+            <h2 className="font-display text-base font-normal text-ds-text dark:text-gray-100 mb-4">
               Quick Reference
             </h2>
             <div className="space-y-2">

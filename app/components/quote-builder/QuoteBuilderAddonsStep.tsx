@@ -34,7 +34,7 @@ export default function QuoteBuilderAddonsStep({
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text mb-4">
+      <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text mb-4">
         Add-Ons — Toggle per tier
       </h3>
 

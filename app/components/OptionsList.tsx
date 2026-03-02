@@ -30,7 +30,7 @@ export default function OptionsList({ options, totalAmount }: OptionsListProps) 
           Options
         </div>
         {totalAmount !== null && (
-          <span className="font-display text-lg font-black text-ds-text dark:text-gray-100">
+          <span className="font-display text-lg font-semibold text-ds-text dark:text-gray-100">
             ${totalAmount.toLocaleString("en-US", { minimumFractionDigits: 0 })}
           </span>
         )}

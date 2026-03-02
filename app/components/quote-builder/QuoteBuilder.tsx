@@ -574,7 +574,7 @@ export default function QuoteBuilder({
         <div className="max-w-lg w-full text-center">
           <div className="bg-ds-green-bg border border-green-200 dark:border-green-800 rounded-lg p-8">
             <div className="text-4xl mb-4">✓</div>
-            <h2 className="font-display text-xl font-bold text-ds-text mb-2">
+            <h2 className="font-display text-xl font-normal text-ds-text mb-2">
               Quote Created
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-1">

@@ -68,7 +68,7 @@ export default function PricebookStats({ items }: PricebookStatsProps) {
           <div className="text-[11px] font-body font-bold uppercase tracking-wider text-ds-gray dark:text-gray-400 mb-1">
             {stat.label}
           </div>
-          <div className={`font-display text-[30px] font-black leading-none ${stat.color}`}>
+          <div className={`font-display text-[30px] font-semibold leading-none ${stat.color}`}>
             {stat.value}
           </div>
         </div>

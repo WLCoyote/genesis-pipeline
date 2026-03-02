@@ -395,7 +395,7 @@ export default function QuoteTemplateManager({
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-display font-bold text-ds-text dark:text-gray-100">
+                  <h3 className="font-display font-normal text-ds-text dark:text-gray-100">
                     {t.name}
                   </h3>
                   {t.is_shared && (
@@ -458,7 +458,7 @@ export default function QuoteTemplateManager({
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl my-8">
             {/* Modal header */}
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="font-display text-lg font-bold text-ds-text dark:text-gray-100">
+              <h2 className="font-display text-lg font-normal text-ds-text dark:text-gray-100">
                 {editing.id ? "Edit Template" : "New Template"}
               </h2>
             </div>

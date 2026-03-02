@@ -29,7 +29,7 @@ export default async function SequencesPage() {
       {/* Topbar */}
       <div className="bg-ds-card dark:bg-gray-800 border-b border-ds-border dark:border-gray-700 px-7 flex items-center justify-between h-14 -mx-6 -mt-6 mb-5">
         <div className="flex items-center gap-4">
-          <h1 className="font-display text-2xl font-black tracking-[1px] uppercase text-ds-text dark:text-gray-100">
+          <h1 className="font-display text-2xl font-semibold tracking-[1px] uppercase text-ds-text dark:text-gray-100">
             Follow-Up Sequences
           </h1>
           <span className="text-xs text-ds-gray dark:text-gray-500">

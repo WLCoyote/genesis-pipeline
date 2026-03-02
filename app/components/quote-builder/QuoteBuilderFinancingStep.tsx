@@ -47,7 +47,7 @@ export default function QuoteBuilderFinancingStep({
       {/* Tax Toggle */}
       <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-ds-border dark:border-gray-700">
-          <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text">
+          <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text">
             Sales Tax
           </h3>
         </div>
@@ -98,7 +98,7 @@ export default function QuoteBuilderFinancingStep({
       {/* Financing Plans */}
       <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-ds-border dark:border-gray-700 flex items-center justify-between">
-          <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text">
+          <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text">
             Financing Plans
           </h3>
           {selectedFinancingPlanId && (
@@ -161,7 +161,7 @@ export default function QuoteBuilderFinancingStep({
       {selectedPlan && (
         <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
           <div className="px-5 py-3 border-b border-ds-border dark:border-gray-700">
-            <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text">
+            <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text">
               Monthly Payment Preview — {selectedPlan.label}
             </h3>
           </div>
@@ -179,7 +179,7 @@ export default function QuoteBuilderFinancingStep({
                     <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
                       {tier.tier_name}
                     </div>
-                    <div className="font-display text-lg font-bold text-ds-text">
+                    <div className="font-display text-lg font-semibold text-ds-text">
                       {monthly > 0 ? `${formatCurrency(monthly)}/mo` : "—"}
                     </div>
                     <div className="text-xs text-gray-400 mt-0.5">

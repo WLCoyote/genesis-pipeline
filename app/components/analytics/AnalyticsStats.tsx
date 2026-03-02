@@ -48,7 +48,7 @@ export default function AnalyticsStats({
           key={card.label}
           className={`bg-gradient-to-br ${card.color} rounded-xl p-4 text-white shadow-ds`}
         >
-          <div className="font-display text-[24px] font-black tracking-tight">
+          <div className="font-display text-[24px] font-semibold tracking-tight">
             {card.value}
           </div>
           <div className="text-[11px] font-bold uppercase tracking-[1.5px] text-white/70 mt-1">

@@ -68,7 +68,7 @@ export default function RepPerformance({ reps }: RepPerformanceProps) {
                   <td className="px-5 py-3 text-right text-ds-text dark:text-gray-300">
                     {rep.activeEstimates}
                   </td>
-                  <td className="px-5 py-3 text-right font-display font-bold text-ds-text dark:text-gray-100">
+                  <td className="px-5 py-3 text-right font-display font-semibold text-ds-text dark:text-gray-100">
                     ${rep.pipelineValue.toLocaleString("en-US", { minimumFractionDigits: 0 })}
                   </td>
                   <td className="px-5 py-3 text-right">

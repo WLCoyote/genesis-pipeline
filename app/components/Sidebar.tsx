@@ -60,7 +60,7 @@ export default function Sidebar({ role, userName, isOpen, onClose }: SidebarProp
       >
         {/* Header */}
         <div className="p-4 border-b border-[#1a3050]">
-          <h1 className="font-display text-xl font-black tracking-[2px] uppercase text-white">
+          <h1 className="font-display text-xl font-semibold tracking-[2px] uppercase text-white">
             Genesis
           </h1>
           <p className="text-xs text-white/40 mt-0.5 font-body">

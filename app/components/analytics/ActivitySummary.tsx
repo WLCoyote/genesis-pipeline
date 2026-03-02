@@ -51,7 +51,7 @@ export default function ActivitySummary({
             <div className="flex items-center gap-2 mb-1">
               <span className="text-[14px]">{item.icon}</span>
               <span
-                className={`font-display text-[22px] font-black ${
+                className={`font-display text-[22px] font-semibold ${
                   item.highlight
                     ? "text-ds-orange"
                     : "text-ds-text dark:text-gray-100"

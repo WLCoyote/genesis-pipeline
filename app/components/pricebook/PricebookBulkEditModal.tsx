@@ -74,7 +74,7 @@ export default function PricebookBulkEditModal({
       <div className="absolute inset-0 bg-black/40 dark:bg-black/60" onClick={onClose} />
       <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
         <div className="p-6">
-          <h2 className="text-lg font-display font-bold text-ds-text dark:text-gray-100 mb-1">
+          <h2 className="text-lg font-display font-normal text-ds-text dark:text-gray-100 mb-1">
             Bulk Edit
           </h2>
           <p className="text-sm text-ds-gray dark:text-gray-400 mb-4">

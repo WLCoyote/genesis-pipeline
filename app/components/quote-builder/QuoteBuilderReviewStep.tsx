@@ -59,7 +59,7 @@ export default function QuoteBuilderReviewStep({
 
   return (
     <div className="max-w-4xl mx-auto space-y-5">
-      <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text">
+      <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text">
         Review & Send
       </h3>
 
@@ -77,7 +77,7 @@ export default function QuoteBuilderReviewStep({
       {/* Customer summary */}
       <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm p-5">
         <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Customer</div>
-        <div className="font-display text-sm text-ds-text font-medium">{customerName || "—"}</div>
+        <div className="font-display text-sm text-ds-text font-normal">{customerName || "—"}</div>
         <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
           {[customerAddress, customerEmail, customerPhone].filter(Boolean).join(" · ") || "No contact info"}
         </div>
@@ -105,7 +105,7 @@ export default function QuoteBuilderReviewStep({
               }`}
             >
               <div className="px-4 py-3 border-b border-ds-border dark:border-gray-700">
-                <div className="font-display text-sm font-bold text-ds-text">{tier.tier_name}</div>
+                <div className="font-display text-sm font-normal text-ds-text">{tier.tier_name}</div>
                 {tier.tagline && (
                   <div className="text-xs text-gray-500 dark:text-gray-400">{tier.tagline}</div>
                 )}
@@ -116,7 +116,7 @@ export default function QuoteBuilderReviewStep({
                 )}
               </div>
               <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-ds-border dark:border-gray-700">
-                <span className="font-display text-xl font-bold text-ds-text">
+                <span className="font-display text-xl font-semibold text-ds-text">
                   {formatCurrency(cash)}
                 </span>
                 {monthly != null && monthly > 0 && (

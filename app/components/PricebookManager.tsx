@@ -413,7 +413,7 @@ export default function PricebookManager({ initialItems, initialCategories, init
       {/* Page header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="font-display text-2xl font-black text-ds-text dark:text-gray-100 tracking-tight">
+          <h1 className="font-display text-2xl font-semibold text-ds-text dark:text-gray-100 tracking-tight">
             Pricebook
           </h1>
           <p className="text-sm text-ds-gray dark:text-gray-400 mt-0.5 font-body">
@@ -619,7 +619,7 @@ export default function PricebookManager({ initialItems, initialCategories, init
           <div className="absolute inset-0 bg-black/40 dark:bg-black/60" onClick={() => setCatModalOpen(false)} />
           <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm mx-4">
             <div className="p-6">
-              <h2 className="text-lg font-display font-bold text-ds-text dark:text-gray-100 mb-4">Add Category</h2>
+              <h2 className="text-lg font-display font-normal text-ds-text dark:text-gray-100 mb-4">Add Category</h2>
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Category Name</label>
@@ -650,7 +650,7 @@ export default function PricebookManager({ initialItems, initialCategories, init
           <div className="absolute inset-0 bg-black/40 dark:bg-black/60" onClick={() => setSupplierModalOpen(false)} />
           <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl w-full max-w-sm mx-4">
             <div className="p-6">
-              <h2 className="text-lg font-display font-bold text-ds-text dark:text-gray-100 mb-4">Add Supplier</h2>
+              <h2 className="text-lg font-display font-normal text-ds-text dark:text-gray-100 mb-4">Add Supplier</h2>
               <div>
                 <label className="block text-sm font-medium text-ds-text-lt dark:text-gray-300 mb-1">Supplier Name</label>
                 <input type="text" value={newSupplierName} onChange={(e) => setNewSupplierName(e.target.value)} className="w-full px-3 py-2 text-sm border border-ds-border dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-ds-text dark:text-gray-100" placeholder="e.g., Gensco, Ferguson" />

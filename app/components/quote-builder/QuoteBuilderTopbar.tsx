@@ -35,7 +35,7 @@ export default function QuoteBuilderTopbar({
       <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
         <span>Quotes</span>
         <span>→</span>
-        <span className="font-display text-ds-text font-bold">
+        <span className="font-display text-ds-text font-normal">
           {estimateNumber ? `Edit: ${estimateNumber}` : "New Quote"}
         </span>
       </div>

@@ -28,7 +28,7 @@ export default function SequenceHeader({
   return (
     <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl px-5 py-4 flex flex-wrap items-center gap-4 shadow-ds">
       {/* Sequence name */}
-      <h2 className="font-display text-[22px] font-black text-ds-text dark:text-gray-100 uppercase tracking-[1px] flex-1 min-w-0 truncate">
+      <h2 className="font-display text-[22px] font-normal text-ds-text dark:text-gray-100 uppercase tracking-[1px] flex-1 min-w-0 truncate">
         {name}
       </h2>
 
@@ -47,7 +47,7 @@ export default function SequenceHeader({
       {/* Stats */}
       <div className="hidden sm:flex items-center gap-5">
         <div className="text-center">
-          <div className="font-display text-[20px] font-black text-ds-text dark:text-gray-100 leading-none">
+          <div className="font-display text-[20px] font-semibold text-ds-text dark:text-gray-100 leading-none">
             {stepCount}
           </div>
           <div className="text-[10px] uppercase tracking-[1.5px] text-ds-gray dark:text-gray-500 mt-0.5">
@@ -55,7 +55,7 @@ export default function SequenceHeader({
           </div>
         </div>
         <div className="text-center">
-          <div className="font-display text-[20px] font-black text-ds-text dark:text-gray-100 leading-none">
+          <div className="font-display text-[20px] font-semibold text-ds-text dark:text-gray-100 leading-none">
             {daySpan}
           </div>
           <div className="text-[10px] uppercase tracking-[1.5px] text-ds-gray dark:text-gray-500 mt-0.5">

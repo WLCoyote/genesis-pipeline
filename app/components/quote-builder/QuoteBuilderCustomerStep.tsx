@@ -86,7 +86,7 @@ export default function QuoteBuilderCustomerStep({
       {/* Customer Card */}
       <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-ds-border dark:border-gray-700 flex items-center justify-between">
-          <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text">
+          <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text">
             Customer
           </h3>
           {(selectedCustomer || isNewCustomer) && (
@@ -146,7 +146,7 @@ export default function QuoteBuilderCustomerStep({
                 {customerName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <h4 className="font-display text-sm font-bold text-ds-text">{customerName}</h4>
+                <h4 className="font-display text-sm font-normal text-ds-text">{customerName}</h4>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                   {[customerAddress, customerEmail, customerPhone].filter(Boolean).join(" · ")}
                 </p>
@@ -183,7 +183,7 @@ export default function QuoteBuilderCustomerStep({
       {/* Template Selector */}
       <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
         <div className="px-5 py-3 border-b border-ds-border dark:border-gray-700 flex items-center justify-between">
-          <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text">
+          <h3 className="font-display text-xs font-semibold uppercase tracking-[2px] text-ds-text">
             Template
           </h3>
           {selectedTemplateId && (
