@@ -34,7 +34,7 @@ function CopyButton({ url }: { url: string }) {
         setTimeout(() => setCopied(false), 2000);
       }}
       className={`w-full px-4 py-2 text-white rounded-md text-sm font-medium ${
-        copied ? "bg-green-600" : "bg-blue-600 hover:bg-blue-700"
+        copied ? "bg-ds-green" : "bg-ds-blue hover:bg-blue-700"
       }`}
     >
       {copied ? "Copied!" : "Copy Proposal Link"}
@@ -572,9 +572,9 @@ export default function QuoteBuilder({
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="max-w-lg w-full text-center">
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-8">
+          <div className="bg-ds-green-bg border border-green-200 dark:border-green-800 rounded-lg p-8">
             <div className="text-4xl mb-4">✓</div>
-            <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            <h2 className="font-display text-xl font-bold text-ds-text mb-2">
               Quote Created
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-1">
@@ -587,7 +587,7 @@ export default function QuoteBuilder({
               <CopyButton url={`${window.location.origin}${createdEstimate.proposal_url}`} />
               <button
                 onClick={() => router.push(`/dashboard/estimates/${createdEstimate.estimate_id}`)}
-                className="w-full px-4 py-2 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-medium"
+                className="w-full px-4 py-2 bg-ds-bg text-ds-text rounded-md hover:bg-gray-200 dark:hover:bg-gray-600 text-sm font-medium"
               >
                 View Estimate
               </button>
@@ -616,7 +616,7 @@ export default function QuoteBuilder({
   return (
     <div className="-m-4 md:-m-6 h-[calc(100vh-3.5rem)] flex flex-col overflow-hidden">
       {error && (
-        <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 text-red-700 dark:text-red-400 px-7 py-2 text-sm shrink-0">
+        <div className="bg-ds-red-bg border-b border-red-200 dark:border-red-800 text-ds-red px-7 py-2 text-sm shrink-0">
           {error}
           <button onClick={() => setError(null)} className="ml-3 text-red-500 hover:text-red-700">×</button>
         </div>

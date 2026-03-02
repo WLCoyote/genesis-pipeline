@@ -79,10 +79,10 @@ export default function QuoteBuilderPricebookPanel({
   const targetItemIds = new Set(targetTierItems.map((i) => i.pricebook_item_id));
 
   return (
-    <div className="w-80 shrink-0 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col h-full overflow-hidden">
+    <div className="w-80 shrink-0 bg-ds-card dark:bg-gray-800 border-l border-ds-border dark:border-gray-700 flex flex-col h-full overflow-hidden">
       {/* Header + search */}
-      <div className="px-4 pt-3.5 pb-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
-        <div className="text-xs font-black uppercase tracking-[2px] text-gray-900 dark:text-gray-100 mb-2.5">
+      <div className="px-4 pt-3.5 pb-3 border-b border-ds-border dark:border-gray-700 shrink-0">
+        <div className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text mb-2.5">
           Pricebook
         </div>
         <input
@@ -95,15 +95,15 @@ export default function QuoteBuilderPricebookPanel({
       </div>
 
       {/* Category tabs */}
-      <div className="flex flex-wrap gap-1 px-4 py-2.5 border-b border-gray-200 dark:border-gray-700 shrink-0">
+      <div className="flex flex-wrap gap-1 px-4 py-2.5 border-b border-ds-border dark:border-gray-700 shrink-0">
         {CATEGORY_TABS.map((tab) => (
           <button
             key={tab.key}
             onClick={() => onCategoryFilterChange(tab.key)}
             className={`text-[10px] font-bold tracking-[1px] uppercase px-2.5 py-1 rounded-md border transition-colors ${
               categoryFilter === tab.key
-                ? "bg-blue-600 border-blue-600 text-white"
-                : "bg-transparent border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-blue-400 hover:text-blue-600"
+                ? "bg-ds-blue border-ds-blue text-white"
+                : "bg-transparent border-ds-border dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-ds-blue hover:text-ds-blue"
             }`}
           >
             {tab.label}
@@ -113,7 +113,7 @@ export default function QuoteBuilderPricebookPanel({
 
       {/* Quick picks / favorites */}
       {favorites.length > 0 && !search && categoryFilter === "all" && (
-        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 shrink-0">
+        <div className="px-4 py-3 border-b border-ds-border dark:border-gray-700 shrink-0">
           <div className="text-[9px] uppercase tracking-[2px] text-gray-400 dark:text-gray-500 font-bold mb-2">
             ⚡ Quick Picks
           </div>
@@ -125,7 +125,7 @@ export default function QuoteBuilderPricebookPanel({
                 disabled={targetItemIds.has(item.id)}
                 className="text-left bg-gray-50 dark:bg-gray-700 border-[1.5px] border-gray-200 dark:border-gray-600 rounded-lg px-2.5 py-2 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               >
-                <div className="text-[11px] font-bold text-gray-900 dark:text-gray-100 leading-tight line-clamp-2">
+                <div className="text-[11px] font-bold text-ds-text leading-tight line-clamp-2">
                   {item.display_name}
                 </div>
                 <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
@@ -152,14 +152,14 @@ export default function QuoteBuilderPricebookPanel({
                   className="flex items-center gap-2.5 px-2.5 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
                 >
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-bold text-gray-900 dark:text-gray-100 truncate" title={item.display_name}>
+                    <div className="text-sm font-bold text-ds-text truncate" title={item.display_name}>
                       {item.display_name}
                     </div>
                     <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">
                       {item.model_number || item.part_number || item.spec_line || CATEGORY_ORDER[item.category]?.label || item.category}
                     </div>
                   </div>
-                  <div className="text-sm font-bold text-gray-900 dark:text-gray-100 whitespace-nowrap">
+                  <div className="text-sm font-bold text-ds-text whitespace-nowrap">
                     {formatCurrency(item.unit_price ?? 0)}
                   </div>
                   <button
@@ -167,8 +167,8 @@ export default function QuoteBuilderPricebookPanel({
                     disabled={alreadyAdded}
                     className={`text-[11px] font-black px-2.5 py-1 rounded-md whitespace-nowrap transition-colors ${
                       alreadyAdded
-                        ? "bg-green-100 dark:bg-green-900/20 text-green-600 dark:text-green-400 cursor-default"
-                        : "bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 hover:bg-blue-600 hover:text-white"
+                        ? "bg-ds-green-bg text-ds-green cursor-default"
+                        : "bg-ds-blue-bg text-ds-blue hover:bg-ds-blue hover:text-white"
                     }`}
                   >
                     {alreadyAdded ? "Added" : "+ Add"}
@@ -186,14 +186,14 @@ export default function QuoteBuilderPricebookPanel({
       </div>
 
       {/* Tier target selector */}
-      <div className="px-4 py-2.5 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50 shrink-0 flex items-center gap-2">
+      <div className="px-4 py-2.5 border-t border-ds-border dark:border-gray-700 bg-ds-bg dark:bg-gray-700/50 shrink-0 flex items-center gap-2">
         <label className="text-[11px] text-gray-500 dark:text-gray-400 font-bold whitespace-nowrap">
           Adding to →
         </label>
         <select
           value={targetTier}
           onChange={(e) => onTargetTierChange(parseInt(e.target.value) as 1 | 2 | 3)}
-          className="flex-1 px-2.5 py-1.5 border-[1.5px] border-gray-200 dark:border-gray-600 rounded-md text-xs font-bold text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-800 outline-none focus:border-blue-500"
+          className="flex-1 px-2.5 py-1.5 border-[1.5px] border-ds-border dark:border-gray-600 rounded-md text-xs font-bold text-ds-text bg-ds-card dark:bg-gray-800 outline-none focus:border-ds-blue"
         >
           {tiers.map((tier) => (
             <option key={tier.tier_number} value={tier.tier_number}>

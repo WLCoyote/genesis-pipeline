@@ -34,15 +34,15 @@ export default function QuoteBuilderAddonsStep({
 
   return (
     <div className="max-w-4xl mx-auto">
-      <h3 className="text-xs font-black uppercase tracking-[2px] text-gray-900 dark:text-gray-100 mb-4">
+      <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text mb-4">
         Add-Ons — Toggle per tier
       </h3>
 
       {/* Cross-tier addon matrix */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
+      <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
+            <tr className="border-b border-ds-border dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
               <th className="px-4 py-3 text-left text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Add-On
               </th>
@@ -69,12 +69,12 @@ export default function QuoteBuilderAddonsStep({
               return (
                 <tr key={addonId} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
                   <td className="px-4 py-3">
-                    <div className="font-medium text-gray-900 dark:text-gray-100">{pbItem.display_name}</div>
+                    <div className="font-medium text-ds-text">{pbItem.display_name}</div>
                     {pbItem.spec_line && (
                       <div className="text-xs text-gray-500 dark:text-gray-400">{pbItem.spec_line}</div>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-center text-sm font-medium text-gray-900 dark:text-gray-100">
+                  <td className="px-4 py-3 text-center text-sm font-medium text-ds-text">
                     {formatCurrency(pbItem.unit_price ?? 0)}
                   </td>
                   {tiers.map((tier) => {
@@ -93,8 +93,8 @@ export default function QuoteBuilderAddonsStep({
                             }
                             className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center transition-colors ${
                               isChecked
-                                ? "bg-blue-600 border-blue-600 text-white"
-                                : "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-500 text-gray-400 hover:border-blue-400"
+                                ? "bg-ds-blue border-ds-blue text-white"
+                                : "bg-ds-card dark:bg-gray-700 border-gray-300 dark:border-gray-500 text-gray-400 hover:border-ds-blue"
                             }`}
                           >
                             {isChecked && "✓"}
@@ -102,7 +102,7 @@ export default function QuoteBuilderAddonsStep({
                         ) : (
                           <button
                             onClick={() => onAddItem(tier.tier_number, pbItem)}
-                            className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                            className="text-xs text-ds-blue hover:underline"
                           >
                             + Add
                           </button>

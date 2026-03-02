@@ -63,7 +63,7 @@ export default function QuoteBuilderTiersStep({
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs font-black uppercase tracking-[2px] text-gray-900 dark:text-gray-100">
+        <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text">
           Equipment Tiers — Add items from pricebook →
         </h3>
         <label className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400 cursor-pointer select-none">
@@ -108,11 +108,11 @@ export default function QuoteBuilderTiersStep({
           return (
             <div
               key={tier.tier_number}
-              className={`bg-white dark:bg-gray-800 border-[1.5px] ${borderClass} ${targetClass} rounded-xl shadow-sm overflow-hidden cursor-pointer transition-all`}
+              className={`bg-ds-card dark:bg-gray-800 border-[1.5px] ${borderClass} ${targetClass} rounded-xl shadow-sm overflow-hidden cursor-pointer transition-all`}
               onClick={() => onSetTargetTier(tier.tier_number as 1 | 2 | 3)}
             >
               {/* Header */}
-              <div className="px-4 py-2.5 border-b border-gray-200 dark:border-gray-700 relative">
+              <div className="px-4 py-2.5 border-b border-ds-border dark:border-gray-700 relative">
                 <div
                   className={`text-[9px] font-black tracking-[2px] uppercase inline-block px-2 py-0.5 rounded-full mb-1.5 ${
                     tier.tier_number === 1
@@ -125,7 +125,7 @@ export default function QuoteBuilderTiersStep({
                   {badge?.icon} {badge?.label}
                 </div>
                 {tier.is_recommended && (
-                  <div className="absolute top-2.5 right-3 bg-blue-600 text-white text-[8px] font-black tracking-[1.5px] uppercase px-2 py-0.5 rounded-full">
+                  <div className="absolute top-2.5 right-3 bg-ds-blue text-white text-[8px] font-black tracking-[1.5px] uppercase px-2 py-0.5 rounded-full">
                     Recommended
                   </div>
                 )}
@@ -134,8 +134,7 @@ export default function QuoteBuilderTiersStep({
                   value={tier.tier_name}
                   onChange={(e) => onUpdateTierField(tier.tier_number, "tier_name", e.target.value)}
                   onClick={(e) => e.stopPropagation()}
-                  className="block text-lg font-black uppercase tracking-wide text-gray-900 dark:text-gray-100 bg-transparent border-none outline-none w-full p-0"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+                  className="block font-display text-lg font-black uppercase tracking-wide text-ds-text bg-transparent border-none outline-none w-full p-0"
                 />
                 <input
                   type="text"
@@ -163,7 +162,7 @@ export default function QuoteBuilderTiersStep({
 
               {/* Mini total bar */}
               <div
-                className={`flex items-baseline gap-1.5 px-4 py-2 border-b border-gray-200 dark:border-gray-700 ${
+                className={`flex items-baseline gap-1.5 px-4 py-2 border-b border-ds-border dark:border-gray-700 ${
                   tier.tier_number === 1
                     ? "bg-gray-50 dark:bg-gray-700/50"
                     : tier.tier_number === 2
@@ -172,14 +171,13 @@ export default function QuoteBuilderTiersStep({
                 }`}
               >
                 <span
-                  className={`text-2xl font-black ${
+                  className={`font-display text-2xl font-black ${
                     tier.is_recommended
                       ? "text-blue-600 dark:text-blue-400"
                       : tier.tier_number === 3
                         ? "text-orange-600 dark:text-orange-400"
-                        : "text-gray-900 dark:text-gray-100"
+                        : "text-ds-text"
                   }`}
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
                 >
                   {totals?.total ? formatCurrency(cash) : "$0"}
                 </span>
@@ -263,20 +261,20 @@ export default function QuoteBuilderTiersStep({
 
                 <button
                   onClick={() => onSetTargetTier(tier.tier_number as 1 | 2 | 3)}
-                  className="w-full mt-2 py-1.5 border-[1.5px] border-dashed border-gray-200 dark:border-gray-600 rounded-lg text-xs text-blue-600 dark:text-blue-400 font-bold hover:bg-blue-50/50 dark:hover:bg-blue-900/10 hover:border-blue-400 transition-colors"
+                  className="w-full mt-2 py-1.5 border-[1.5px] border-dashed border-ds-border dark:border-gray-600 rounded-lg text-xs text-ds-blue font-bold hover:bg-blue-50/50 dark:hover:bg-blue-900/10 hover:border-ds-blue transition-colors"
                 >
                   + Add Item to {tier.tier_name}
                 </button>
               </div>
 
               {/* Feature Bullets */}
-              <div className="px-2.5 py-2.5 border-t border-gray-200 dark:border-gray-700" onClick={(e) => e.stopPropagation()}>
+              <div className="px-2.5 py-2.5 border-t border-ds-border dark:border-gray-700" onClick={(e) => e.stopPropagation()}>
                 <div className="text-[9px] uppercase tracking-[2px] text-gray-400 dark:text-gray-500 font-bold mb-1.5">
                   Features (shown on proposal)
                 </div>
                 {(tier.feature_bullets || []).map((bullet, bIdx) => (
                   <div key={bIdx} className="flex items-center gap-1.5 mb-1">
-                    <span className="text-green-500 text-[10px] shrink-0">✓</span>
+                    <span className="text-ds-green text-[10px] shrink-0">✓</span>
                     <input
                       type="text"
                       value={bullet}
@@ -304,14 +302,14 @@ export default function QuoteBuilderTiersStep({
                     const updated = [...(tier.feature_bullets || []), ""];
                     onUpdateTierField(tier.tier_number, "feature_bullets", updated);
                   }}
-                  className="text-[10px] text-blue-500 hover:text-blue-600 font-bold mt-1"
+                  className="text-[10px] text-ds-blue hover:text-blue-600 font-bold mt-1"
                 >
                   + Add Feature
                 </button>
               </div>
 
               {/* Rebates */}
-              <div className="px-2.5 py-2.5 border-t border-gray-200 dark:border-gray-700" onClick={(e) => e.stopPropagation()}>
+              <div className="px-2.5 py-2.5 border-t border-ds-border dark:border-gray-700" onClick={(e) => e.stopPropagation()}>
                 <div className="text-[9px] uppercase tracking-[2px] text-gray-400 dark:text-gray-500 font-bold mb-1.5">
                   Rebates
                 </div>
@@ -388,7 +386,7 @@ export default function QuoteBuilderTiersStep({
 
               {/* Add-ons chips */}
               {addons.length > 0 && (
-                <div className="px-2.5 py-2.5 border-t border-gray-200 dark:border-gray-700" onClick={(e) => e.stopPropagation()}>
+                <div className="px-2.5 py-2.5 border-t border-ds-border dark:border-gray-700" onClick={(e) => e.stopPropagation()}>
                   <div className="text-[9px] uppercase tracking-[2px] text-gray-400 dark:text-gray-500 font-bold mb-1.5">
                     Add-Ons
                   </div>

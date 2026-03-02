@@ -59,13 +59,13 @@ export default function QuoteBuilderReviewStep({
 
   return (
     <div className="max-w-4xl mx-auto space-y-5">
-      <h3 className="text-xs font-black uppercase tracking-[2px] text-gray-900 dark:text-gray-100">
+      <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text">
         Review & Send
       </h3>
 
       {/* Warnings */}
       {warnings.length > 0 && (
-        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
+        <div className="bg-ds-yellow-bg border border-amber-200 dark:border-amber-800 rounded-xl p-4">
           <ul className="text-sm text-amber-700 dark:text-amber-400 space-y-1">
             {warnings.map((w, i) => (
               <li key={i}>⚠ {w}</li>
@@ -75,9 +75,9 @@ export default function QuoteBuilderReviewStep({
       )}
 
       {/* Customer summary */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm p-5">
+      <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm p-5">
         <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Customer</div>
-        <div className="text-sm text-gray-900 dark:text-gray-100 font-medium">{customerName || "—"}</div>
+        <div className="font-display text-sm text-ds-text font-medium">{customerName || "—"}</div>
         <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
           {[customerAddress, customerEmail, customerPhone].filter(Boolean).join(" · ") || "No contact info"}
         </div>
@@ -98,25 +98,25 @@ export default function QuoteBuilderReviewStep({
           return (
             <div
               key={tier.tier_number}
-              className={`bg-white dark:bg-gray-800 border rounded-xl shadow-sm overflow-hidden ${
+              className={`bg-ds-card dark:bg-gray-800 border rounded-xl shadow-sm overflow-hidden ${
                 tier.is_recommended
                   ? "border-blue-500"
-                  : "border-gray-200 dark:border-gray-700"
+                  : "border-ds-border dark:border-gray-700"
               }`}
             >
-              <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-                <div className="text-sm font-bold text-gray-900 dark:text-gray-100">{tier.tier_name}</div>
+              <div className="px-4 py-3 border-b border-ds-border dark:border-gray-700">
+                <div className="font-display text-sm font-bold text-ds-text">{tier.tier_name}</div>
                 {tier.tagline && (
                   <div className="text-xs text-gray-500 dark:text-gray-400">{tier.tagline}</div>
                 )}
                 {tier.is_recommended && (
-                  <span className="inline-block mt-1 text-[9px] font-bold uppercase tracking-wider text-blue-600 bg-blue-50 dark:bg-blue-900/20 dark:text-blue-400 px-1.5 py-0.5 rounded-full">
+                  <span className="inline-block mt-1 text-[9px] font-bold uppercase tracking-wider text-ds-blue bg-ds-blue-bg px-1.5 py-0.5 rounded-full">
                     Recommended
                   </span>
                 )}
               </div>
-              <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-gray-200 dark:border-gray-700">
-                <span className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-b border-ds-border dark:border-gray-700">
+                <span className="font-display text-xl font-bold text-ds-text">
                   {formatCurrency(cash)}
                 </span>
                 {monthly != null && monthly > 0 && (
@@ -163,9 +163,9 @@ export default function QuoteBuilderReviewStep({
 
       {/* Financing summary */}
       {selectedFinancingPlan && (
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm p-5">
+        <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm p-5">
           <div className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Financing</div>
-          <div className="text-sm text-gray-900 dark:text-gray-100">{selectedFinancingPlan.label}</div>
+          <div className="text-sm text-ds-text">{selectedFinancingPlan.label}</div>
         </div>
       )}
 
@@ -174,11 +174,7 @@ export default function QuoteBuilderReviewStep({
         <button
           onClick={onSubmit}
           disabled={!canSend || saving}
-          className="px-8 py-3 rounded-xl text-sm font-extrabold tracking-wider uppercase text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:-translate-y-px"
-          style={{
-            background: "linear-gradient(135deg, #e65100, #ff6d00)",
-            boxShadow: "0 4px 14px rgba(230,81,0,0.4)",
-          }}
+          className="px-8 py-3 rounded-xl text-sm font-extrabold tracking-wider uppercase text-white bg-ds-orange hover:bg-orange-500 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:-translate-y-px"
         >
           {saving ? "Creating Quote..." : "Create Quote & Send"}
         </button>

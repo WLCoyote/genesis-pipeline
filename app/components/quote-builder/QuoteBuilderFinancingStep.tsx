@@ -45,9 +45,9 @@ export default function QuoteBuilderFinancingStep({
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Tax Toggle */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-xs font-black uppercase tracking-[2px] text-gray-900 dark:text-gray-100">
+      <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
+        <div className="px-5 py-3 border-b border-ds-border dark:border-gray-700">
+          <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text">
             Sales Tax
           </h3>
         </div>
@@ -71,12 +71,12 @@ export default function QuoteBuilderFinancingStep({
               )}
               {taxRate !== null && (
                 <div className="flex items-center gap-3">
-                  <p className="text-sm text-green-600 dark:text-green-400 font-medium">
+                  <p className="text-sm text-ds-green font-medium">
                     Rate: {(taxRate * 100).toFixed(2)}%
                   </p>
                   <button
                     onClick={() => onLookupTax(customerAddress)}
-                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                    className="text-xs text-ds-blue hover:underline"
                   >
                     Re-lookup
                   </button>
@@ -96,9 +96,9 @@ export default function QuoteBuilderFinancingStep({
       </div>
 
       {/* Financing Plans */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <h3 className="text-xs font-black uppercase tracking-[2px] text-gray-900 dark:text-gray-100">
+      <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
+        <div className="px-5 py-3 border-b border-ds-border dark:border-gray-700 flex items-center justify-between">
+          <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text">
             Financing Plans
           </h3>
           {selectedFinancingPlanId && (
@@ -129,14 +129,14 @@ export default function QuoteBuilderFinancingStep({
                         : "border-gray-200 dark:border-gray-600 hover:border-blue-300"
                     }`}
                   >
-                    <div className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                    <div className="text-sm font-bold text-ds-text">
                       {plan.label}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                       {plan.months} months · {plan.apr === 0 ? "0%" : `${(plan.apr * 100).toFixed(2)}%`} APR
                     </div>
                     {plan.is_default && (
-                      <span className="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-1.5 py-0.5 rounded">
+                      <span className="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider text-ds-blue bg-ds-blue-bg px-1.5 py-0.5 rounded">
                         Default
                       </span>
                     )}
@@ -150,7 +150,7 @@ export default function QuoteBuilderFinancingStep({
             href="https://www.mysynchrony.com/mmc/HY223500700"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-block mt-4 text-xs text-blue-600 dark:text-blue-400 hover:underline font-medium"
+            className="inline-block mt-4 text-xs text-ds-blue hover:underline font-medium"
           >
             Get Pre-Approved with Synchrony →
           </a>
@@ -159,9 +159,9 @@ export default function QuoteBuilderFinancingStep({
 
       {/* Per-tier monthly preview */}
       {selectedPlan && (
-        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
-          <div className="px-5 py-3 border-b border-gray-200 dark:border-gray-700">
-            <h3 className="text-xs font-black uppercase tracking-[2px] text-gray-900 dark:text-gray-100">
+        <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
+          <div className="px-5 py-3 border-b border-ds-border dark:border-gray-700">
+            <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text">
               Monthly Payment Preview — {selectedPlan.label}
             </h3>
           </div>
@@ -179,7 +179,7 @@ export default function QuoteBuilderFinancingStep({
                     <div className="text-xs text-gray-500 dark:text-gray-400 font-medium mb-1">
                       {tier.tier_name}
                     </div>
-                    <div className="text-lg font-bold text-gray-900 dark:text-gray-100">
+                    <div className="font-display text-lg font-bold text-ds-text">
                       {monthly > 0 ? `${formatCurrency(monthly)}/mo` : "—"}
                     </div>
                     <div className="text-xs text-gray-400 mt-0.5">

@@ -84,13 +84,13 @@ export default function QuoteBuilderCustomerStep({
   return (
     <div className="max-w-3xl mx-auto space-y-5">
       {/* Customer Card */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <h3 className="text-xs font-black uppercase tracking-[2px] text-gray-900 dark:text-gray-100">
+      <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
+        <div className="px-5 py-3 border-b border-ds-border dark:border-gray-700 flex items-center justify-between">
+          <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text">
             Customer
           </h3>
           {(selectedCustomer || isNewCustomer) && (
-            <button onClick={onClearCustomer} className="text-xs font-bold text-blue-600 dark:text-blue-400">
+            <button onClick={onClearCustomer} className="text-xs font-bold text-ds-blue">
               Change
             </button>
           )}
@@ -123,7 +123,7 @@ export default function QuoteBuilderCustomerStep({
                       }}
                       className="w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-600 last:border-b-0"
                     >
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{cust.name}</div>
+                      <div className="text-sm font-medium text-ds-text">{cust.name}</div>
                       <div className="text-xs text-gray-500 dark:text-gray-400">
                         {[cust.email, cust.phone, cust.address].filter(Boolean).join(" · ")}
                       </div>
@@ -134,7 +134,7 @@ export default function QuoteBuilderCustomerStep({
 
               <button
                 onClick={onSetNewCustomer}
-                className="mt-3 text-sm text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                className="mt-3 text-sm text-ds-blue hover:underline font-medium"
               >
                 + New Customer
               </button>
@@ -146,7 +146,7 @@ export default function QuoteBuilderCustomerStep({
                 {customerName.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}
               </div>
               <div className="min-w-0">
-                <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">{customerName}</h4>
+                <h4 className="font-display text-sm font-bold text-ds-text">{customerName}</h4>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                   {[customerAddress, customerEmail, customerPhone].filter(Boolean).join(" · ")}
                 </p>
@@ -181,9 +181,9 @@ export default function QuoteBuilderCustomerStep({
       </div>
 
       {/* Template Selector */}
-      <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
-        <div className="px-5 py-3 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-          <h3 className="text-xs font-black uppercase tracking-[2px] text-gray-900 dark:text-gray-100">
+      <div className="bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl shadow-sm overflow-hidden">
+        <div className="px-5 py-3 border-b border-ds-border dark:border-gray-700 flex items-center justify-between">
+          <h3 className="font-display text-xs font-black uppercase tracking-[2px] text-ds-text">
             Template
           </h3>
           {selectedTemplateId && (
@@ -194,7 +194,7 @@ export default function QuoteBuilderCustomerStep({
         </div>
         <div className="p-5">
           {selectedTemplateId ? (
-            <p className="text-sm text-green-600 dark:text-green-400 font-medium">
+            <p className="text-sm text-ds-green font-medium">
               Template loaded — customize tiers in the next step
             </p>
           ) : (
@@ -231,7 +231,7 @@ export default function QuoteBuilderCustomerStep({
                       onClick={() => onLoadTemplate(tmpl.id)}
                       className="text-left border border-gray-200 dark:border-gray-600 rounded-lg p-3 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors"
                     >
-                      <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{tmpl.name}</div>
+                      <div className="text-sm font-medium text-ds-text">{tmpl.name}</div>
                       {tmpl.description && (
                         <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-2">{tmpl.description}</div>
                       )}
