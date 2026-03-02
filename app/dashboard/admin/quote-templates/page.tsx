@@ -44,13 +44,11 @@ export default async function QuoteTemplatesPage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+      {/* Topbar */}
+      <div className="bg-ds-card dark:bg-gray-800 border-b border-ds-border dark:border-gray-700 px-7 flex items-center justify-between h-14 -mx-4 md:-mx-6 -mt-4 md:-mt-6 mb-5">
+        <h1 className="font-display text-[22px] font-black uppercase tracking-[1px] text-ds-text dark:text-gray-100">
           Quote Templates
         </h1>
-        <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-          Pre-built packages with Standard Comfort / Enhanced Efficiency / Premium Performance tiers. Select a template when building a quote to pre-populate items.
-        </p>
       </div>
 
       <QuoteTemplateManager

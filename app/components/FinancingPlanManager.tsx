@@ -146,7 +146,7 @@ export default function FinancingPlanManager({ initialPlans }: Props) {
         </span>
         <button
           onClick={openCreate}
-          className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
+          className="px-3 py-1.5 text-sm font-medium text-white bg-ds-blue hover:bg-blue-700 rounded-md"
         >
           + Add Plan
         </button>
@@ -192,7 +192,7 @@ export default function FinancingPlanManager({ initialPlans }: Props) {
                   </td>
                   <td className="px-4 py-2.5 text-center">
                     {plan.is_default && (
-                      <span className="text-xs px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded">
+                      <span className="text-xs px-1.5 py-0.5 bg-ds-blue-bg text-ds-blue rounded">
                         Default
                       </span>
                     )}
@@ -201,8 +201,8 @@ export default function FinancingPlanManager({ initialPlans }: Props) {
                     <span
                       className={`text-xs px-1.5 py-0.5 rounded ${
                         plan.is_active
-                          ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400"
-                          : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"
+                          ? "bg-ds-green-bg text-ds-green"
+                          : "bg-ds-red-bg text-ds-red"
                       }`}
                     >
                       {plan.is_active ? "Active" : "Inactive"}
@@ -249,7 +249,7 @@ export default function FinancingPlanManager({ initialPlans }: Props) {
       {editing && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-lg p-6">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-4">
+            <h2 className="font-display text-lg font-bold text-ds-text dark:text-gray-100 mb-4">
               {editing.id ? "Edit Financing Plan" : "Add Financing Plan"}
             </h2>
 
@@ -383,7 +383,7 @@ export default function FinancingPlanManager({ initialPlans }: Props) {
               <button
                 onClick={handleSave}
                 disabled={saving || !editing.plan_code || !editing.label || !editing.fee_pct || !editing.months}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium text-white bg-ds-blue hover:bg-blue-700 rounded-md disabled:opacity-50"
               >
                 {saving ? "Saving..." : editing.id ? "Save Changes" : "Create Plan"}
               </button>

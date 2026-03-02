@@ -126,21 +126,19 @@ export default function MarkupTiersEditor({ initialTiers }: MarkupTiersEditorPro
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-3">
-          <Link
-            href="/dashboard/admin/pricebook"
-            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-          >
-            &larr; Back to Pricebook
-          </Link>
-        </div>
+        <Link
+          href="/dashboard/admin/pricebook"
+          className="text-sm text-ds-gray hover:text-ds-text dark:text-gray-400 dark:hover:text-gray-200"
+        >
+          &larr; Back to Pricebook
+        </Link>
         <div className="flex items-center gap-3">
           {status && (
             <span
               className={`text-sm ${
                 status.startsWith("Error")
                   ? "text-red-600 dark:text-red-400"
-                  : "text-green-600 dark:text-green-400"
+                  : "text-ds-green dark:text-green-400"
               }`}
             >
               {status}
@@ -148,21 +146,21 @@ export default function MarkupTiersEditor({ initialTiers }: MarkupTiersEditorPro
           )}
           <button
             onClick={addRow}
-            className="px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+            className="px-3 py-1.5 text-sm font-medium rounded-md bg-ds-bg dark:bg-gray-700 text-ds-text dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
           >
             + Add Tier
           </button>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-3 py-1.5 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            className="px-3 py-1.5 text-sm font-medium rounded-md bg-ds-blue text-white hover:bg-blue-700 disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save All"}
           </button>
           <button
             onClick={() => setConfirmRecalc(true)}
             disabled={recalculating}
-            className="px-3 py-1.5 text-sm font-medium rounded-md bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50"
+            className="px-3 py-1.5 text-sm font-medium rounded-md bg-ds-orange text-white hover:brightness-110 disabled:opacity-50"
           >
             {recalculating ? "Recalculating..." : "Recalculate Pricebook"}
           </button>

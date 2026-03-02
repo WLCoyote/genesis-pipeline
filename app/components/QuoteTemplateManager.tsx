@@ -379,7 +379,7 @@ export default function QuoteTemplateManager({
         />
         <button
           onClick={openCreate}
-          className="px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md whitespace-nowrap"
+          className="px-3 py-2 text-sm font-medium text-white bg-ds-blue hover:bg-blue-700 rounded-md whitespace-nowrap"
         >
           + New Template
         </button>
@@ -395,7 +395,7 @@ export default function QuoteTemplateManager({
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold text-gray-900 dark:text-gray-100">
+                  <h3 className="font-display font-bold text-ds-text dark:text-gray-100">
                     {t.name}
                   </h3>
                   {t.is_shared && (
@@ -458,7 +458,7 @@ export default function QuoteTemplateManager({
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-4xl my-8">
             {/* Modal header */}
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">
+              <h2 className="font-display text-lg font-bold text-ds-text dark:text-gray-100">
                 {editing.id ? "Edit Template" : "New Template"}
               </h2>
             </div>
@@ -731,7 +731,7 @@ export default function QuoteTemplateManager({
               <button
                 onClick={handleSave}
                 disabled={saving || !editing.name}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50"
+                className="px-4 py-2 text-sm font-medium text-white bg-ds-blue hover:bg-blue-700 rounded-md disabled:opacity-50"
               >
                 {saving ? "Saving..." : editing.id ? "Save Changes" : "Create Template"}
               </button>

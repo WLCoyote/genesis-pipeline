@@ -142,7 +142,7 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="px-5 py-2 bg-ds-blue text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
           >
             {saving ? "Saving..." : "Save All Settings"}
           </button>
@@ -151,7 +151,7 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
 
       {/* Company Info */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Company Information</h2>
+        <h2 className="font-display text-lg font-bold text-ds-text dark:text-gray-100 mb-1">Company Information</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Used in proposal PDFs, confirmation emails, and the proposal page.
         </p>
@@ -177,7 +177,7 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
 
       {/* Proposal Terms */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Proposal Terms & Policies</h2>
+        <h2 className="font-display text-lg font-bold text-ds-text dark:text-gray-100 mb-1">Proposal Terms & Policies</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           These appear in the Terms & Conditions section of the signed proposal PDF.
         </p>
@@ -205,7 +205,7 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
 
       {/* Pipeline Settings */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Pipeline Settings</h2>
+        <h2 className="font-display text-lg font-bold text-ds-text dark:text-gray-100 mb-1">Pipeline Settings</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Configure estimate auto-decline and notification behavior.
         </p>
@@ -277,7 +277,7 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
 
       {/* HCP Pricebook Sync */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">HCP Pricebook Sync</h2>
+        <h2 className="font-display text-lg font-bold text-ds-text dark:text-gray-100 mb-1">HCP Pricebook Sync</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Import or sync pricebook items from Housecall Pro. Per-item &quot;Push to HCP&quot; is still available in the Pricebook page.
         </p>
@@ -349,7 +349,7 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
 
       {/* Data Import */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">Data Import</h2>
+        <h2 className="font-display text-lg font-bold text-ds-text dark:text-gray-100 mb-1">Data Import</h2>
         <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
           Upload CSV files from Housecall Pro to import customers and estimates.
         </p>
@@ -369,7 +369,7 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
         <button
           onClick={handleSave}
           disabled={saving}
-          className="px-5 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+          className="px-5 py-2 bg-ds-blue text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
         >
           {saving ? "Saving..." : "Save All Settings"}
         </button>

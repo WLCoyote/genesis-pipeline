@@ -134,7 +134,7 @@ export default function InboxThreads() {
       <div className="w-full md:w-80 shrink-0">
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
-            <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            <span className="font-display text-sm font-bold text-ds-text dark:text-gray-100">
               Threads ({threads.length})
             </span>
           </div>
@@ -204,7 +204,7 @@ export default function InboxThreads() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleConvertToLead}
-                  className="px-3 py-1.5 text-xs font-medium bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  className="px-3 py-1.5 text-xs font-medium bg-ds-green text-white rounded-md hover:brightness-110 transition-colors"
                 >
                   Convert to Lead
                 </button>
@@ -277,7 +277,7 @@ export default function InboxThreads() {
                 <button
                   onClick={handleReply}
                   disabled={sending || !replyText.trim()}
-                  className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                  className="px-4 py-2 bg-ds-blue text-white text-sm font-medium rounded-md hover:bg-blue-700 disabled:opacity-50 transition-colors"
                 >
                   {sending ? "Sending..." : "Send"}
                 </button>

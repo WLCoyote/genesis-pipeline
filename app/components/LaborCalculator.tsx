@@ -73,7 +73,7 @@ export default function LaborCalculator({ initialInputs }: LaborCalculatorProps)
       <div className="flex items-center justify-between mb-4">
         <Link
           href="/dashboard/admin/pricebook"
-          className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+          className="text-sm text-ds-gray hover:text-ds-text dark:text-gray-400 dark:hover:text-gray-200"
         >
           &larr; Back to Pricebook
         </Link>
@@ -83,7 +83,7 @@ export default function LaborCalculator({ initialInputs }: LaborCalculatorProps)
               className={`text-sm ${
                 status.startsWith("Error")
                   ? "text-red-600 dark:text-red-400"
-                  : "text-green-600 dark:text-green-400"
+                  : "text-ds-green dark:text-green-400"
               }`}
             >
               {status}
@@ -92,7 +92,7 @@ export default function LaborCalculator({ initialInputs }: LaborCalculatorProps)
           <button
             onClick={handleSave}
             disabled={saving}
-            className="px-3 py-1.5 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50"
+            className="px-3 py-1.5 text-sm font-medium rounded-md bg-ds-blue text-white hover:bg-blue-700 disabled:opacity-50"
           >
             {saving ? "Saving..." : "Save Inputs"}
           </button>
@@ -102,7 +102,7 @@ export default function LaborCalculator({ initialInputs }: LaborCalculatorProps)
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Inputs */}
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
+          <h2 className="font-display text-base font-bold text-ds-text dark:text-gray-100 mb-4">
             Inputs
           </h2>
           <div className="space-y-4">
@@ -205,7 +205,7 @@ export default function LaborCalculator({ initialInputs }: LaborCalculatorProps)
         {/* Outputs */}
         <div className="space-y-6">
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            <h2 className="font-display text-base font-bold text-ds-text dark:text-gray-100 mb-4">
               Calculated Rates
             </h2>
             <div className="space-y-3">
@@ -237,7 +237,7 @@ export default function LaborCalculator({ initialInputs }: LaborCalculatorProps)
                 <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
                   Target $/Hr ({inputs.desired_profit_pct}% profit)
                 </span>
-                <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                <span className="font-display text-lg font-bold text-ds-blue dark:text-blue-400">
                   {formatCurrency(targetRate)}
                 </span>
               </div>
@@ -246,7 +246,7 @@ export default function LaborCalculator({ initialInputs }: LaborCalculatorProps)
 
           {/* Quick reference */}
           <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6">
-            <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-4">
+            <h2 className="font-display text-base font-bold text-ds-text dark:text-gray-100 mb-4">
               Quick Reference
             </h2>
             <div className="space-y-2">
