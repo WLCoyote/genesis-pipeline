@@ -997,4 +997,129 @@ Configurable payment milestone schedules replacing hardcoded standard/large_job 
 
 ---
 
+## PHASE 10: Mobile App + Responsive + PWA + Web Push — NOT STARTED
+
+Comfort Pros need mobile access to their pipeline, customer SMS, proposal engagement, and commission tracking. This phase delivers three things: (1) responsive fixes so the dashboard and proposal page work on iPhone, (2) a separate mobile-first `/m/` experience for Comfort Pros with bottom tab navigation, and (3) PWA installability with native web push notifications.
+
+**Approach:** PWA (Progressive Web App) — same codebase, no React Native, no App Store. Install to home screen via "Add to Home Screen" on iOS/Android. Web push for real-time alerts.
+
+### Phase M1: PWA Foundation
+
+**M1A — Manifest + Icons**
+- Create `app/manifest.ts` (Next.js metadata API): name "Genesis Pipeline", start_url "/m/", display "standalone", theme_color "#0a1628"
+- Create `public/icon-192.png` + `public/icon-512.png` from Genesis logo
+- Add Apple meta tags to `app/layout.tsx` (apple-touch-icon, apple-mobile-web-app-capable, theme-color)
+
+**M1B — Service Worker + Registration**
+- Create `public/sw.js`: minimal manual SW (no Workbox). Cache-first for static, network-first for API, offline fallback for navigation
+- Create `public/offline.html`: branded offline page (self-contained, inline styles)
+- Create `app/components/ServiceWorkerRegistration.tsx`: client component, registers SW on mount
+- Modify `app/layout.tsx`: render `<ServiceWorkerRegistration />` in body
+
+### Phase M2: Mobile Comfort Pro App
+
+**M2A — Layout + Shell**
+- Create `app/m/layout.tsx`: server component with auth check (same pattern as dashboard/layout.tsx), role guard (comfort_pro + admin only, redirect CSR away)
+- Create `app/m/MobileShell.tsx`: client component — slim top header (44px, Genesis logo + NotificationBell), fixed bottom tab bar (56px: Pipeline | Commission | Notifications | Profile), safe-area padding for iPhone
+- Create `app/m/page.tsx`: redirect to /m/pipeline
+- Modify `app/components/NotificationBell.tsx`: add optional `basePath` prop (default "/dashboard") so /m/ routes navigate correctly
+
+**M2B — Pipeline List**
+- Create `app/m/pipeline/page.tsx`: server component, fetch user's assigned estimates
+- Create `app/m/pipeline/MobilePipelineList.tsx`: client component — pill tabs (Pipeline/Won/Lost), search bar, card list with avatar/customer/amount/status/urgency, tap to navigate, "Load more" pagination. Reuses StatusBadge, getFollowUpStatus, getAvatarColor from existing components.
+
+**M2C — Estimate Detail (highest complexity)**
+- Create `app/m/estimates/[id]/page.tsx`: server component, same data query as dashboard estimate detail
+- Create `app/m/estimates/[id]/MobileEstimateDetail.tsx`: client component — stacked single-column layout:
+  - Top: back button + customer name + status badge + amount
+  - Quick action strip: horizontal scroll of touch buttons (Send SMS, Call, Snooze, Won, Lost, Send Next, Skip)
+  - Sections (collapsible): SMS Conversation (reuse ConversationThread), Timeline (simplified FollowUpTimeline), Customer Info (reuse CustomerInfo), Proposal Activity (simplified ProposalEngagementPanel), Line Items (reuse LineItemsView/OptionsList)
+  - All API calls use existing routes
+
+**M2D — Commission**
+- Create `app/m/commission/page.tsx` + `MobileCommissionView.tsx`: 2x2 stat cards, tier progress bar (extract from CommissionDashboard), recent records as cards
+
+**M2E — Notifications**
+- Create `app/m/notifications/page.tsx` + `MobileNotificationList.tsx`: mark-all-read button, scrollable list with real-time Supabase subscription, tap to navigate
+
+**M2F — Profile**
+- Create `app/m/profile/page.tsx`: name/email/role display, push opt-in toggle (M4C), sign out, "Switch to Desktop View" link
+
+### Phase M3: Responsive Dashboard Fixes
+
+Focus: proposal page (customer-facing, viewed on phones). Uses inline styles — responsive fixes use `<style>` + `@media (max-width: 600px)` queries.
+
+**M3A — Core proposal components**
+- `ProposalHeader.tsx`: hero padding 40→16px, title 48→28px, logo 46→36px, stack info rows
+- `TierCards.tsx`: section padding 40→16px, monthly price 46→30px, card padding reduced
+- `StickyBottomBar.tsx`: padding 40→12px, stack vertically on mobile, hide addon tags
+
+**M3B — Supporting proposal components**
+- `AddonCards.tsx`, `FinancingCalculator.tsx`, `SignatureBlock.tsx`, `WhyGenesis.tsx`, `PaymentSchedule.tsx`: padding reduction, grid column collapse, canvas fit for signature
+
+### Phase M4: Web Push Notifications
+
+**M4A — SQL Migration**
+- Create `sql/033_push_subscriptions.sql`: push_subscriptions table (user_id FK CASCADE, endpoint, p256dh, auth, UNIQUE(user_id, endpoint)), RLS policies, ALTER notification_preferences ADD push_enabled
+
+**M4B — Push Sender**
+- Install: `web-push` + `@types/web-push`
+- New env vars: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_SUBJECT`
+- Create `lib/web-push.ts`: sendPushNotification(userId, payload) — queries subscriptions, sends via webpush.sendNotification(), auto-deletes stale 410 subs
+
+**M4C — Subscribe API + Opt-In UI**
+- Create `app/api/push/subscribe/route.ts`: POST (subscribe) + DELETE (unsubscribe)
+- Create `app/components/PushOptIn.tsx`: toggle for push permission, Notification.requestPermission(), PushManager.subscribe(), iOS caveat message
+
+**M4D — Wire into Notification Dispatcher**
+- Modify `lib/notifications.ts`: after email dispatch, fire push for: estimate_approved ("Proposal Signed!"), sms_received ("New SMS from {customer}"), commission_estimated/confirmed, call_due, email_opened ("Proposal Viewed")
+- Add PushSubscriptionRecord to `lib/types.ts`
+
+**M4E — SW Push Handlers**
+- Modify `public/sw.js`: push event (parse JSON, showNotification), notificationclick event (close + navigate to data.url)
+
+### Phase M5: Polish
+- Optional auto-redirect: comfort_pro on mobile → /m/ (with "Stay on Desktop" localStorage override)
+- iOS splash screen meta tags
+- Verify Next.js code splitting: /m/ routes don't load DashboardShell/Sidebar bundles
+- Test on physical iPhone + Android
+
+### New Files (22)
+
+| File | Phase |
+|------|-------|
+| `app/manifest.ts` | M1A |
+| `public/icon-192.png` | M1A |
+| `public/icon-512.png` | M1A |
+| `public/sw.js` | M1B |
+| `public/offline.html` | M1B |
+| `app/components/ServiceWorkerRegistration.tsx` | M1B |
+| `app/m/layout.tsx` | M2A |
+| `app/m/MobileShell.tsx` | M2A |
+| `app/m/page.tsx` | M2A |
+| `app/m/pipeline/page.tsx` | M2B |
+| `app/m/pipeline/MobilePipelineList.tsx` | M2B |
+| `app/m/estimates/[id]/page.tsx` | M2C |
+| `app/m/estimates/[id]/MobileEstimateDetail.tsx` | M2C |
+| `app/m/commission/page.tsx` | M2D |
+| `app/m/commission/MobileCommissionView.tsx` | M2D |
+| `app/m/notifications/page.tsx` | M2E |
+| `app/m/notifications/MobileNotificationList.tsx` | M2E |
+| `app/m/profile/page.tsx` | M2F |
+| `sql/033_push_subscriptions.sql` | M4A |
+| `lib/web-push.ts` | M4B |
+| `app/api/push/subscribe/route.ts` | M4C |
+| `app/components/PushOptIn.tsx` | M4C |
+
+### New Dependencies
+- `web-push` + `@types/web-push` (M4B)
+
+### New Env Vars
+- `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_SUBJECT`
+
+### SQL Migration
+- `sql/033_push_subscriptions.sql`
+
+---
+
 *Genesis Refrigeration & HVAC  •  Genesis Pipeline  •  Build Plan v4.0  •  February 2026  •  CONFIDENTIAL*

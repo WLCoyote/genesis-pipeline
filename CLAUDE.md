@@ -223,6 +223,11 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Backlog A | Install Materials Builder — sql/030, InstallKitManager CRUD, API routes, QB pricebook panel "Kits" tab, sidebar nav | **Complete** — sql/030 needs run in Supabase |
 | Backlog B | Maintenance Plan Builder — sql/031, MaintenancePlanManager CRUD, API routes, QB add-ons step integration, sidebar nav | **Complete** — sql/031 needs run in Supabase |
 | Backlog C | Configurable Payment Terms — sql/032, PaymentSchedule types, API routes, QB financing step selector, dynamic PaymentSchedule component, proposal PDF update | **Complete** — sql/032 run in Supabase |
+| Phase 10 M1 | PWA Foundation — manifest.ts, app icons, service worker, offline fallback, SW registration, Apple meta tags | **Not started** |
+| Phase 10 M2 | Mobile Comfort Pro App — `/m/` routes with bottom tab nav, pipeline list, estimate detail + SMS, commission, notifications, profile | **Not started** |
+| Phase 10 M3 | Responsive Dashboard Fixes — proposal page responsive overhaul (8 components), iPhone-sized layouts | **Not started** |
+| Phase 10 M4 | Web Push Notifications — sql/033 push_subscriptions, web-push library, VAPID keys, subscribe API, push opt-in UI, SW push handlers, wired into notification dispatcher | **Not started** |
+| Phase 10 M5 | Mobile Polish — auto-redirect comfort pros, iOS fixes, bundle splitting verification | **Not started** |
 | v0.2 | HCP webhooks, analytics | Future |
 | Phase 2+ | Campaigns & segmentation | Future |
 | Phase 3+ | AI, weather triggers | Future |
@@ -273,3 +278,4 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | ~~Install materials builder~~ | **Done** (Backlog A) — sql/030, InstallKitManager CRUD admin page, API routes, QB pricebook panel "Kits" tab with "Add Kit" expanding items into target tier |
 | ~~Maintenance plan builder~~ | **Done** (Backlog B) — sql/031, MaintenancePlanManager CRUD admin page, API routes, QB add-ons step "Maintenance Plans" section with per-tier add/remove, coverage items display |
 | ~~Configurable payment terms~~ | **Done** (Backlog C) — sql/032 payment_schedules table, admin CRUD, QB payment schedule selector, dynamic PaymentSchedule proposal component, proposal-pdf.ts dynamic stages, backward-compatible fallback from legacy `payment_schedule_type` |
+| Mobile app (PWA) for Comfort Pros | **Planned** (Phase 10) — PWA manifest + icons, `/m/` mobile routes (pipeline, estimate detail, commission, notifications, profile), bottom tab nav, responsive proposal page, web push notifications (sql/033). See plan file. |
