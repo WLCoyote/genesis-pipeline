@@ -399,17 +399,6 @@ export default function TierCards({
                   background: "rgba(0,0,0,0.2)",
                 }}
               >
-                <div
-                  style={{
-                    fontSize: 9,
-                    textTransform: "uppercase" as const,
-                    letterSpacing: 2,
-                    color: "#7a8fa8",
-                    marginBottom: 2,
-                  }}
-                >
-                  Cash / Check Price
-                </div>
                 {rebateTotal > 0 && (
                   <div style={{ marginBottom: 8 }}>
                     {(tier.rebates || []).filter((r) => r.amount > 0).map((rebate) => (
@@ -432,77 +421,108 @@ export default function TierCards({
                   </div>
                 )}
 
-                <div style={{ marginBottom: 12 }}>
-                  <span
-                    style={{
-                      fontFamily: "'Barlow Condensed', sans-serif",
-                      fontSize: 46,
-                      fontWeight: 900,
-                      color: "#fff",
-                      lineHeight: 1,
-                      letterSpacing: -1,
-                    }}
-                  >
-                    ${displaySubtotal.toLocaleString()}
-                  </span>
-                  {rebateTotal > 0 && (
-                    <span style={{ fontSize: 13, color: "#7a8fa8", marginLeft: 8, textDecoration: "line-through" }}>
-                      ${tier.subtotal.toLocaleString()}
-                    </span>
-                  )}
-                </div>
-
-                {monthly !== null && (
-                  <div
-                    style={{
-                      borderRadius: 10,
-                      padding: "10px 14px",
-                      marginBottom: 14,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 10,
-                      background: s.monthlyBg,
-                      border: `1px solid ${s.monthlyBorder}`,
-                    }}
-                  >
-                    <div>
-                      <div
+                {monthly !== null ? (
+                  <>
+                    <div
+                      style={{
+                        fontSize: 9,
+                        textTransform: "uppercase" as const,
+                        letterSpacing: 2,
+                        color: "#7a8fa8",
+                        marginBottom: 2,
+                      }}
+                    >
+                      As Low As
+                    </div>
+                    <div style={{ marginBottom: 6 }}>
+                      <span
                         style={{
                           fontFamily: "'Barlow Condensed', sans-serif",
-                          fontSize: 24,
+                          fontSize: 46,
                           fontWeight: 900,
                           color: "#fff",
+                          lineHeight: 1,
+                          letterSpacing: -1,
                         }}
                       >
                         ${monthly}
-                        <small style={{ fontSize: 13, fontWeight: 400 }}>
-                          /mo
-                        </small>
-                      </div>
-                      <div
+                      </span>
+                      <span
                         style={{
-                          fontSize: 11,
+                          fontFamily: "'Barlow Condensed', sans-serif",
+                          fontSize: 22,
+                          fontWeight: 400,
                           color: "#7a8fa8",
-                          marginTop: 1,
                         }}
                       >
-                        Financing Available
-                      </div>
+                        /mo
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 10, color: "#7a8fa8", marginBottom: 14 }}>
+                      Subject to credit approval
                     </div>
                     <div
                       style={{
-                        fontSize: 10,
+                        fontSize: 9,
+                        textTransform: "uppercase" as const,
+                        letterSpacing: 2,
                         color: "#7a8fa8",
-                        textAlign: "right" as const,
-                        lineHeight: 1.5,
+                        marginBottom: 2,
                       }}
                     >
-                      Subject to
-                      <br />
-                      credit approval
+                      Cash / Check Price
                     </div>
-                  </div>
+                    <div style={{ marginBottom: 14 }}>
+                      <span
+                        style={{
+                          fontFamily: "'Barlow Condensed', sans-serif",
+                          fontSize: 16,
+                          fontWeight: 700,
+                          color: "#cdd8e8",
+                        }}
+                      >
+                        ${displaySubtotal.toLocaleString()}
+                      </span>
+                      {rebateTotal > 0 && (
+                        <span style={{ fontSize: 12, color: "#7a8fa8", marginLeft: 6, textDecoration: "line-through" }}>
+                          ${tier.subtotal.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div
+                      style={{
+                        fontSize: 9,
+                        textTransform: "uppercase" as const,
+                        letterSpacing: 2,
+                        color: "#7a8fa8",
+                        marginBottom: 2,
+                      }}
+                    >
+                      Cash / Check Price
+                    </div>
+                    <div style={{ marginBottom: 14 }}>
+                      <span
+                        style={{
+                          fontFamily: "'Barlow Condensed', sans-serif",
+                          fontSize: 46,
+                          fontWeight: 900,
+                          color: "#fff",
+                          lineHeight: 1,
+                          letterSpacing: -1,
+                        }}
+                      >
+                        ${displaySubtotal.toLocaleString()}
+                      </span>
+                      {rebateTotal > 0 && (
+                        <span style={{ fontSize: 13, color: "#7a8fa8", marginLeft: 8, textDecoration: "line-through" }}>
+                          ${tier.subtotal.toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                  </>
                 )}
 
                 <button

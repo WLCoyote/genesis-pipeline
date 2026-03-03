@@ -23,8 +23,10 @@ export default function StickyBottomBar({
   return (
     <div
       style={{
-        position: "sticky",
+        position: "fixed",
         bottom: 0,
+        left: 0,
+        width: "100%",
         zIndex: 90,
         background: "rgba(5, 13, 26, 0.97)",
         borderTop: "1px solid #1a3357",
@@ -133,30 +135,59 @@ export default function StickyBottomBar({
             flexShrink: 0,
           }}
         >
-          <div style={{ textAlign: "right" as const }}>
-            <div
-              style={{
-                fontSize: 9,
-                textTransform: "uppercase" as const,
-                letterSpacing: 2,
-                color: "#7a8fa8",
-              }}
-            >
-              Cash Total
-            </div>
-            <div
-              style={{
-                fontFamily: "'Barlow Condensed', sans-serif",
-                fontSize: 34,
-                fontWeight: 900,
-                color: "#fff",
-                lineHeight: 1,
-              }}
-            >
-              {cashTotal > 0 ? `$${cashTotal.toLocaleString()}` : "\u2014"}
-            </div>
-          </div>
-          {monthlyTotal !== null && (
+          {monthlyTotal !== null ? (
+            <>
+              <div style={{ textAlign: "right" as const }}>
+                <div
+                  style={{
+                    fontSize: 9,
+                    textTransform: "uppercase" as const,
+                    letterSpacing: 2,
+                    color: "#7a8fa8",
+                  }}
+                >
+                  As Low As
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontSize: 34,
+                    fontWeight: 900,
+                    color: "#fff",
+                    lineHeight: 1,
+                  }}
+                >
+                  ${monthlyTotal}/mo
+                </div>
+                <div style={{ fontSize: 11, color: "#42a5f5" }}>
+                  OAC
+                </div>
+              </div>
+              <div style={{ textAlign: "right" as const }}>
+                <div
+                  style={{
+                    fontSize: 9,
+                    textTransform: "uppercase" as const,
+                    letterSpacing: 2,
+                    color: "#7a8fa8",
+                  }}
+                >
+                  Cash / Check
+                </div>
+                <div
+                  style={{
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontSize: 22,
+                    fontWeight: 900,
+                    color: "#cdd8e8",
+                    lineHeight: 1,
+                  }}
+                >
+                  {cashTotal > 0 ? `$${cashTotal.toLocaleString()}` : "\u2014"}
+                </div>
+              </div>
+            </>
+          ) : (
             <div style={{ textAlign: "right" as const }}>
               <div
                 style={{
@@ -166,21 +197,18 @@ export default function StickyBottomBar({
                   color: "#7a8fa8",
                 }}
               >
-                Est. Monthly
+                Cash Total
               </div>
               <div
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  fontSize: 26,
+                  fontSize: 34,
                   fontWeight: 900,
                   color: "#fff",
                   lineHeight: 1,
                 }}
               >
-                ${monthlyTotal}/mo
-              </div>
-              <div style={{ fontSize: 11, color: "#42a5f5" }}>
-                / month OAC
+                {cashTotal > 0 ? `$${cashTotal.toLocaleString()}` : "\u2014"}
               </div>
             </div>
           )}

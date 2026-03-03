@@ -321,6 +321,7 @@ export async function POST(request: NextRequest) {
     is_selected: boolean;
     sort_order: number;
     category: string | null;
+    show_on_proposal: boolean;
   }> = [];
 
   for (const tier of body.tiers) {
@@ -344,6 +345,7 @@ export async function POST(request: NextRequest) {
         is_selected: item.addon_default_checked ?? !item.is_addon,
         sort_order: item.sort_order ?? idx,
         category: item.category || null,
+        show_on_proposal: item.show_on_proposal !== false,
       });
     }
   }

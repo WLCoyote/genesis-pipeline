@@ -21,7 +21,7 @@ interface ProposalPageProps {
   taxRate: number | null;
   paymentScheduleType: string;
   tiers: TierData[];
-  addons: AddonData[];
+  addonsByTier: Record<number, AddonData[]>;
   financingPlans: FinancingPlanData[];
   reviews: Array<{ author: string; text: string; rating: number }>;
   companyStory: string;
@@ -38,7 +38,7 @@ export default function ProposalPage({
   taxRate,
   paymentScheduleType,
   tiers,
-  addons,
+  addonsByTier,
   financingPlans,
   reviews,
   companyStory,
@@ -52,14 +52,23 @@ export default function ProposalPage({
     return recommended?.tierNumber ?? (tiers.length > 0 ? tiers[0].tierNumber : null);
   });
 
+  // Derive current addons from selected tier
+  const currentAddons = useMemo(() => {
+    if (selectedTier === null) return [] as AddonData[];
+    return addonsByTier[selectedTier] || [];
+  }, [addonsByTier, selectedTier]);
+
   const [selectedAddons, setSelectedAddons] = useState<Set<string>>(() => {
-    // Pre-check addons that were marked is_selected
+    // Pre-check addons that were marked is_selected for the initial tier
     const preSelected = new Set<string>();
-    for (const addon of addons) {
+    const allAddons = Object.values(addonsByTier).flat();
+    for (const addon of allAddons) {
       if (addon.isSelected) preSelected.add(addon.id);
     }
     return preSelected;
   });
+
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "financing" | null>(null);
 
   const [selectedPlan, setSelectedPlan] = useState<FinancingPlanData | null>(
     () => financingPlans.find((p) => p.isDefault) || financingPlans[0] || null
@@ -159,13 +168,13 @@ export default function ProposalPage({
 
   const addonTotal = useMemo(() => {
     let total = 0;
-    for (const addon of addons) {
+    for (const addon of currentAddons) {
       if (selectedAddons.has(addon.id)) {
         total += addon.lineTotal;
       }
     }
     return total;
-  }, [addons, selectedAddons]);
+  }, [currentAddons, selectedAddons]);
 
   const subtotal = tierSubtotal + addonTotal;
   const tax = taxRate != null ? Math.round(subtotal * taxRate * 100) / 100 : 0;
@@ -185,10 +194,10 @@ export default function ProposalPage({
 
   const selectedAddonNames = useMemo(
     () =>
-      addons
+      currentAddons
         .filter((a) => selectedAddons.has(a.id))
         .map((a) => a.displayName),
-    [addons, selectedAddons]
+    [currentAddons, selectedAddons]
   );
 
   // --- Step tracking ---
@@ -200,9 +209,20 @@ export default function ProposalPage({
 
   // --- Handlers ---
   const handleSelectTier = useCallback((tierNumber: number) => {
-    setSelectedTier(tierNumber);
+    setSelectedTier((prev) => {
+      if (prev !== tierNumber) {
+        // Reset addon selections when switching tiers — pre-check defaults for new tier
+        const newTierAddons = addonsByTier[tierNumber] || [];
+        const preSelected = new Set<string>();
+        for (const addon of newTierAddons) {
+          if (addon.isSelected) preSelected.add(addon.id);
+        }
+        setSelectedAddons(preSelected);
+      }
+      return tierNumber;
+    });
     trackEvent("option_view", { option_group: tierNumber });
-  }, [trackEvent]);
+  }, [trackEvent, addonsByTier]);
 
   const handleToggleAddon = useCallback((addonId: string) => {
     setSelectedAddons((prev) => {
@@ -226,6 +246,7 @@ export default function ProposalPage({
     selectedTier !== null &&
     customerNameInput.trim().length >= 2 &&
     signatureData !== null &&
+    paymentMethod !== null &&
     !isSubmitting;
 
   const handleSubmit = useCallback(async () => {
@@ -242,6 +263,7 @@ export default function ProposalPage({
           selected_tier: selectedTier,
           selected_addon_ids: Array.from(selectedAddons),
           selected_financing_plan_id: selectedPlan?.id || null,
+          payment_method: paymentMethod,
         }),
       });
 
@@ -264,6 +286,7 @@ export default function ProposalPage({
     selectedTier,
     selectedAddons,
     selectedPlan,
+    paymentMethod,
   ]);
 
   return (
@@ -286,7 +309,7 @@ export default function ProposalPage({
       />
 
       <AddonCards
-        addons={addons}
+        addons={currentAddons}
         selectedAddons={selectedAddons}
         onToggleAddon={handleToggleAddon}
         getMonthly={getMonthly}
@@ -312,6 +335,8 @@ export default function ProposalPage({
           selectedAddonNames={selectedAddonNames}
           cashTotal={cashTotal}
           monthlyTotal={monthlyTotal}
+          paymentMethod={paymentMethod}
+          onPaymentMethodChange={setPaymentMethod}
           customerName={customerNameInput}
           onCustomerNameChange={setCustomerNameInput}
           signatureData={signatureData}
@@ -333,6 +358,9 @@ export default function ProposalPage({
         disclosuresComplete={disclosuresComplete}
         onAcceptClick={handleAcceptClick}
       />
+
+      {/* Spacer for fixed bottom bar */}
+      <div style={{ height: 100 }} />
 
       {/* Footer */}
       <footer

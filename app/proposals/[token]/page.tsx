@@ -21,7 +21,8 @@ export default async function ProposalPageRoute({ params }: Props) {
       users!estimates_assigned_to_fkey ( id, name, phone ),
       estimate_line_items (
         id, option_group, display_name, spec_line, description,
-        quantity, unit_price, line_total, is_addon, is_selected, sort_order
+        quantity, unit_price, line_total, is_addon, is_selected, sort_order,
+        show_on_proposal
       )
     `
     )
@@ -251,6 +252,7 @@ export default async function ProposalPageRoute({ params }: Props) {
     is_addon: boolean;
     is_selected: boolean;
     sort_order: number;
+    show_on_proposal: boolean;
   }>;
 
   // Build tier data from line items
@@ -305,30 +307,27 @@ export default async function ProposalPageRoute({ params }: Props) {
     .sort(([a], [b]) => a - b)
     .map(([group, data]) => {
       const meta = savedTierMetadata?.find((m) => m.tier_number === group);
+      // Filter items: only show_on_proposal items on proposal display (subtotal still includes all)
+      const visibleItems = data.items
+        .filter((i) => i.show_on_proposal !== false)
+        .sort((a, b) => a.sort_order - b.sort_order);
       return {
         tierNumber: group,
         tierName: meta?.tier_name || defaultTierNames[group] || `Option ${group}`,
         tagline: meta?.tagline || defaultTierTaglines[group] || "",
         featureBullets: meta?.feature_bullets || [],
         rebates: (meta?.rebates || []).filter((r) => r.amount > 0),
-        items: data.items.sort((a, b) => a.sort_order - b.sort_order),
+        items: visibleItems,
         subtotal: data.subtotal,
         isRecommended: meta?.is_recommended ?? group === 2,
       };
     });
 
-  // Collect all addon items across tiers (deduplicated by display_name)
-  const allAddons: typeof lineItems = [];
-  const seenAddonNames = new Set<string>();
-  for (const [, data] of tierMap) {
-    for (const addon of data.addonItems) {
-      if (!seenAddonNames.has(addon.display_name)) {
-        seenAddonNames.add(addon.display_name);
-        allAddons.push(addon);
-      }
-    }
+  // Build addon items per tier (not deduplicated — each tier gets its own addons)
+  const addonsByTier: Record<number, typeof lineItems> = {};
+  for (const [group, data] of tierMap) {
+    addonsByTier[group] = data.addonItems.sort((a, b) => a.sort_order - b.sort_order);
   }
-  allAddons.sort((a, b) => a.sort_order - b.sort_order);
 
   // Calculate auto-decline remaining days
   const daysRemaining = estimate.auto_decline_date
@@ -351,15 +350,20 @@ export default async function ProposalPageRoute({ params }: Props) {
       taxRate={estimate.tax_rate}
       paymentScheduleType={estimate.payment_schedule_type || "standard"}
       tiers={tiers}
-      addons={allAddons.map((a) => ({
-        id: a.id,
-        displayName: a.display_name,
-        description: a.description || a.spec_line || "",
-        unitPrice: a.unit_price,
-        quantity: a.quantity,
-        lineTotal: a.line_total,
-        isSelected: a.is_selected,
-      }))}
+      addonsByTier={Object.fromEntries(
+        Object.entries(addonsByTier).map(([group, items]) => [
+          Number(group),
+          items.map((a) => ({
+            id: a.id,
+            displayName: a.display_name,
+            description: a.description || a.spec_line || "",
+            unitPrice: a.unit_price,
+            quantity: a.quantity,
+            lineTotal: a.line_total,
+            isSelected: a.is_selected,
+          })),
+        ])
+      )}
       financingPlans={
         (financingPlans || []).map((p) => ({
           id: p.id,

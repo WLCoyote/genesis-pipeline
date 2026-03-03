@@ -25,6 +25,7 @@ interface Props {
   onSetRecommended: (tierNumber: number) => void;
   onUpdateItemQuantity: (tierNumber: number, pbItemId: string, qty: number) => void;
   onUpdateItemPrice: (tierNumber: number, pbItemId: string, price: number) => void;
+  onToggleVisibility: (tierNumber: number, pbItemId: string) => void;
   onToggleTax: (v: boolean) => void;
 }
 
@@ -43,6 +44,7 @@ export default function QuoteBuilderTiersStep({
   onSetRecommended,
   onUpdateItemQuantity,
   onUpdateItemPrice,
+  onToggleVisibility,
   onToggleTax,
 }: Props) {
   // Filter pricebook items to rebate category for the rebate picker
@@ -247,6 +249,17 @@ export default function QuoteBuilderTiersStep({
                           }
                           className="w-16 px-1 py-0.5 text-xs text-right font-bold border border-transparent group-hover:border-gray-200 dark:group-hover:border-gray-600 rounded bg-transparent text-gray-900 dark:text-gray-100"
                         />
+                        <button
+                          onClick={() => onToggleVisibility(tier.tier_number, item.pricebook_item_id)}
+                          className={`opacity-0 group-hover:opacity-100 text-[11px] px-0.5 transition-opacity ${
+                            item.show_on_proposal
+                              ? "text-blue-400 hover:text-blue-600"
+                              : "text-gray-300 dark:text-gray-600 hover:text-gray-500"
+                          }`}
+                          title={item.show_on_proposal ? "Visible on proposal" : "Hidden from proposal"}
+                        >
+                          {item.show_on_proposal ? "👁" : "👁‍🗨"}
+                        </button>
                         <button
                           onClick={() => onRemoveItem(tier.tier_number, item.pricebook_item_id)}
                           className="opacity-0 group-hover:opacity-100 text-[11px] text-red-400 hover:text-red-600 px-0.5 transition-opacity"

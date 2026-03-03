@@ -14,13 +14,18 @@ const defaultCards = [
   {
     icon: "\u2B50",
     title: "5-Star Rated",
-    desc: "200+ verified Google reviews from your neighbors.",
+    desc: "200+ verified Google reviews from your neighbors. Building friendships one customer at a time.",
     stars: true,
   },
   {
     icon: "\uD83C\uDFC5",
     title: "Licensed & Insured",
     desc: "WA State certified. Fully insured for your complete protection.",
+  },
+  {
+    icon: "\uD83C\uDF96",
+    title: "Veteran Owned",
+    desc: "Proudly veteran owned and operated. Serving our community with the same dedication we served our country.",
   },
   {
     icon: "\uD83D\uDCB3",
@@ -91,7 +96,7 @@ export default function WhyGenesis({ reviews, companyStory }: WhyGenesisProps) {
         className="proposal-why-grid"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(5, 1fr)",
+          gridTemplateColumns: "repeat(3, 1fr)",
           gap: 14,
         }}
       >

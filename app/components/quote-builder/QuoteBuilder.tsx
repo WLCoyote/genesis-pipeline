@@ -11,7 +11,7 @@ import type {
   TemplateTierData,
   FinancingPlanFull,
 } from "./types";
-import { emptyTier, calculateTierTotals, formatCurrency } from "./utils";
+import { emptyTier, calculateTierTotals, formatCurrency, getDefaultProposalVisibility } from "./utils";
 import QuoteBuilderTopbar from "./QuoteBuilderTopbar";
 import QuoteBuilderSteps from "./QuoteBuilderSteps";
 
@@ -120,6 +120,7 @@ export default function QuoteBuilder({
           hcp_type: pbItem?.hcp_type ?? null,
           category: li.category || pbItem?.category || "equipment",
           cost: pbItem?.cost ?? null,
+          show_on_proposal: (li as Record<string, unknown>).show_on_proposal !== false,
         });
       }
 
@@ -263,6 +264,7 @@ export default function QuoteBuilder({
                 hcp_type: pb?.hcp_type ?? null,
                 category: pb?.category || "equipment",
                 cost: pb?.cost ?? null,
+                show_on_proposal: getDefaultProposalVisibility(pb?.category || "equipment"),
               };
             }),
           };
@@ -302,6 +304,7 @@ export default function QuoteBuilder({
                 hcp_type: pbItem.hcp_type,
                 category: pbItem.category,
                 cost: pbItem.cost,
+                show_on_proposal: getDefaultProposalVisibility(pbItem.category),
               },
             ],
           };
@@ -366,6 +369,25 @@ export default function QuoteBuilder({
             ...tier,
             items: tier.items.map((i) =>
               i.pricebook_item_id === pbItemId ? { ...i, addon_default_checked: checked } : i
+            ),
+          };
+        })
+      );
+    },
+    []
+  );
+
+  const toggleItemVisibility = useCallback(
+    (tierNumber: number, pbItemId: string) => {
+      setTiers((prev) =>
+        prev.map((tier) => {
+          if (tier.tier_number !== tierNumber) return tier;
+          return {
+            ...tier,
+            items: tier.items.map((i) =>
+              i.pricebook_item_id === pbItemId
+                ? { ...i, show_on_proposal: !i.show_on_proposal }
+                : i
             ),
           };
         })
@@ -451,6 +473,7 @@ export default function QuoteBuilder({
               addon_default_checked: item.addon_default_checked,
               hcp_type: item.hcp_type,
               category: item.category,
+              show_on_proposal: item.show_on_proposal,
               sort_order: idx,
             })),
           })),
@@ -539,6 +562,7 @@ export default function QuoteBuilder({
               addon_default_checked: item.addon_default_checked,
               hcp_type: item.hcp_type,
               category: item.category,
+              show_on_proposal: item.show_on_proposal,
               sort_order: idx,
             })),
           })),
@@ -687,6 +711,7 @@ export default function QuoteBuilder({
               onSetRecommended={setRecommended}
               onUpdateItemQuantity={updateItemQuantity}
               onUpdateItemPrice={updateItemPrice}
+              onToggleVisibility={toggleItemVisibility}
               onToggleTax={setIncludeTax}
             />
           )}

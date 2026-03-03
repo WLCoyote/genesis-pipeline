@@ -174,7 +174,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 complete (polish, restructure, notifications, ds- consistency pass including Quote Builder, Outfit font weight refinement). Phase 8.3 complete (design system component library — 7 reusable UI components, 45+ files refactored). E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023 + sql/024 + sql/025 + sql/026 run in Supabase.
+Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 complete (polish, restructure, notifications, ds- consistency pass including Quote Builder, Outfit font weight refinement). Phase 8.3 complete (design system component library — 7 reusable UI components, 45+ files refactored). Phase 8.5 in progress (proposal overhaul + builder flexibility + leads): 8.5A complete, 8.5F complete, 8.5B complete, 8.5D partially done, 8.5C + 8.5E not started. E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023 + sql/024 + sql/025 + sql/026 run in Supabase. sql/027 created (needs run in Supabase).
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -206,8 +206,14 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 8.1B | Sequences page UI overhaul — SequenceEditor decomposed to 4 components (SequenceHeader, SequenceTokenBar, SequenceStepCard, SequenceAddStep), timeline connectors, channel-colored step cards, shared token bar, add-step with channel options | **Complete** |
 | Phase 8.2 | Polish, restructure & notifications — font swap (Outfit), Outfit weight refinement (400/600 strategy), estimate detail scroll fix, customer address mapping, leads simplification, analytics dashboard, import→settings, HCP category paths, team edit fields, notification system, ds- consistency pass (all pages including Quote Builder) | **Complete** — sql/025 + sql/026 run in Supabase |
 | Phase 8.3 | Design system component library — 7 reusable UI components (Button, PageTopbar, Card, SectionHeader, StatCard, Modal, FormField) in `app/components/ui/`, swapped across 45+ files. No visual changes. | **Complete** |
+| Phase 8.5A | Proposal polish + branding — monthly payment hero, sticky footer fix, Veteran Owned badge, friendship tagline, bottom bar totals swap | **Complete** |
+| Phase 8.5F | Address fix (data issue, no code) + Google 403 (config, not code) | **Complete** |
+| Phase 8.5B | Proposal logic — per-tier add-ons, cash/financing choice at signature, equipment visibility toggle (eye icon), sql/027 migration | **Complete** — sql/027 needs run in Supabase |
+| Phase 8.5D | Leads & permissions — Lead→Build Quote button (partial), admin-only deletes audit, CSR email CC | **In progress** — Lead button added, QB page param accepted, remaining items not started |
+| Phase 8.5C | Variable tiers (1-5 options) + badge label customization. sql/028 migration needed. | Not started |
+| Phase 8.5E | Accessibility — browser zoom fix, font size toggle (S/M/L) | Not started |
 | Phase 8.4 | Commission tracking (two-stage, QBO) | Not started |
-| Phase 8.5 | Commission dashboard | Not started |
+| Phase 8.5-old | Commission dashboard | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
 | v0.2 | HCP webhooks, analytics | Future |
 | Phase 2+ | Campaigns & segmentation | Future |
@@ -241,6 +247,19 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | ~~Quote Builder ds- token pass~~ | **Done** (post-8.2) — 9 components updated: bg-ds-card, border-ds-border, font-display text-ds-text, replaced inline fontFamily + gradient |
 | ~~Outfit font weight refinement~~ | **Done** (post-8.2) — 45 files, 70 elements: titles → font-semibold (600), subheaders/names → font-normal (400) |
 | ~~Design system component library~~ | **Done** (Phase 8.3) — 7 components in `app/components/ui/`: Button (7 variants × 4 sizes), PageTopbar, Card, SectionHeader, StatCard, Modal, FormField + inputCls/selectCls/textareaCls constants. Swapped across 45+ files. |
+| ~~Monthly payment hero number~~ | **Done** (Phase 8.5A) — Monthly at 46px, cash at 16px on tier cards + bottom bar |
+| ~~Sticky footer fix~~ | **Done** (Phase 8.5A) — position: fixed + spacer |
+| ~~Veteran Owned badge~~ | **Done** (Phase 8.5A) — WhyGenesis 6 cards, 3-col grid |
+| ~~Per-tier add-ons~~ | **Done** (Phase 8.5B) — addonsByTier map, reset on tier switch |
+| ~~Cash vs Financing choice~~ | **Done** (Phase 8.5B) — payment_method toggle in SignatureBlock |
+| ~~Equipment visibility toggle~~ | **Done** (Phase 8.5B) — show_on_proposal per item, eye icon in builder |
+| Lead → Build Quote (skip HCP) | **Partial** (Phase 8.5D) — button added, QB page params accepted, need pre-fill logic |
+| Admin-only deletes audit | Not started (Phase 8.5D) |
+| CSR new lead email CC | Not started (Phase 8.5D) |
+| Variable tier count (1-5) | Not started (Phase 8.5C) — most complex item |
+| Badge label customization | Not started (Phase 8.5C) |
+| Browser zoom fix | Not started (Phase 8.5E) |
+| Font size toggle (S/M/L) | Not started (Phase 8.5E) |
 | Install materials builder | Pricebook tool to bundle install materials |
 | Maintenance plan builder | Service plans, subscriptions |
 | Configurable payment terms | 50/50 default, 4-payment option, configurable in quote builder |

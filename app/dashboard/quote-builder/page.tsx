@@ -3,11 +3,11 @@ import { createClient } from "@/lib/supabase/server";
 import QuoteBuilder from "@/app/components/quote-builder/QuoteBuilder";
 
 interface Props {
-  searchParams: Promise<{ estimate_id?: string }>;
+  searchParams: Promise<{ estimate_id?: string; lead_id?: string }>;
 }
 
 export default async function QuoteBuilderPage({ searchParams }: Props) {
-  const { estimate_id } = await searchParams;
+  const { estimate_id, lead_id } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },

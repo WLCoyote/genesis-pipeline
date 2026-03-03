@@ -766,6 +766,68 @@ All dashboard pages, quote builder components, pricebook components, estimate de
 
 ---
 
+## PHASE 8.5: Proposal Overhaul, Builder Flexibility, Leads & Accessibility — IN PROGRESS
+
+16 items from real-user feedback organized into 6 sub-phases. Two large features (Parts Estimates, Flat Rate Builder) deferred to future phase.
+
+### Phase 8.5A: Proposal Polish + Branding ✅ COMPLETE
+
+No SQL migration. 4 quick wins:
+
+1. **Monthly payment = hero number** — TierCards.tsx pricing block restructured: monthly at 46px ("As Low As"), cash price moved to 16px secondary line. If no financing, cash stays hero (fallback).
+2. **Sticky footer fix** — StickyBottomBar changed from `position: sticky` to `position: fixed` + `left: 0` + `width: 100%`. 100px spacer added in ProposalPage. SignatureBlock bottom padding increased to 160px.
+3. **Veteran Owned badge** — Added to WhyGenesis.tsx defaultCards (🎖 military medal icon). Grid changed from 5-col to 3-col (2 rows of 3 = 6 cards).
+4. **Friendship tagline** — Added "Building friendships one customer at a time." to the 5-Star Rated card description.
+5. **StickyBottomBar totals swapped** — Monthly is now 34px hero, cash is 22px secondary. Same conditional logic (if no financing, cash stays hero).
+
+### Phase 8.5F: Address Fix + Google OAuth ✅ COMPLETE (Investigation)
+
+- **Address not showing (Item 15):** Code path is correct. CustomerInfo.tsx displays address (line 72-76). HCP polling maps address. Quote creation stores address. Issue is **data quality** — customers created before Phase 8.2A3 have null addresses. Fix: one-time HCP re-poll or backfill SQL. No code changes needed.
+- **Google 403 (Item 16):** NOT a code change. Google Cloud Console → OAuth consent screen → change from "Internal" to "External" if user is outside Genesis Workspace.
+
+### Phase 8.5B: Proposal Logic ✅ COMPLETE
+
+**SQL Migration: `sql/027_proposal_enhancements.sql`** (needs to be run in Supabase)
+- `estimates.payment_method` TEXT CHECK ('cash','financing')
+- `estimate_line_items.show_on_proposal` BOOLEAN DEFAULT true
+
+**5. Add-ons per tier** — Proposal page now builds `addonsByTier` map instead of flat deduped list. ProposalPage receives `addonsByTier: Record<number, AddonData[]>`. Addons reset on tier switch with pre-checked defaults.
+
+**6. Cash vs Financing choice** — New `paymentMethod` state in ProposalPage. SignatureBlock shows two-button toggle ("Cash/Check" vs "Monthly Financing") with amounts. Must select before signing. Stored as `payment_method` on estimates table via sign route.
+
+**7. Equipment visibility toggle** — `show_on_proposal: boolean` added to LineItemForm type. `PROPOSAL_VISIBLE_CATEGORIES` constant in utils.ts (equipment/indoor/outdoor/coil/controls = true; labor/warranty = false). Eye toggle per item in QuoteBuilderTiersStep. Stored in create/draft routes. Proposal page filters `items.filter(i => i.show_on_proposal)` for display only (totals still include hidden items). Sign route tier validation widened to 1-10.
+
+**Files modified:** TierCards.tsx, StickyBottomBar.tsx, ProposalPage.tsx, SignatureBlock.tsx, `[token]/page.tsx`, `sign/route.ts`, types.ts, utils.ts, QuoteBuilderTiersStep.tsx, QuoteBuilder.tsx, `create/route.ts`, `draft/route.ts`
+
+### Phase 8.5D: Leads & Permissions — IN PROGRESS (partially done)
+
+**10. Lead → Build Quote** — PARTIALLY DONE:
+- LeadCard.tsx: "Build Quote" button added, links to `/dashboard/quote-builder?lead_id=XXX`
+- `page.tsx`: accepts `lead_id` param — **NOT YET COMPLETE** (need to fetch lead data and pre-fill customer)
+- QuoteBuilder.tsx: needs `prefilledCustomer` prop handling
+
+**11. Admin-only deletes** — NOT YET DONE. Quote template DELETE at `app/api/admin/quote-templates/[id]/route.ts` line 201 allows owner OR admin — needs tightening to admin-only.
+
+**12. CSR email CC** — NOT YET DONE. Need CC emails input in NotificationSettings, fetch from settings in `lib/notifications.ts`, add `cc` to Resend API calls.
+
+### Phase 8.5C: Variable Tiers + Label Customization — NOT STARTED
+
+**SQL Migration: `sql/028_variable_tiers.sql`** needed:
+- Widen `estimate_line_items.option_group` CHECK from 1-3 to 1-10
+- Widen `quote_template_tiers.tier_number` CHECK from 1-3 to 1-10
+
+**8. Variable tier count (1-5 options)** — Dynamic tier init in QuoteBuilder (add/remove buttons). QuoteBuilderTiersStep dynamic grid. TierCards dynamic rendering. Proposal page handles N tiers. Sign route already accepts 1-10.
+
+**9. Badge label customization** — `badge_label` + `show_badge` in TierForm. Editable badge field in QuoteBuilderTiersStep. Render from `tier_metadata` on proposal. No DB migration (stored in JSONB).
+
+### Phase 8.5E: Accessibility — NOT STARTED
+
+**13. Browser zoom fix** — Audit/fix at 125% and 150%: QB tier cards, pricebook table, estimate table, proposal page.
+
+**14. Font size toggle** — `--ds-font-scale` CSS property, `.font-size-sm/md/lg` classes, "Aa" toggle in sidebar footer, localStorage persistence. Proposal page unaffected (uses inline px).
+
+---
+
 ## PHASE 8.4: Commission Tracking — NOT STARTED
 
 Two-stage commission from close to confirmed payout. See PRD v4.0 Section 6.

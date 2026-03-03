@@ -384,6 +384,15 @@ export default function LeadCard({
               >
                 Archive
               </button>
+              <button
+                onClick={() => {
+                  const params = new URLSearchParams({ lead_id: lead.id });
+                  router.push(`/dashboard/quote-builder?${params.toString()}`);
+                }}
+                className="px-2 py-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 border border-blue-200 dark:border-blue-700 rounded transition-colors cursor-pointer font-medium"
+              >
+                Build Quote
+              </button>
               <MoveToHcpButton
                 leadId={lead.id}
                 customerName={`${lead.first_name} ${lead.last_name}`}

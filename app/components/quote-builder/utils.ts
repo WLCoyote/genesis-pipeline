@@ -51,6 +51,30 @@ export const CATEGORY_TABS = [
   { key: "rebates",   label: "Rebates",   match: ["rebate"] },
 ];
 
+// Categories visible on the proposal by default (equipment shown, labor/warranty hidden)
+export const PROPOSAL_VISIBLE_CATEGORIES: Record<string, boolean> = {
+  indoor: true,
+  outdoor: true,
+  cased_coil: true,
+  controls: true,
+  equipment: true,
+  material: true,
+  accessory: true,
+  electrical: true,
+  addon: true,
+  service_plan: true,
+  maintenance_plan: true,
+  labor: false,
+  labor_warranty: false,
+  equipment_warranty: false,
+  exclusion: false,
+  rebate: false,
+};
+
+export function getDefaultProposalVisibility(category: string): boolean {
+  return PROPOSAL_VISIBLE_CATEGORIES[category] ?? true;
+}
+
 // ---- Helpers ----
 
 export function emptyTier(tierNumber: number): TierForm {

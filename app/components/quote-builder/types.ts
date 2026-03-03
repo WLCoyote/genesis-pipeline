@@ -42,6 +42,7 @@ export interface LineItemForm {
   hcp_type: string | null;
   category: string;
   cost: number | null;
+  show_on_proposal: boolean;
 }
 
 export interface RebateForm {

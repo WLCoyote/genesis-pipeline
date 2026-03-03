@@ -33,6 +33,7 @@ export async function POST(
     selected_tier: number;
     selected_addon_ids: string[];
     selected_financing_plan_id: string | null;
+    payment_method: "cash" | "financing" | null;
   };
 
   try {
@@ -55,9 +56,16 @@ export async function POST(
     );
   }
 
-  if (![1, 2, 3].includes(body.selected_tier)) {
+  if (typeof body.selected_tier !== "number" || body.selected_tier < 1 || body.selected_tier > 10) {
     return NextResponse.json(
-      { error: "Selected tier must be 1, 2, or 3" },
+      { error: "Selected tier must be between 1 and 10" },
+      { status: 400 }
+    );
+  }
+
+  if (body.payment_method && !["cash", "financing"].includes(body.payment_method)) {
+    return NextResponse.json(
+      { error: "Payment method must be 'cash' or 'financing'" },
       { status: 400 }
     );
   }
@@ -229,6 +237,7 @@ export async function POST(
       total_amount: totalAmount,
       selected_tier: selectedTier,
       selected_financing_plan_id: financingPlan?.id || null,
+      payment_method: body.payment_method || null,
     })
     .eq("id", estimate.id);
 

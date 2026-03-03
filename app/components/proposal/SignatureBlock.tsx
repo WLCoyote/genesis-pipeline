@@ -8,6 +8,8 @@ interface SignatureBlockProps {
   selectedAddonNames: string[];
   cashTotal: number;
   monthlyTotal: number | null;
+  paymentMethod: "cash" | "financing" | null;
+  onPaymentMethodChange: (method: "cash" | "financing") => void;
   customerName: string;
   onCustomerNameChange: (name: string) => void;
   signatureData: string | null;
@@ -24,6 +26,8 @@ export default function SignatureBlock({
   selectedAddonNames,
   cashTotal,
   monthlyTotal,
+  paymentMethod,
+  onPaymentMethodChange,
   customerName,
   onCustomerNameChange,
   signatureData,
@@ -89,7 +93,7 @@ export default function SignatureBlock({
   });
 
   return (
-    <div style={{ padding: "0 40px 120px" }}>
+    <div style={{ padding: "0 40px 160px" }}>
       {/* Section label */}
       <div
         style={{
@@ -176,6 +180,94 @@ export default function SignatureBlock({
           due upon completion of installation.
         </p>
 
+        {/* Payment Method Selection */}
+        <div style={{ marginBottom: 24 }}>
+          <label
+            style={{
+              display: "block",
+              fontSize: 9,
+              textTransform: "uppercase" as const,
+              letterSpacing: 2,
+              color: "#7a8fa8",
+              marginBottom: 10,
+            }}
+          >
+            How would you like to pay?
+          </label>
+          <div style={{ display: "flex", gap: 12 }}>
+            <button
+              type="button"
+              onClick={() => onPaymentMethodChange("cash")}
+              style={{
+                flex: 1,
+                padding: "14px 16px",
+                borderRadius: 10,
+                border: paymentMethod === "cash"
+                  ? "2px solid #42a5f5"
+                  : "1.5px solid #1a3357",
+                background: paymentMethod === "cash"
+                  ? "rgba(21,101,192,0.12)"
+                  : "rgba(255,255,255,0.04)",
+                cursor: "pointer",
+                transition: "all 0.2s",
+                textAlign: "left" as const,
+              }}
+            >
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 2 }}>
+                Cash / Check
+              </div>
+              <div style={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: 26,
+                fontWeight: 900,
+                color: paymentMethod === "cash" ? "#fff" : "#cdd8e8",
+              }}>
+                {cashTotal > 0 ? `$${cashTotal.toLocaleString()}` : "\u2014"}
+              </div>
+            </button>
+            {monthlyTotal !== null && monthlyTotal > 0 && (
+              <button
+                type="button"
+                onClick={() => onPaymentMethodChange("financing")}
+                style={{
+                  flex: 1,
+                  padding: "14px 16px",
+                  borderRadius: 10,
+                  border: paymentMethod === "financing"
+                    ? "2px solid #42a5f5"
+                    : "1.5px solid #1a3357",
+                  background: paymentMethod === "financing"
+                    ? "rgba(21,101,192,0.12)"
+                    : "rgba(255,255,255,0.04)",
+                  cursor: "pointer",
+                  transition: "all 0.2s",
+                  textAlign: "left" as const,
+                }}
+              >
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 2 }}>
+                  Monthly Financing
+                </div>
+                <div style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontSize: 26,
+                  fontWeight: 900,
+                  color: paymentMethod === "financing" ? "#fff" : "#cdd8e8",
+                }}>
+                  ${monthlyTotal}/mo
+                </div>
+                <div style={{ fontSize: 10, color: "#7a8fa8", marginTop: 2 }}>
+                  Subject to credit approval
+                </div>
+              </button>
+            )}
+          </div>
+          {!paymentMethod && (
+            <div style={{ fontSize: 11, color: "#ff8f00", marginTop: 6 }}>
+              Please select a payment method to continue
+            </div>
+          )}
+        </div>
+
         {/* Selection preview */}
         <div
           style={{
@@ -183,7 +275,7 @@ export default function SignatureBlock({
             border: "1px solid rgba(30,136,229,0.2)",
             borderRadius: 10,
             padding: "14px 18px",
-            margin: "20px 0",
+            margin: "0 0 20px",
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -221,19 +313,28 @@ export default function SignatureBlock({
             )}
           </div>
           <div style={{ textAlign: "right" as const, flexShrink: 0 }}>
-            <div
-              style={{
+            {paymentMethod === "financing" && monthlyTotal !== null ? (
+              <>
+                <div style={{
+                  fontFamily: "'Barlow Condensed', sans-serif",
+                  fontSize: 32,
+                  fontWeight: 900,
+                  color: "#fff",
+                }}>
+                  ${monthlyTotal}/mo
+                </div>
+                <div style={{ fontSize: 12, color: "#7a8fa8" }}>
+                  Cash price: ${cashTotal.toLocaleString()}
+                </div>
+              </>
+            ) : (
+              <div style={{
                 fontFamily: "'Barlow Condensed', sans-serif",
                 fontSize: 32,
                 fontWeight: 900,
                 color: "#fff",
-              }}
-            >
-              {cashTotal > 0 ? `$${cashTotal.toLocaleString()}` : "\u2014"}
-            </div>
-            {monthlyTotal !== null && monthlyTotal > 0 && (
-              <div style={{ fontSize: 12, color: "#42a5f5" }}>
-                Est. ${monthlyTotal}/mo
+              }}>
+                {cashTotal > 0 ? `$${cashTotal.toLocaleString()}` : "\u2014"}
               </div>
             )}
           </div>
