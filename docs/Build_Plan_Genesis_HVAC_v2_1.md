@@ -766,7 +766,7 @@ All dashboard pages, quote builder components, pricebook components, estimate de
 
 ---
 
-## PHASE 8.5: Proposal Overhaul, Builder Flexibility, Leads & Accessibility — IN PROGRESS
+## PHASE 8.5: Proposal Overhaul, Builder Flexibility, Leads & Accessibility ✅ COMPLETE
 
 16 items from real-user feedback organized into 6 sub-phases. Two large features (Parts Estimates, Flat Rate Builder) deferred to future phase.
 
@@ -799,32 +799,29 @@ No SQL migration. 4 quick wins:
 
 **Files modified:** TierCards.tsx, StickyBottomBar.tsx, ProposalPage.tsx, SignatureBlock.tsx, `[token]/page.tsx`, `sign/route.ts`, types.ts, utils.ts, QuoteBuilderTiersStep.tsx, QuoteBuilder.tsx, `create/route.ts`, `draft/route.ts`
 
-### Phase 8.5D: Leads & Permissions — IN PROGRESS (partially done)
+### Phase 8.5D: Leads & Permissions ✅ COMPLETE
 
-**10. Lead → Build Quote** — PARTIALLY DONE:
-- LeadCard.tsx: "Build Quote" button added, links to `/dashboard/quote-builder?lead_id=XXX`
-- `page.tsx`: accepts `lead_id` param — **NOT YET COMPLETE** (need to fetch lead data and pre-fill customer)
-- QuoteBuilder.tsx: needs `prefilledCustomer` prop handling
+**10. Lead → Build Quote** — LeadCard "Build Quote" button links to `/dashboard/quote-builder?lead_id=XXX`. Quote builder page fetches lead by ID, builds `prefilledCustomer` object (name, email, phone, address). QuoteBuilder accepts `prefilledCustomer` prop, populates customer fields on Step 1.
 
-**11. Admin-only deletes** — NOT YET DONE. Quote template DELETE at `app/api/admin/quote-templates/[id]/route.ts` line 201 allows owner OR admin — needs tightening to admin-only.
+**11. Admin-only deletes** — Quote template DELETE at `app/api/admin/quote-templates/[id]/route.ts` tightened to admin-only. Delete button hidden for non-admin in QuoteTemplateManager.
 
-**12. CSR email CC** — NOT YET DONE. Need CC emails input in NotificationSettings, fetch from settings in `lib/notifications.ts`, add `cc` to Resend API calls.
+**12. CSR email CC** — `notification_cc_emails` setting in settings table. CC emails input in NotificationSettings. `lib/notifications.ts` fetches CC list and passes to Resend API `cc` parameter on all notification emails.
 
-### Phase 8.5C: Variable Tiers + Label Customization — NOT STARTED
+### Phase 8.5C: Variable Tiers + Label Customization ✅ COMPLETE
 
-**SQL Migration: `sql/028_variable_tiers.sql`** needed:
-- Widen `estimate_line_items.option_group` CHECK from 1-3 to 1-10
-- Widen `quote_template_tiers.tier_number` CHECK from 1-3 to 1-10
+**SQL Migration: `sql/028_variable_tiers.sql`** — run in Supabase.
+- Widened `estimate_line_items.option_group` CHECK from 1-3 to 1-10
+- Widened `quote_template_tiers.tier_number` CHECK from 1-3 to 1-10
 
-**8. Variable tier count (1-5 options)** — Dynamic tier init in QuoteBuilder (add/remove buttons). QuoteBuilderTiersStep dynamic grid. TierCards dynamic rendering. Proposal page handles N tiers. Sign route already accepts 1-10.
+**8. Variable tier count (1-5 options)** — `addTier`/`removeTier` callbacks in QuoteBuilder. Dynamic grid cols in QuoteBuilderTiersStep (1-col → 4-col based on count). "Add Option +" dashed button (max 5), remove ✕ per tier (min 1). `targetTier` type widened from `1|2|3` to `number` across all QB components. TierCards extended with styles for tiers 4 (purple/diamond) and 5 (gold/trophy). Draft restoration dynamically detects tier count from metadata/items.
 
-**9. Badge label customization** — `badge_label` + `show_badge` in TierForm. Editable badge field in QuoteBuilderTiersStep. Render from `tier_metadata` on proposal. No DB migration (stored in JSONB).
+**9. Badge label customization** — `badge_label?: string` + `show_badge?: boolean` on TierForm. Editable badge input + eye toggle in tier header. Rendered on proposal from `tier_metadata` JSONB (`badgeLabel`/`showBadge` props on TierCards). No DB migration needed — stored in existing JSONB column.
 
-### Phase 8.5E: Accessibility — NOT STARTED
+### Phase 8.5E: Accessibility ✅ COMPLETE
 
-**13. Browser zoom fix** — Audit/fix at 125% and 150%: QB tier cards, pricebook table, estimate table, proposal page.
+**13. Browser zoom fix** — `overflow-x-auto` wrappers on PricebookTable (with `min-w-[800px]`) and EstimateTable pipeline + unsent grids (with `min-w-[700px]`). Title tooltips added to 8 truncated text instances: PricebookTableRow spec_line, EstimateTableRow customer name (×2) + address + assigned_to_name, QuoteBuilderTiersStep item display_name + rebate name, QuoteBuilderPricebookPanel item spec line. Urgency badges given `whitespace-nowrap`.
 
-**14. Font size toggle** — `--ds-font-scale` CSS property, `.font-size-sm/md/lg` classes, "Aa" toggle in sidebar footer, localStorage persistence. Proposal page unaffected (uses inline px).
+**14. Font size toggle** — CSS rules in globals.css: `html { font-size: 16px }`, `html.font-size-sm { font-size: 14px }`, `html.font-size-lg { font-size: 18px }`. `FontSizeToggle` component in Sidebar.tsx — S/M/L buttons, blue highlight on active, reads/writes localStorage `font-size` key. FOUC-free via inline script in layout.tsx (runs before paint alongside theme script). Scales all rem-based Tailwind values. Proposal page unaffected (uses inline px styles).
 
 ---
 
