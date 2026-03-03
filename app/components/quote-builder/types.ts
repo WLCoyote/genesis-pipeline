@@ -145,6 +145,7 @@ export interface DraftEstimate {
     rebates?: RebateForm[];
   }>;
   selected_financing_plan_id?: string | null;
+  payment_schedule_id?: string | null;
   include_tax?: boolean;
   tax_rate?: number | null;
 }

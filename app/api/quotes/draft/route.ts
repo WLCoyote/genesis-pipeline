@@ -175,6 +175,7 @@ export async function POST(request: NextRequest) {
           tax_amount: taxAmount !== null ? Math.round(taxAmount * 100) / 100 : null,
           template_id: body.template_id || null,
           selected_financing_plan_id: body.selected_financing_plan_id || null,
+          payment_schedule_id: body.payment_schedule_id || null,
           tier_metadata: tierMetadata.length > 0 ? tierMetadata : null,
         })
         .eq("id", estimateId);
@@ -220,6 +221,7 @@ export async function POST(request: NextRequest) {
         tax_amount: taxAmount !== null ? Math.round(taxAmount * 100) / 100 : null,
         template_id: body.template_id || null,
         selected_financing_plan_id: body.selected_financing_plan_id || null,
+        payment_schedule_id: body.payment_schedule_id || null,
         tier_metadata: tierMetadata.length > 0 ? tierMetadata : null,
         proposal_token: proposalToken,
       })

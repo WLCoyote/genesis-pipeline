@@ -973,26 +973,27 @@ Recurring service plans that can be added to proposals as add-ons.
 - `app/components/quote-builder/QuoteBuilder.tsx` — Threads maintenancePlans prop
 - `app/components/quote-builder/QuoteBuilderAddonsStep.tsx` — "Maintenance Plans" section with per-tier add/remove, coverage items display, stored as line items with category='maintenance_plan'
 
-### Backlog C: Configurable Payment Terms — IN PROGRESS
+### Backlog C: Configurable Payment Terms — COMPLETE
 
 Configurable payment milestone schedules replacing hardcoded standard/large_job logic.
 
 **SQL:** `sql/032_payment_schedules.sql` — `payment_schedules` table with stages JSONB, trigger_tags, is_default. ALTER estimates ADD payment_schedule_id. Seeded: Standard 50/50 (default), Large Job 4-Payment.
 
-**Completed:**
+**Files created/modified:**
 - `lib/types.ts` — Added PaymentSchedule, PaymentScheduleStage types
-- `app/api/admin/payment-schedules/route.ts` — GET + POST
-- `app/api/admin/payment-schedules/[id]/route.ts` — PUT + DELETE
-- `app/dashboard/quote-builder/page.tsx` — Fetches payment schedules, passes to QuoteBuilder
-- `app/components/quote-builder/types.ts` — Added PaymentScheduleSlim interface
-- `app/components/quote-builder/QuoteBuilder.tsx` — Added selectedPaymentScheduleId state, threaded to FinancingStep
-
-**Remaining:**
-- QuoteBuilderFinancingStep — Add payment schedule selector UI (accept Props, render schedule cards)
-- PaymentSchedule component — Dynamic rendering from selected schedule stages (replace hardcoded standard/large_job)
-- proposal-pdf.ts — Dynamic payment section from stages JSONB
-- Quote create/draft routes — Save payment_schedule_id to estimate
-- Proposal page — Pass schedule stages to PaymentSchedule component
+- `app/api/admin/payment-schedules/route.ts` — GET + POST (admin CRUD)
+- `app/api/admin/payment-schedules/[id]/route.ts` — PUT + DELETE (admin CRUD)
+- `app/dashboard/quote-builder/page.tsx` — Fetches payment schedules + payment_schedule_id from draft, passes to QuoteBuilder
+- `app/components/quote-builder/types.ts` — Added PaymentScheduleSlim, payment_schedule_id on DraftEstimate
+- `app/components/quote-builder/QuoteBuilder.tsx` — selectedPaymentScheduleId state (with draft restore), threaded to FinancingStep, payment_schedule_id in submit + draft payloads
+- `app/components/quote-builder/QuoteBuilderFinancingStep.tsx` — Payment schedule selector UI (selectable cards with stage summary, default badge, trigger tags)
+- `app/components/proposal/PaymentSchedule.tsx` — Refactored from hardcoded type to dynamic stages array
+- `app/components/proposal/ProposalPage.tsx` — Changed paymentScheduleType → paymentScheduleStages prop
+- `app/proposals/[token]/page.tsx` — Fetches schedule stages from payment_schedules table, fallback to legacy type
+- `lib/proposal-pdf.ts` — Dynamic payment section from stages array
+- `app/api/proposals/[token]/sign/route.ts` — Fetches schedule stages for PDF generation, fallback to legacy type
+- `app/api/quotes/create/route.ts` — Stores payment_schedule_id on estimate
+- `app/api/quotes/draft/route.ts` — Stores payment_schedule_id on draft estimate
 
 ---
 

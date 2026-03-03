@@ -1,6 +1,6 @@
 "use client";
 
-import type { FinancingPlanFull, TierForm, TierTotals } from "./types";
+import type { FinancingPlanFull, PaymentScheduleSlim, TierForm, TierTotals } from "./types";
 import { formatCurrency, calculateMonthly } from "./utils";
 import Card from "@/app/components/ui/Card";
 
@@ -8,6 +8,9 @@ interface Props {
   financingPlans: FinancingPlanFull[];
   selectedFinancingPlanId: string | null;
   onSelectPlan: (planId: string | null) => void;
+  paymentSchedules: PaymentScheduleSlim[];
+  selectedPaymentScheduleId: string | null;
+  onSelectPaymentSchedule: (id: string | null) => void;
   includeTax: boolean;
   taxRate: number | null;
   taxLoading: boolean;
@@ -23,6 +26,9 @@ export default function QuoteBuilderFinancingStep({
   financingPlans,
   selectedFinancingPlanId,
   onSelectPlan,
+  paymentSchedules,
+  selectedPaymentScheduleId,
+  onSelectPaymentSchedule,
   includeTax,
   taxRate,
   taxLoading,
@@ -147,6 +153,57 @@ export default function QuoteBuilderFinancingStep({
             Get Pre-Approved with Synchrony →
           </a>
       </Card>
+
+      {/* Payment Schedule */}
+      {paymentSchedules.length > 0 && (
+        <Card title="Payment Schedule">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {paymentSchedules.map((schedule) => {
+                const isSelected = selectedPaymentScheduleId === schedule.id;
+                return (
+                  <button
+                    key={schedule.id}
+                    onClick={() => onSelectPaymentSchedule(isSelected ? null : schedule.id)}
+                    className={`text-left p-4 rounded-xl border-2 transition-colors ${
+                      isSelected
+                        ? "border-blue-500 bg-blue-50/50 dark:bg-blue-900/10"
+                        : "border-gray-200 dark:border-gray-600 hover:border-blue-300"
+                    }`}
+                  >
+                    <div className="text-sm font-bold text-ds-text">
+                      {schedule.name}
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      {schedule.stages.length} payment{schedule.stages.length !== 1 ? "s" : ""}
+                      {schedule.stages.map((st) =>
+                        st.fixed_amount
+                          ? `${st.label}: $${st.fixed_amount.toLocaleString()}`
+                          : `${st.label}: ${st.percentage}%`
+                      ).join(" · ")}
+                    </div>
+                    {schedule.is_default && (
+                      <span className="inline-block mt-2 text-[10px] font-bold uppercase tracking-wider text-ds-blue bg-ds-blue-bg px-1.5 py-0.5 rounded">
+                        Default
+                      </span>
+                    )}
+                    {schedule.trigger_tags.length > 0 && (
+                      <div className="mt-1.5 flex gap-1 flex-wrap">
+                        {schedule.trigger_tags.map((tag) => (
+                          <span
+                            key={tag}
+                            className="text-[10px] text-gray-400 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+        </Card>
+      )}
 
       {/* Per-tier monthly preview */}
       {selectedPlan && (

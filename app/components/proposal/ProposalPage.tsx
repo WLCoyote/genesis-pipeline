@@ -19,7 +19,7 @@ interface ProposalPageProps {
   technicianName: string;
   sentDate: string | null;
   taxRate: number | null;
-  paymentScheduleType: string;
+  paymentScheduleStages: { label: string; percentage: number; condition: string; fixed_amount?: number }[];
   tiers: TierData[];
   addonsByTier: Record<number, AddonData[]>;
   financingPlans: FinancingPlanData[];
@@ -36,7 +36,7 @@ export default function ProposalPage({
   technicianName,
   sentDate,
   taxRate,
-  paymentScheduleType,
+  paymentScheduleStages,
   tiers,
   addonsByTier,
   financingPlans,
@@ -325,7 +325,7 @@ export default function ProposalPage({
       />
 
       <PaymentSchedule
-        type={paymentScheduleType as "standard" | "large_job"}
+        stages={paymentScheduleStages}
         totalAmount={cashTotal}
       />
 

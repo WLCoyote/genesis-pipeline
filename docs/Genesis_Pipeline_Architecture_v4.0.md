@@ -329,7 +329,8 @@ RLS: all authenticated can SELECT, admin only for write. Seeded with Gensco, Fer
 | selected_financing_plan_id | UUID FK → financing_plans | Which financing plan customer selected at signing. |
 | subtotal | DECIMAL(10,2) | Pre-tax total for the signed option + addons. |
 | template_id | UUID FK → quote_templates | Which template was used to build this quote. NULL if built from scratch. |
-| payment_schedule_type | ENUM | `standard` \| `large_job`. Determined by HCP tags at estimate creation. |
+| payment_schedule_type | TEXT | Legacy: `standard` \| `large_job`. Kept for backward compatibility. New estimates use `payment_schedule_id`. |
+| payment_schedule_id | UUID FK → payment_schedules | References configurable payment schedule (sql/032). Stages stored as JSONB on the schedule. |
 | online_estimate_url | TEXT | HCP customer-facing URL if manually set. Not auto-populated (HCP API does not expose it). |
 | tier_metadata | JSONB | Stores per-tier metadata: `[{tier_number, tier_name, tagline, feature_bullets: string[], is_recommended, rebates?: [{id, name, amount}]}]`. Saved by quote builder (draft + create). Used by proposal page for tier names/taglines/features/rebates instead of hardcoded values. Added in sql/024. |
 

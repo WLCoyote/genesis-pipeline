@@ -185,6 +185,7 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
       is_recommended: boolean;
     }>;
     selected_financing_plan_id?: string | null;
+    payment_schedule_id?: string | null;
     include_tax?: boolean;
     tax_rate?: number | null;
   } | null = null;
@@ -194,7 +195,7 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
       .from("estimates")
       .select(`
         id, estimate_number, hcp_estimate_id, assigned_to, status, proposal_signed_at,
-        proposal_token, tier_metadata, selected_financing_plan_id, tax_rate,
+        proposal_token, tier_metadata, selected_financing_plan_id, payment_schedule_id, tax_rate,
         customers ( id, name, email, phone, address ),
         estimate_line_items (
           option_group, pricebook_item_id, display_name, spec_line, description,
@@ -246,6 +247,7 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
         line_items: lineItemsRaw.length > 0 ? lineItemsRaw : undefined,
         tier_metadata: ((est as Record<string, unknown>).tier_metadata as Array<{ tier_number: number; tier_name: string; tagline: string; feature_bullets: string[]; is_recommended: boolean }>) || undefined,
         selected_financing_plan_id: ((est as Record<string, unknown>).selected_financing_plan_id as string | null) || null,
+        payment_schedule_id: ((est as Record<string, unknown>).payment_schedule_id as string | null) || null,
         include_tax: est.tax_rate != null,
         tax_rate: est.tax_rate,
       };

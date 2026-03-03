@@ -78,7 +78,7 @@ export async function POST(
     .select(
       `
       id, estimate_number, status, hcp_estimate_id, tax_rate, subtotal,
-      proposal_signed_at, auto_decline_date, payment_schedule_type,
+      proposal_signed_at, auto_decline_date, payment_schedule_type, payment_schedule_id,
       assigned_to, sequence_id, tier_metadata,
       customers ( id, name, email, phone, address ),
       users!estimates_assigned_to_fkey ( id, name ),
@@ -251,7 +251,38 @@ export async function POST(
     );
   }
 
-  // --- 7. Build shared context for post-sign tasks ---
+  // --- 7. Fetch payment schedule stages ---
+  const paymentScheduleId = (estimate as Record<string, unknown>).payment_schedule_id as string | null;
+  let paymentScheduleStages: { label: string; percentage: number; condition: string; fixed_amount?: number }[] = [];
+
+  if (paymentScheduleId) {
+    const { data: schedule } = await supabase
+      .from("payment_schedules")
+      .select("stages")
+      .eq("id", paymentScheduleId)
+      .single();
+    if (schedule?.stages) {
+      paymentScheduleStages = schedule.stages as typeof paymentScheduleStages;
+    }
+  }
+
+  // Fallback to legacy type
+  if (paymentScheduleStages.length === 0) {
+    const scheduleType = estimate.payment_schedule_type || "standard";
+    paymentScheduleStages = scheduleType === "large_job"
+      ? [
+          { label: "Deposit", percentage: 50, condition: "Due when scheduled" },
+          { label: "Rough-in", percentage: 25, condition: "After rough-in complete" },
+          { label: "Install", percentage: 25, condition: "After install complete" },
+          { label: "Final", percentage: 0, condition: "After final inspection", fixed_amount: 1000 },
+        ]
+      : [
+          { label: "Deposit", percentage: 50, condition: "Due when scheduled" },
+          { label: "Completion", percentage: 50, condition: "Upon install complete" },
+        ];
+  }
+
+  // --- 8. Build shared context for post-sign tasks ---
   const postSignCtx = {
     supabase,
     estimateId: estimate.id,
@@ -272,8 +303,7 @@ export async function POST(
     taxAmount,
     totalAmount,
     financingPlan,
-    paymentScheduleType:
-      estimate.payment_schedule_type || "standard",
+    paymentScheduleStages,
     assignedTo: estimate.assigned_to,
     sequenceId: estimate.sequence_id,
     proposalToken: token,
@@ -350,7 +380,7 @@ async function generatePdfAndUpload(ctx: {
   taxAmount: number | null;
   totalAmount: number;
   financingPlan: { id: string; label: string; fee_pct: number; months: number } | null;
-  paymentScheduleType: string;
+  paymentScheduleStages: { label: string; percentage: number; condition: string; fixed_amount?: number }[];
   tierMetadata: Array<{ tier_number: number; tier_name: string }> | null;
 }): Promise<{ pdfBuffer: Buffer | null; pdfUrl: string | null }> {
   const { supabase } = ctx;
@@ -416,7 +446,7 @@ async function generatePdfAndUpload(ctx: {
     financingLabel: ctx.financingPlan?.label || null,
     financingMonthly,
     financingMonths: ctx.financingPlan?.months || null,
-    paymentScheduleType: ctx.paymentScheduleType,
+    paymentScheduleStages: ctx.paymentScheduleStages,
     companyInfo,
     proposalTerms,
   };
@@ -510,7 +540,7 @@ async function runPostSignTasks(ctx: {
     fee_pct: number;
     months: number;
   } | null;
-  paymentScheduleType: string;
+  paymentScheduleStages: { label: string; percentage: number; condition: string; fixed_amount?: number }[];
   assignedTo: string | null;
   sequenceId: string | null;
   proposalToken: string;

@@ -1,27 +1,22 @@
 "use client";
 
+interface PaymentStage {
+  label: string;
+  percentage: number;
+  condition: string;
+  fixed_amount?: number;
+}
+
 interface PaymentScheduleProps {
-  type: "standard" | "large_job";
+  stages: PaymentStage[];
   totalAmount: number;
 }
 
 export default function PaymentSchedule({
-  type,
+  stages,
   totalAmount,
 }: PaymentScheduleProps) {
-  const isLargeJob = type === "large_job";
-
-  const steps = isLargeJob
-    ? [
-        { label: "Deposit", pct: 50, desc: "Due when scheduled" },
-        { label: "Rough-in", pct: 25, desc: "After rough-in complete" },
-        { label: "Install", pct: 25, desc: "After install complete" },
-        { label: "Final", pct: 0, amount: 1000, desc: "After final inspection" },
-      ]
-    : [
-        { label: "Deposit", pct: 50, desc: "Due when scheduled" },
-        { label: "Completion", pct: 50, desc: "Upon install complete" },
-      ];
+  if (stages.length === 0) return null;
 
   return (
     <div style={{ padding: "0 40px 40px" }}>
@@ -47,8 +42,8 @@ export default function PaymentSchedule({
         </div>
 
         <div style={{ display: "flex", gap: 12, alignItems: "stretch" }}>
-          {steps.map((step, i) => {
-            const amount = step.amount ?? Math.round((totalAmount * step.pct) / 100);
+          {stages.map((step, i) => {
+            const amount = step.fixed_amount ?? Math.round((totalAmount * step.percentage) / 100);
             return (
               <div
                 key={i}
@@ -86,10 +81,10 @@ export default function PaymentSchedule({
                 <div
                   style={{ fontSize: 10, color: "#7a8fa8", marginTop: 4 }}
                 >
-                  {step.desc}
+                  {step.condition}
                 </div>
                 {/* Arrow connector */}
-                {i < steps.length - 1 && (
+                {i < stages.length - 1 && (
                   <div
                     style={{
                       position: "absolute",

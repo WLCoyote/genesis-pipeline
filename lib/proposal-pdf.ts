@@ -50,7 +50,7 @@ export interface ProposalPdfData {
   financingMonthly?: number | null;
   financingMonths?: number | null;
 
-  paymentScheduleType: string; // "standard" or "large_job"
+  paymentScheduleStages: { label: string; percentage: number; condition: string; fixed_amount?: number }[];
 
   companyInfo: CompanyInfo;
   proposalTerms: ProposalTerms;
@@ -383,17 +383,13 @@ function ProposalDocument({ data }: { data: ProposalPdfData }) {
       // ── Payment Schedule ──
       el(View, { style: s.paymentBox },
         el(Text, { style: s.paymentTitle }, "Payment Schedule"),
-        ...(data.paymentScheduleType === "large_job"
-          ? [
-              el(Text, { style: s.paymentText, key: "p1" }, `1. 50% deposit when scheduled: ${fmt(data.totalAmount * 0.5)}`),
-              el(Text, { style: s.paymentText, key: "p2" }, `2. 25% after rough-in complete: ${fmt(data.totalAmount * 0.25)}`),
-              el(Text, { style: s.paymentText, key: "p3" }, `3. 25% after install complete: ${fmt(data.totalAmount * 0.25)}`),
-              el(Text, { style: s.paymentText, key: "p4" }, "4. Final $1,000 after final inspection"),
-            ]
-          : [
-              el(Text, { style: s.paymentText, key: "p1" }, `1. 50% deposit when scheduled: ${fmt(data.totalAmount * 0.5)}`),
-              el(Text, { style: s.paymentText, key: "p2" }, `2. 50% upon install complete: ${fmt(data.totalAmount * 0.5)}`),
-            ])
+        ...data.paymentScheduleStages.map((stage, i) => {
+          const amount = stage.fixed_amount ?? Math.round((data.totalAmount * stage.percentage) / 100);
+          const line = stage.fixed_amount
+            ? `${i + 1}. ${stage.label}: ${fmt(amount)} — ${stage.condition}`
+            : `${i + 1}. ${stage.percentage}% ${stage.condition}: ${fmt(amount)}`;
+          return el(Text, { style: s.paymentText, key: `p${i}` }, line);
+        })
       ),
 
       // ── Signature ──

@@ -179,7 +179,7 @@ export default function QuoteBuilder({
   // ---- Payment Schedule ----
   const defaultSchedule = paymentSchedules.find((s) => s.is_default) || paymentSchedules[0] || null;
   const [selectedPaymentScheduleId, setSelectedPaymentScheduleId] = useState<string | null>(
-    defaultSchedule?.id || null
+    draftEstimate?.payment_schedule_id ?? defaultSchedule?.id ?? null
   );
 
   // ---- Tax ----
@@ -506,6 +506,7 @@ export default function QuoteBuilder({
         template_id: selectedTemplateId,
         tax_rate: includeTax && taxRate !== null ? taxRate : null,
         selected_financing_plan_id: selectedFinancingPlanId,
+        payment_schedule_id: selectedPaymentScheduleId,
         tiers: tiers
           .filter((t) => t.items.length > 0)
           .map((tier) => ({
@@ -597,6 +598,7 @@ export default function QuoteBuilder({
         template_id: selectedTemplateId,
         tax_rate: includeTax && taxRate !== null ? taxRate : null,
         selected_financing_plan_id: selectedFinancingPlanId,
+        payment_schedule_id: selectedPaymentScheduleId,
         tiers: tiers
           .filter((t) => t.items.length > 0)
           .map((tier) => ({

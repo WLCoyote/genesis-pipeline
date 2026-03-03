@@ -16,7 +16,7 @@ export default async function ProposalPageRoute({ params }: Props) {
       `
       id, estimate_number, status, total_amount, subtotal, tax_rate, tax_amount,
       proposal_token, proposal_signed_at, proposal_signed_name, proposal_pdf_url,
-      payment_schedule_type, sent_date, auto_decline_date, tier_metadata,
+      payment_schedule_type, payment_schedule_id, sent_date, auto_decline_date, tier_metadata,
       customers ( id, name, email, phone, address ),
       users!estimates_assigned_to_fkey ( id, name, phone ),
       estimate_line_items (
@@ -207,6 +207,37 @@ export default async function ProposalPageRoute({ params }: Props) {
     .eq("is_active", true)
     .order("display_order", { ascending: true });
 
+  // Fetch payment schedule stages (from payment_schedule_id or fall back to type)
+  const paymentScheduleId = (estimate as Record<string, unknown>).payment_schedule_id as string | null;
+  let paymentStages: { label: string; percentage: number; condition: string; fixed_amount?: number }[] = [];
+
+  if (paymentScheduleId) {
+    const { data: schedule } = await supabase
+      .from("payment_schedules")
+      .select("stages")
+      .eq("id", paymentScheduleId)
+      .single();
+    if (schedule?.stages) {
+      paymentStages = schedule.stages as typeof paymentStages;
+    }
+  }
+
+  // Fallback: derive stages from legacy payment_schedule_type
+  if (paymentStages.length === 0) {
+    const scheduleType = estimate.payment_schedule_type || "standard";
+    paymentStages = scheduleType === "large_job"
+      ? [
+          { label: "Deposit", percentage: 50, condition: "Due when scheduled" },
+          { label: "Rough-in", percentage: 25, condition: "After rough-in complete" },
+          { label: "Install", percentage: 25, condition: "After install complete" },
+          { label: "Final", percentage: 0, condition: "After final inspection", fixed_amount: 1000 },
+        ]
+      : [
+          { label: "Deposit", percentage: 50, condition: "Due when scheduled" },
+          { label: "Completion", percentage: 50, condition: "Upon install complete" },
+        ];
+  }
+
   // Fetch proposal settings (reviews, company story)
   const { data: reviewsSetting } = await supabase
     .from("settings")
@@ -350,7 +381,7 @@ export default async function ProposalPageRoute({ params }: Props) {
       technicianName={technician?.name || "Your Technician"}
       sentDate={estimate.sent_date}
       taxRate={estimate.tax_rate}
-      paymentScheduleType={estimate.payment_schedule_type || "standard"}
+      paymentScheduleStages={paymentStages}
       tiers={tiers}
       addonsByTier={Object.fromEntries(
         Object.entries(addonsByTier).map(([group, items]) => [
