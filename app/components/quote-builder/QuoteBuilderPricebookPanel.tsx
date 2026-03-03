@@ -154,7 +154,7 @@ export default function QuoteBuilderPricebookPanel({
                     <div className="text-sm font-bold text-ds-text truncate" title={item.display_name}>
                       {item.display_name}
                     </div>
-                    <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 truncate">
+                    <div className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5 truncate" title={item.model_number || item.part_number || item.spec_line || undefined}>
                       {item.model_number || item.part_number || item.spec_line || CATEGORY_ORDER[item.category]?.label || item.category}
                     </div>
                   </div>

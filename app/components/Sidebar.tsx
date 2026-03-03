@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { UserRole } from "@/lib/types";
@@ -96,11 +97,66 @@ export default function Sidebar({ role, userName, isOpen, onClose }: SidebarProp
           })}
         </nav>
 
+        {/* Font size toggle */}
+        <div className="px-4 py-2 border-t border-[#1a3050]">
+          <FontSizeToggle />
+        </div>
+
         {/* Sign out */}
-        <div className="p-4 border-t border-[#1a3050]">
+        <div className="px-4 py-2 border-t border-[#1a3050]">
           <SignOutButton />
         </div>
       </aside>
     </>
+  );
+}
+
+// --- Font Size Toggle ---
+type FontSize = "sm" | "md" | "lg";
+const FONT_SIZES: { key: FontSize; label: string }[] = [
+  { key: "sm", label: "S" },
+  { key: "md", label: "M" },
+  { key: "lg", label: "L" },
+];
+
+function FontSizeToggle() {
+  const [size, setSize] = useState<FontSize>("md");
+
+  useEffect(() => {
+    const saved = localStorage.getItem("font-size") as FontSize | null;
+    if (saved === "sm" || saved === "lg") setSize(saved);
+  }, []);
+
+  const handleChange = (newSize: FontSize) => {
+    setSize(newSize);
+    const html = document.documentElement;
+    html.classList.remove("font-size-sm", "font-size-lg");
+    if (newSize !== "md") {
+      html.classList.add(`font-size-${newSize}`);
+      localStorage.setItem("font-size", newSize);
+    } else {
+      localStorage.removeItem("font-size");
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Aa</span>
+      <div className="flex gap-0.5">
+        {FONT_SIZES.map((fs) => (
+          <button
+            key={fs.key}
+            onClick={() => handleChange(fs.key)}
+            className={`w-6 h-6 rounded text-[10px] font-bold transition-colors ${
+              size === fs.key
+                ? "bg-ds-blue text-white"
+                : "text-white/40 hover:text-white/70 hover:bg-white/5"
+            }`}
+          >
+            {fs.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }

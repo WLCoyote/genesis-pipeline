@@ -259,7 +259,7 @@ export default function QuoteBuilderTiersStep({
                           className="w-1.5 h-1.5 rounded-full shrink-0"
                           style={{ background: group.dotColor }}
                         />
-                        <span className="flex-1 leading-tight truncate">{item.display_name}</span>
+                        <span className="flex-1 leading-tight truncate" title={item.display_name}>{item.display_name}</span>
                         <input
                           type="number"
                           min={1}
@@ -374,7 +374,7 @@ export default function QuoteBuilderTiersStep({
                       className="w-1.5 h-1.5 rounded-full shrink-0"
                       style={{ background: "#4caf50" }}
                     />
-                    <span className="flex-1 text-[11px] text-green-700 dark:text-green-400 leading-tight truncate">
+                    <span className="flex-1 text-[11px] text-green-700 dark:text-green-400 leading-tight truncate" title={rebate.name}>
                       {rebate.name}
                     </span>
                     <input

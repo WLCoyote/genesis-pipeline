@@ -106,7 +106,7 @@ export function PipelineRow({ estimate, isAdmin }: PipelineRowProps) {
           {initials}
         </div>
         <div>
-          <div className="text-[14px] font-bold text-ds-text dark:text-gray-100 leading-tight">
+          <div className="text-[14px] font-bold text-ds-text dark:text-gray-100 leading-tight truncate" title={estimate.customer_name}>
             {estimate.customer_name}
           </div>
           <div className="text-[11px] text-ds-gray-lt dark:text-gray-500 mt-px">
@@ -132,19 +132,19 @@ export function PipelineRow({ estimate, isAdmin }: PipelineRowProps) {
 
       {/* Follow-up urgency */}
       <div>
-        <span className={`inline-flex items-center gap-1 text-[10px] font-bold py-[3px] px-2 rounded-[6px] ${urgencyStyles[fu.type]}`}>
+        <span className={`inline-flex items-center gap-1 text-[10px] font-bold py-[3px] px-2 rounded-[6px] whitespace-nowrap ${urgencyStyles[fu.type]}`}>
           {fu.label}
         </span>
       </div>
 
       {/* Assigned To */}
-      <div className="flex items-center gap-[7px] text-[13px]">
+      <div className="flex items-center gap-[7px] text-[13px] min-w-0">
         {estimate.assigned_to_name ? (
           <>
             <div className="w-6 h-6 rounded-md flex-shrink-0 bg-gradient-to-br from-ds-blue to-ds-blue-lt flex items-center justify-center text-[9px] font-black text-white">
               {getInitials(estimate.assigned_to_name)}
             </div>
-            <span className="text-ds-text-lt dark:text-gray-400">{estimate.assigned_to_name.split(" ")[0]} {estimate.assigned_to_name.split(" ").pop()?.[0] || ""}.</span>
+            <span className="text-ds-text-lt dark:text-gray-400 truncate" title={estimate.assigned_to_name}>{estimate.assigned_to_name.split(" ")[0]} {estimate.assigned_to_name.split(" ").pop()?.[0] || ""}.</span>
           </>
         ) : isAdmin ? (
           <button
@@ -207,7 +207,7 @@ export function UnsentRow({ estimate, isAdmin }: UnsentRowProps) {
           {initials}
         </div>
         <div>
-          <div className="text-[14px] font-bold text-ds-text dark:text-gray-100 leading-tight">
+          <div className="text-[14px] font-bold text-ds-text dark:text-gray-100 leading-tight truncate" title={estimate.customer_name}>
             {estimate.customer_name}
           </div>
           <div className="text-[11px] text-ds-gray-lt dark:text-gray-500 mt-px">
@@ -217,7 +217,7 @@ export function UnsentRow({ estimate, isAdmin }: UnsentRowProps) {
       </div>
 
       {/* Address */}
-      <div className="text-[13px] text-ds-text-lt dark:text-gray-400">
+      <div className="text-[13px] text-ds-text-lt dark:text-gray-400 truncate" title={estimate.customer_address || undefined}>
         {estimate.customer_address || "\u2014"}
       </div>
 

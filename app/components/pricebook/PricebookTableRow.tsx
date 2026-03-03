@@ -150,7 +150,7 @@ export default function PricebookTableRow({
               {item.display_name}
             </div>
             {item.spec_line && (
-              <div className="text-[11px] text-ds-gray dark:text-gray-500 mt-0.5 truncate">
+              <div className="text-[11px] text-ds-gray dark:text-gray-500 mt-0.5 truncate" title={item.spec_line}>
                 {item.spec_line}
               </div>
             )}

@@ -19,36 +19,38 @@ export function PipelineTable({ estimates, isAdmin, page, onPageChange, pageSize
   return (
     <>
       {/* Desktop */}
-      <div className="hidden md:block bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl overflow-hidden shadow-ds">
-        {/* Header */}
-        <div
-          className="grid px-5 py-2.5 bg-ds-bg dark:bg-gray-700 border-b border-ds-border dark:border-gray-600"
-          style={{ gridTemplateColumns: "2.2fr 1fr 0.9fr 0.8fr 0.9fr 1.1fr 1fr" }}
-        >
-          {["Customer", "Amount", "Status", "Sent", "Follow-up", "Assigned To", "Actions"].map((h) => (
-            <div
-              key={h}
-              className="text-[10px] uppercase tracking-[2px] text-ds-gray dark:text-gray-400 font-black select-none"
-            >
-              {h}
-            </div>
+      <div className="hidden md:block bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl overflow-hidden shadow-ds overflow-x-auto">
+        <div className="min-w-[700px]">
+          {/* Header */}
+          <div
+            className="grid px-5 py-2.5 bg-ds-bg dark:bg-gray-700 border-b border-ds-border dark:border-gray-600"
+            style={{ gridTemplateColumns: "2.2fr 1fr 0.9fr 0.8fr 0.9fr 1.1fr 1fr" }}
+          >
+            {["Customer", "Amount", "Status", "Sent", "Follow-up", "Assigned To", "Actions"].map((h) => (
+              <div
+                key={h}
+                className="text-[10px] uppercase tracking-[2px] text-ds-gray dark:text-gray-400 font-black select-none"
+              >
+                {h}
+              </div>
+            ))}
+          </div>
+
+          {/* Rows */}
+          {paged.map((est) => (
+            <PipelineRow key={est.id} estimate={est} isAdmin={isAdmin} />
           ))}
+
+          {/* Pagination */}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            totalItems={estimates.length}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            label="estimates"
+          />
         </div>
-
-        {/* Rows */}
-        {paged.map((est) => (
-          <PipelineRow key={est.id} estimate={est} isAdmin={isAdmin} />
-        ))}
-
-        {/* Pagination */}
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          totalItems={estimates.length}
-          pageSize={pageSize}
-          onPageChange={onPageChange}
-          label="estimates"
-        />
       </div>
 
       {/* Mobile cards */}
@@ -91,36 +93,38 @@ export function UnsentTable({ estimates, isAdmin, page, onPageChange, pageSize =
   return (
     <>
       {/* Desktop */}
-      <div className="hidden md:block bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl overflow-hidden shadow-ds">
-        {/* Header */}
-        <div
-          className="grid px-5 py-2.5 bg-ds-bg dark:bg-gray-700 border-b border-ds-border dark:border-gray-600"
-          style={{ gridTemplateColumns: "2fr 2fr 1fr 1.2fr 0.8fr 1fr" }}
-        >
-          {["Customer", "Address", "Created", "Assigned To", "Status", "Action"].map((h) => (
-            <div
-              key={h}
-              className={`text-[10px] uppercase tracking-[2px] text-ds-gray dark:text-gray-400 font-black select-none ${h === "Action" ? "text-right" : ""}`}
-            >
-              {h}
-            </div>
+      <div className="hidden md:block bg-ds-card dark:bg-gray-800 border border-ds-border dark:border-gray-700 rounded-xl overflow-hidden shadow-ds overflow-x-auto">
+        <div className="min-w-[700px]">
+          {/* Header */}
+          <div
+            className="grid px-5 py-2.5 bg-ds-bg dark:bg-gray-700 border-b border-ds-border dark:border-gray-600"
+            style={{ gridTemplateColumns: "2fr 2fr 1fr 1.2fr 0.8fr 1fr" }}
+          >
+            {["Customer", "Address", "Created", "Assigned To", "Status", "Action"].map((h) => (
+              <div
+                key={h}
+                className={`text-[10px] uppercase tracking-[2px] text-ds-gray dark:text-gray-400 font-black select-none ${h === "Action" ? "text-right" : ""}`}
+              >
+                {h}
+              </div>
+            ))}
+          </div>
+
+          {/* Rows */}
+          {paged.map((est) => (
+            <UnsentRow key={est.id} estimate={est} isAdmin={isAdmin} />
           ))}
+
+          {/* Pagination */}
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            totalItems={estimates.length}
+            pageSize={pageSize}
+            onPageChange={onPageChange}
+            label="estimates"
+          />
         </div>
-
-        {/* Rows */}
-        {paged.map((est) => (
-          <UnsentRow key={est.id} estimate={est} isAdmin={isAdmin} />
-        ))}
-
-        {/* Pagination */}
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          totalItems={estimates.length}
-          pageSize={pageSize}
-          onPageChange={onPageChange}
-          label="estimates"
-        />
       </div>
 
       {/* Mobile cards */}

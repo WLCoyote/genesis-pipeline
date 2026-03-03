@@ -76,8 +76,8 @@ export default function PricebookTable({
   return (
     <>
       {/* Desktop table */}
-      <div className="hidden md:block bg-ds-card dark:bg-gray-800 rounded-xl border border-ds-border dark:border-gray-700 overflow-hidden shadow-ds">
-        <table className="w-full text-sm" style={{ tableLayout: "fixed" }}>
+      <div className="hidden md:block bg-ds-card dark:bg-gray-800 rounded-xl border border-ds-border dark:border-gray-700 overflow-hidden shadow-ds overflow-x-auto">
+        <table className="w-full text-sm min-w-[800px]" style={{ tableLayout: "fixed" }}>
           <colgroup>
             <col style={{ width: "40px" }} />
             <col style={{ width: "32px" }} />
