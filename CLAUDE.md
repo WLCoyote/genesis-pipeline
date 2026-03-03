@@ -174,7 +174,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 complete (polish, restructure, notifications, ds- consistency pass including Quote Builder, Outfit font weight refinement). Phase 8.3 complete (design system component library — 7 reusable UI components, 45+ files refactored). Phase 8.5 in progress (proposal overhaul + builder flexibility + leads): 8.5A complete, 8.5F complete, 8.5B complete, 8.5D partially done, 8.5C + 8.5E not started. E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023 + sql/024 + sql/025 + sql/026 run in Supabase. sql/027 created (needs run in Supabase).
+Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 complete (polish, restructure, notifications, ds- consistency pass including Quote Builder, Outfit font weight refinement). Phase 8.3 complete (design system component library — 7 reusable UI components, 45+ files refactored). Phase 8.5 nearly complete: 8.5A complete, 8.5F complete, 8.5B complete, 8.5D complete, 8.5C complete, 8.5E not started. E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023–026 run in Supabase. sql/027 + sql/028 created (need run in Supabase).
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -209,8 +209,8 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 8.5A | Proposal polish + branding — monthly payment hero, sticky footer fix, Veteran Owned badge, friendship tagline, bottom bar totals swap | **Complete** |
 | Phase 8.5F | Address fix (data issue, no code) + Google 403 (config, not code) | **Complete** |
 | Phase 8.5B | Proposal logic — per-tier add-ons, cash/financing choice at signature, equipment visibility toggle (eye icon), sql/027 migration | **Complete** — sql/027 needs run in Supabase |
-| Phase 8.5D | Leads & permissions — Lead→Build Quote button (partial), admin-only deletes audit, CSR email CC | **In progress** — Lead button added, QB page param accepted, remaining items not started |
-| Phase 8.5C | Variable tiers (1-5 options) + badge label customization. sql/028 migration needed. | Not started |
+| Phase 8.5D | Leads & permissions — Lead→Build Quote (pre-fill from lead), admin-only deletes (tightened template DELETE + UI guard), CSR email CC (notification_cc_emails setting + Resend CC) | **Complete** |
+| Phase 8.5C | Variable tiers (1-5 options) + badge label customization — dynamic grid, add/remove tier, badge_label/show_badge in tier_metadata, sql/028 migration | **Complete** — sql/028 needs run in Supabase |
 | Phase 8.5E | Accessibility — browser zoom fix, font size toggle (S/M/L) | Not started |
 | Phase 8.4 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 8.5-old | Commission dashboard | Not started |
@@ -253,11 +253,11 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | ~~Per-tier add-ons~~ | **Done** (Phase 8.5B) — addonsByTier map, reset on tier switch |
 | ~~Cash vs Financing choice~~ | **Done** (Phase 8.5B) — payment_method toggle in SignatureBlock |
 | ~~Equipment visibility toggle~~ | **Done** (Phase 8.5B) — show_on_proposal per item, eye icon in builder |
-| Lead → Build Quote (skip HCP) | **Partial** (Phase 8.5D) — button added, QB page params accepted, need pre-fill logic |
-| Admin-only deletes audit | Not started (Phase 8.5D) |
-| CSR new lead email CC | Not started (Phase 8.5D) |
-| Variable tier count (1-5) | Not started (Phase 8.5C) — most complex item |
-| Badge label customization | Not started (Phase 8.5C) |
+| ~~Lead → Build Quote (skip HCP)~~ | **Done** (Phase 8.5D) — LeadCard button, lead fetch + pre-fill in QB page |
+| ~~Admin-only deletes audit~~ | **Done** (Phase 8.5D) — template DELETE tightened to admin-only, UI button hidden for non-admin |
+| ~~CSR new lead email CC~~ | **Done** (Phase 8.5D) — notification_cc_emails setting, CC on all notification emails via Resend |
+| ~~Variable tier count (1-5)~~ | **Done** (Phase 8.5C) — dynamic tier add/remove, 1-5 options, sql/028 widens CHECK to 1-10 |
+| ~~Badge label customization~~ | **Done** (Phase 8.5C) — editable badge text per tier, show/hide toggle, stored in tier_metadata JSONB |
 | Browser zoom fix | Not started (Phase 8.5E) |
 | Font size toggle (S/M/L) | Not started (Phase 8.5E) |
 | Install materials builder | Pricebook tool to bundle install materials |
