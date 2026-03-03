@@ -317,6 +317,8 @@ export default async function ProposalPageRoute({ params }: Props) {
         tagline: meta?.tagline || defaultTierTaglines[group] || "",
         featureBullets: meta?.feature_bullets || [],
         rebates: (meta?.rebates || []).filter((r) => r.amount > 0),
+        badgeLabel: (meta as Record<string, unknown>)?.badge_label as string | undefined,
+        showBadge: (meta as Record<string, unknown>)?.show_badge as boolean | undefined,
         items: visibleItems,
         subtotal: data.subtotal,
         isRecommended: meta?.is_recommended ?? group === 2,

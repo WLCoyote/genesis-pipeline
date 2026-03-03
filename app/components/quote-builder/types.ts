@@ -59,6 +59,8 @@ export interface TierForm {
   is_recommended: boolean;
   items: LineItemForm[];
   rebates: RebateForm[];
+  badge_label?: string;
+  show_badge?: boolean;
 }
 
 export interface CustomerResult {

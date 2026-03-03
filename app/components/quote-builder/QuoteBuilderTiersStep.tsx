@@ -13,12 +13,12 @@ import SectionHeader from "@/app/components/ui/SectionHeader";
 interface Props {
   tiers: TierForm[];
   tierTotals: TierTotals[];
-  targetTier: 1 | 2 | 3;
+  targetTier: number;
   selectedFinancingPlan: FinancingPlanFull | null;
   includeTax: boolean;
   taxRate: number | null;
   pricebookItems: PricebookItemSlim[];
-  onSetTargetTier: (t: 1 | 2 | 3) => void;
+  onSetTargetTier: (t: number) => void;
   onRemoveItem: (tierNumber: number, pbItemId: string) => void;
   onToggleAddon: (tierNumber: number, pbItemId: string, checked: boolean) => void;
   onUpdateTierField: (tierNumber: number, field: keyof TierForm, value: unknown) => void;
@@ -27,6 +27,8 @@ interface Props {
   onUpdateItemPrice: (tierNumber: number, pbItemId: string, price: number) => void;
   onToggleVisibility: (tierNumber: number, pbItemId: string) => void;
   onToggleTax: (v: boolean) => void;
+  onAddTier: () => void;
+  onRemoveTier: (tierNumber: number) => void;
 }
 
 export default function QuoteBuilderTiersStep({
@@ -46,6 +48,8 @@ export default function QuoteBuilderTiersStep({
   onUpdateItemPrice,
   onToggleVisibility,
   onToggleTax,
+  onAddTier,
+  onRemoveTier,
 }: Props) {
   // Filter pricebook items to rebate category for the rebate picker
   const availableRebates = pricebookItems.filter((p) => p.category === "rebate");
@@ -83,7 +87,12 @@ export default function QuoteBuilderTiersStep({
         </label>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-start">
+      <div className={`grid gap-4 items-start ${
+        tiers.length === 1 ? "grid-cols-1 max-w-xl" :
+        tiers.length === 2 ? "grid-cols-1 lg:grid-cols-2" :
+        tiers.length <= 3 ? "grid-cols-1 lg:grid-cols-3" :
+        "grid-cols-1 lg:grid-cols-2 xl:grid-cols-4"
+      }`}>
         {tiers.map((tier, idx) => {
           const totals = tierTotals[idx];
           const badge = TIER_BADGES[tier.tier_number];
@@ -110,26 +119,50 @@ export default function QuoteBuilderTiersStep({
             <div
               key={tier.tier_number}
               className={`bg-ds-card dark:bg-gray-800 border-[1.5px] ${borderClass} ${targetClass} rounded-xl shadow-sm overflow-hidden cursor-pointer transition-all`}
-              onClick={() => onSetTargetTier(tier.tier_number as 1 | 2 | 3)}
+              onClick={() => onSetTargetTier(tier.tier_number)}
             >
               {/* Header */}
               <div className="px-4 py-2.5 border-b border-ds-border dark:border-gray-700 relative">
-                <div
-                  className={`text-[9px] font-black tracking-[2px] uppercase inline-block px-2 py-0.5 rounded-full mb-1.5 ${
-                    tier.tier_number === 1
-                      ? "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
-                      : tier.tier_number === 2
-                        ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-                        : "bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400"
-                  }`}
-                >
-                  {badge?.icon} {badge?.label}
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  {(tier.show_badge !== false) && (
+                    <div
+                      className={`text-[9px] font-black tracking-[2px] uppercase inline-block px-2 py-0.5 rounded-full ${
+                        tier.tier_number === 1
+                          ? "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
+                          : tier.tier_number === 2
+                            ? "bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
+                            : tier.tier_number >= 4
+                              ? "bg-purple-50 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400"
+                              : "bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400"
+                      }`}
+                    >
+                      {badge?.icon} {tier.badge_label || badge?.label || `Tier ${tier.tier_number}`}
+                    </div>
+                  )}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onUpdateTierField(tier.tier_number, "show_badge", !(tier.show_badge !== false)); }}
+                    className="text-[9px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                    title={tier.show_badge !== false ? "Hide badge" : "Show badge"}
+                  >
+                    {tier.show_badge !== false ? "👁" : "👁‍🗨"}
+                  </button>
                 </div>
-                {tier.is_recommended && (
-                  <div className="absolute top-2.5 right-3 bg-ds-blue text-white text-[8px] font-black tracking-[1.5px] uppercase px-2 py-0.5 rounded-full">
-                    Recommended
-                  </div>
-                )}
+                <div className="absolute top-2.5 right-3 flex items-center gap-1.5">
+                  {tier.is_recommended && (
+                    <div className="bg-ds-blue text-white text-[8px] font-black tracking-[1.5px] uppercase px-2 py-0.5 rounded-full">
+                      Recommended
+                    </div>
+                  )}
+                  {tiers.length > 1 && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onRemoveTier(tier.tier_number); }}
+                      className="text-[10px] text-gray-300 dark:text-gray-600 hover:text-red-500 px-1"
+                      title="Remove this option"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
                 <input
                   type="text"
                   value={tier.tier_name}
@@ -145,6 +178,16 @@ export default function QuoteBuilderTiersStep({
                   placeholder="Add tagline..."
                   className="block text-[11px] text-gray-500 dark:text-gray-400 bg-transparent border-none outline-none w-full p-0 mt-0.5 placeholder:text-gray-300 dark:placeholder:text-gray-600"
                 />
+                {(tier.show_badge !== false) && (
+                  <input
+                    type="text"
+                    value={tier.badge_label || ""}
+                    onChange={(e) => onUpdateTierField(tier.tier_number, "badge_label", e.target.value)}
+                    onClick={(e) => e.stopPropagation()}
+                    placeholder={badge?.label || `Tier ${tier.tier_number}`}
+                    className="block text-[9px] text-gray-400 dark:text-gray-500 bg-transparent border-none outline-none w-24 p-0 mt-0.5 placeholder:text-gray-300 dark:placeholder:text-gray-600 uppercase tracking-wider"
+                  />
+                )}
                 {/* Recommended radio */}
                 <label
                   className="flex items-center gap-1.5 mt-1.5 text-[10px] text-gray-500 dark:text-gray-400 cursor-pointer"
@@ -272,7 +315,7 @@ export default function QuoteBuilderTiersStep({
                 ))}
 
                 <button
-                  onClick={() => onSetTargetTier(tier.tier_number as 1 | 2 | 3)}
+                  onClick={() => onSetTargetTier(tier.tier_number)}
                   className="w-full mt-2 py-1.5 border-[1.5px] border-dashed border-ds-border dark:border-gray-600 rounded-lg text-xs text-ds-blue font-bold hover:bg-blue-50/50 dark:hover:bg-blue-900/10 hover:border-ds-blue transition-colors"
                 >
                   + Add Item to {tier.tier_name}
@@ -431,6 +474,17 @@ export default function QuoteBuilderTiersStep({
             </div>
           );
         })}
+
+        {/* Add Option button */}
+        {tiers.length < 5 && (
+          <button
+            onClick={onAddTier}
+            className="h-32 border-[2px] border-dashed border-ds-border dark:border-gray-600 rounded-xl flex flex-col items-center justify-center gap-1 text-gray-400 dark:text-gray-500 hover:border-ds-blue hover:text-ds-blue transition-colors"
+          >
+            <span className="text-2xl">+</span>
+            <span className="text-xs font-bold uppercase tracking-wider">Add Option</span>
+          </button>
+        )}
       </div>
     </div>
   );

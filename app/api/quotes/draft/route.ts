@@ -133,13 +133,15 @@ export async function POST(request: NextRequest) {
   const totalAmount = taxAmount !== null ? defaultTierTotal + taxAmount : defaultTierTotal;
 
   // Build tier_metadata from the tiers payload
-  const tierMetadata = (body.tiers || []).map((tier: { tier_number: number; tier_name?: string; tagline?: string; feature_bullets?: string[]; is_recommended?: boolean; rebates?: Array<{ id: string; name: string; amount: number }> }) => ({
+  const tierMetadata = (body.tiers || []).map((tier: { tier_number: number; tier_name?: string; tagline?: string; feature_bullets?: string[]; is_recommended?: boolean; rebates?: Array<{ id: string; name: string; amount: number }>; badge_label?: string; show_badge?: boolean }) => ({
     tier_number: tier.tier_number,
     tier_name: tier.tier_name || `Tier ${tier.tier_number}`,
     tagline: tier.tagline || "",
     feature_bullets: tier.feature_bullets || [],
     is_recommended: tier.is_recommended || false,
     rebates: tier.rebates || [],
+    badge_label: tier.badge_label,
+    show_badge: tier.show_badge,
   }));
 
   // --- 3. Create or update draft estimate ---

@@ -11,8 +11,8 @@ interface Props {
   onSearchChange: (v: string) => void;
   categoryFilter: string;
   onCategoryFilterChange: (v: string) => void;
-  targetTier: 1 | 2 | 3;
-  onTargetTierChange: (t: 1 | 2 | 3) => void;
+  targetTier: number;
+  onTargetTierChange: (t: number) => void;
   tiers: TierForm[];
   onAddItem: (tierNumber: number, item: PricebookItemSlim, qty?: number) => void;
 }
@@ -191,7 +191,7 @@ export default function QuoteBuilderPricebookPanel({
         </label>
         <select
           value={targetTier}
-          onChange={(e) => onTargetTierChange(parseInt(e.target.value) as 1 | 2 | 3)}
+          onChange={(e) => onTargetTierChange(parseInt(e.target.value))}
           className="flex-1 px-2.5 py-1.5 border-[1.5px] border-ds-border dark:border-gray-600 rounded-md text-xs font-bold text-ds-text bg-ds-card dark:bg-gray-800 outline-none focus:border-ds-blue"
         >
           {tiers.map((tier) => (

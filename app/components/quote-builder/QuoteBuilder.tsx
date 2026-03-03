@@ -82,19 +82,31 @@ export default function QuoteBuilder({
   // ---- Tier state (reconstruct from draft if available) ----
   const [tiers, setTiers] = useState<TierForm[]>(() => {
     if (draftEstimate?.line_items && draftEstimate.line_items.length > 0) {
-      const newTiers: TierForm[] = [emptyTier(1), emptyTier(2), emptyTier(3)];
+      // Determine tier count from metadata or line items
       const meta = draftEstimate.tier_metadata;
+      const maxTierFromItems = Math.max(...draftEstimate.line_items.map((li) => li.option_group), 0);
+      const maxTierFromMeta = meta ? Math.max(...meta.map((m) => m.tier_number), 0) : 0;
+      const tierCount = Math.max(maxTierFromItems, maxTierFromMeta, 1);
+
+      const newTiers: TierForm[] = [];
+      for (let i = 1; i <= tierCount; i++) newTiers.push(emptyTier(i));
 
       // Apply tier metadata
       if (meta) {
         for (const m of meta) {
           const idx = m.tier_number - 1;
-          if (idx >= 0 && idx < 3) {
+          if (idx >= 0 && idx < newTiers.length) {
             newTiers[idx].tier_name = m.tier_name;
             newTiers[idx].tagline = m.tagline;
             newTiers[idx].feature_bullets = m.feature_bullets || [];
             newTiers[idx].is_recommended = m.is_recommended;
             newTiers[idx].rebates = m.rebates || [];
+            if ((m as Record<string, unknown>).badge_label !== undefined) {
+              newTiers[idx].badge_label = (m as Record<string, unknown>).badge_label as string;
+            }
+            if ((m as Record<string, unknown>).show_badge !== undefined) {
+              newTiers[idx].show_badge = (m as Record<string, unknown>).show_badge as boolean;
+            }
           }
         }
       }
@@ -102,7 +114,7 @@ export default function QuoteBuilder({
       // Group line items into tiers
       for (const li of draftEstimate.line_items) {
         const idx = li.option_group - 1;
-        if (idx < 0 || idx >= 3) continue;
+        if (idx < 0 || idx >= newTiers.length) continue;
 
         // Look up cost from pricebook
         const pbItem = li.pricebook_item_id
@@ -144,7 +156,7 @@ export default function QuoteBuilder({
   });
 
   // ---- Pricebook panel state ----
-  const [targetTier, setTargetTier] = useState<1 | 2 | 3>(2);
+  const [targetTier, setTargetTier] = useState<number>(tiers.length > 1 ? 2 : 1);
   const [pricebookSearch, setPricebookSearch] = useState("");
   const [pricebookCategoryFilter, setPricebookCategoryFilter] = useState("all");
 
@@ -237,12 +249,14 @@ export default function QuoteBuilder({
         if (!data.template) return;
 
         const tmpl = data.template;
-        const newTiers: TierForm[] = [emptyTier(1), emptyTier(2), emptyTier(3)];
+        const templateTiers = (tmpl.quote_template_tiers || []) as TemplateTierData[];
+        const tierCount = Math.max(templateTiers.length, 3);
+        const newTiers: TierForm[] = [];
+        for (let i = 1; i <= tierCount; i++) newTiers.push(emptyTier(i));
 
-        for (const tier of tmpl.quote_template_tiers || []) {
-          const t = tier as TemplateTierData;
+        for (const t of templateTiers) {
           const idx = t.tier_number - 1;
-          if (idx < 0 || idx > 2) continue;
+          if (idx < 0 || idx >= newTiers.length) continue;
 
           newTiers[idx] = {
             tier_number: t.tier_number,
@@ -414,6 +428,36 @@ export default function QuoteBuilder({
     );
   }, []);
 
+  const addTier = useCallback(() => {
+    setTiers((prev) => {
+      if (prev.length >= 5) return prev;
+      const nextNumber = prev.length + 1;
+      return [...prev, emptyTier(nextNumber)];
+    });
+  }, []);
+
+  const removeTier = useCallback(
+    (tierNumber: number) => {
+      setTiers((prev) => {
+        if (prev.length <= 1) return prev;
+        const filtered = prev.filter((t) => t.tier_number !== tierNumber);
+        // Renumber tiers sequentially
+        const renumbered = filtered.map((t, idx) => ({
+          ...t,
+          tier_number: idx + 1,
+        }));
+        // If recommended tier was removed, make first tier recommended
+        if (!renumbered.some((t) => t.is_recommended) && renumbered.length > 0) {
+          renumbered[0].is_recommended = true;
+        }
+        return renumbered;
+      });
+      // Adjust target tier if needed
+      setTargetTier((prev) => Math.min(prev, tiers.length - 1 || 1));
+    },
+    [tiers.length]
+  );
+
   // ---- Calculated values ----
 
   const tierTotals = useMemo(() => calculateTierTotals(tiers), [tiers]);
@@ -461,6 +505,8 @@ export default function QuoteBuilder({
             tagline: tier.tagline,
             feature_bullets: tier.feature_bullets,
             is_recommended: tier.is_recommended,
+            badge_label: tier.badge_label,
+            show_badge: tier.show_badge,
             rebates: tier.rebates || [],
             items: tier.items.map((item, idx) => ({
               pricebook_item_id: item.pricebook_item_id,
@@ -550,6 +596,8 @@ export default function QuoteBuilder({
             tagline: tier.tagline,
             feature_bullets: tier.feature_bullets,
             is_recommended: tier.is_recommended,
+            badge_label: tier.badge_label,
+            show_badge: tier.show_badge,
             rebates: tier.rebates || [],
             items: tier.items.map((item, idx) => ({
               pricebook_item_id: item.pricebook_item_id,
@@ -621,6 +669,7 @@ export default function QuoteBuilder({
                   setCreatedEstimate(null);
                   clearCustomer();
                   setTiers([emptyTier(1), emptyTier(2), emptyTier(3)]);
+                  setTargetTier(2);
                   setSelectedTemplateId(null);
                   setSavedEstimateId(null);
                   setActiveStep(1);
@@ -692,6 +741,7 @@ export default function QuoteBuilder({
               onClearTemplate={() => {
                 setSelectedTemplateId(null);
                 setTiers([emptyTier(1), emptyTier(2), emptyTier(3)]);
+                setTargetTier(2);
               }}
             />
           )}
@@ -714,6 +764,8 @@ export default function QuoteBuilder({
               onUpdateItemPrice={updateItemPrice}
               onToggleVisibility={toggleItemVisibility}
               onToggleTax={setIncludeTax}
+              onAddTier={addTier}
+              onRemoveTier={removeTier}
             />
           )}
 

@@ -6,6 +6,8 @@ export interface TierData {
   tagline: string;
   featureBullets?: string[];
   rebates?: Array<{ id: string; name: string; amount: number }>;
+  badgeLabel?: string;
+  showBadge?: boolean;
   items: Array<{
     id: string;
     display_name: string;
@@ -81,12 +83,40 @@ const tierStyles: Record<
     btnShadow: "0 6px 20px rgba(255,109,0,0.35)",
     icon: "\uD83D\uDD25",
   },
+  4: {
+    badge: "#ab47bc",
+    badgeBg: "rgba(123,31,162,0.2)",
+    badgeBorder: "rgba(171,71,188,0.3)",
+    selectedBorder: "#9c27b0",
+    selectedShadow: "0 0 0 2px rgba(156,39,176,0.2), 0 20px 60px rgba(0,0,0,0.5)",
+    monthlyBg: "rgba(123,31,162,0.1)",
+    monthlyBorder: "rgba(171,71,188,0.25)",
+    btnBg: "linear-gradient(135deg, #7b1fa2, #ab47bc)",
+    btnColor: "#fff",
+    btnShadow: "0 6px 20px rgba(156,39,176,0.3)",
+    icon: "\uD83D\uDC8E",
+  },
+  5: {
+    badge: "#fdd835",
+    badgeBg: "rgba(245,197,24,0.2)",
+    badgeBorder: "rgba(253,216,53,0.3)",
+    selectedBorder: "#f9a825",
+    selectedShadow: "0 0 0 2px rgba(249,168,37,0.2), 0 20px 60px rgba(0,0,0,0.5)",
+    monthlyBg: "rgba(245,197,24,0.1)",
+    monthlyBorder: "rgba(253,216,53,0.25)",
+    btnBg: "linear-gradient(135deg, #f57f17, #f9a825)",
+    btnColor: "#fff",
+    btnShadow: "0 6px 20px rgba(249,168,37,0.3)",
+    icon: "\uD83C\uDFC6",
+  },
 };
 
 const tierLabels: Record<number, string> = {
   1: "Good",
   2: "Better",
   3: "Best",
+  4: "Elite",
+  5: "Ultimate",
 };
 
 export default function TierCards({
@@ -153,7 +183,9 @@ export default function TierCards({
         className="proposal-tiers-grid"
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
+          gridTemplateColumns: tiers.length <= 3
+            ? `repeat(${tiers.length}, 1fr)`
+            : `repeat(${Math.min(tiers.length, 4)}, 1fr)`,
           gap: 20,
         }}
       >
@@ -263,21 +295,23 @@ export default function TierCards({
                     marginBottom: 8,
                   }}
                 >
-                  <span
-                    style={{
-                      fontSize: 9,
-                      fontWeight: 900,
-                      letterSpacing: 3,
-                      textTransform: "uppercase" as const,
-                      padding: "3px 10px",
-                      borderRadius: 20,
-                      background: s.badgeBg,
-                      color: s.badge,
-                      border: `1px solid ${s.badgeBorder}`,
-                    }}
-                  >
-                    {s.icon} {tierLabels[tier.tierNumber] || `Tier ${tier.tierNumber}`}
-                  </span>
+                  {tier.showBadge !== false && (
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 900,
+                        letterSpacing: 3,
+                        textTransform: "uppercase" as const,
+                        padding: "3px 10px",
+                        borderRadius: 20,
+                        background: s.badgeBg,
+                        color: s.badge,
+                        border: `1px solid ${s.badgeBorder}`,
+                      }}
+                    >
+                      {s.icon} {tier.badgeLabel || tierLabels[tier.tierNumber] || `Tier ${tier.tierNumber}`}
+                    </span>
+                  )}
                 </div>
                 <div
                   style={{

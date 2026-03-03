@@ -8,13 +8,21 @@ export const DEFAULT_TIER_NAMES = [
   "Standard Comfort",
   "Enhanced Efficiency",
   "Premium Performance",
+  "Elite Comfort",
+  "Ultimate Performance",
 ];
 
 export const TIER_BADGES: Record<number, { icon: string; label: string; style: string }> = {
   1: { icon: "⚙", label: "Good", style: "standard" },
   2: { icon: "⭐", label: "Better", style: "enhanced" },
   3: { icon: "🔥", label: "Best", style: "premium" },
+  4: { icon: "💎", label: "Elite", style: "elite" },
+  5: { icon: "🏆", label: "Ultimate", style: "ultimate" },
 };
+
+export function getDefaultTierName(n: number): string {
+  return DEFAULT_TIER_NAMES[n - 1] || `Option ${n}`;
+}
 
 // Category display order, labels, and color dots for tier cards
 export const CATEGORY_ORDER: Record<string, { order: number; label: string; dotColor: string }> = {
@@ -80,12 +88,14 @@ export function getDefaultProposalVisibility(category: string): boolean {
 export function emptyTier(tierNumber: number): TierForm {
   return {
     tier_number: tierNumber,
-    tier_name: DEFAULT_TIER_NAMES[tierNumber - 1] || `Tier ${tierNumber}`,
+    tier_name: getDefaultTierName(tierNumber),
     tagline: "",
     feature_bullets: [],
-    is_recommended: tierNumber === 2,
+    is_recommended: false,
     items: [],
     rebates: [],
+    badge_label: TIER_BADGES[tierNumber]?.label,
+    show_badge: true,
   };
 }
 
