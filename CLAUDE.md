@@ -174,7 +174,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 complete (polish, restructure, notifications, ds- consistency pass including Quote Builder, Outfit font weight refinement). Phase 8.3 complete (design system component library — 7 reusable UI components, 45+ files refactored). Phase 8.5 complete: 8.5A complete, 8.5F complete, 8.5B complete, 8.5D complete, 8.5C complete, 8.5E complete. E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023–026 run in Supabase. sql/027 + sql/028 created (need run in Supabase).
+Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 complete (polish, restructure, notifications, ds- consistency pass including Quote Builder, Outfit font weight refinement). Phase 8.3 complete (design system component library — 7 reusable UI components, 45+ files refactored). Phase 8.5 complete: 8.5A complete, 8.5F complete, 8.5B complete, 8.5D complete, 8.5C complete, 8.5E complete. E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023–026 run in Supabase. sql/027 created (needs run in Supabase). sql/028 run in Supabase.
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -210,7 +210,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 8.5F | Address fix (data issue, no code) + Google 403 (config, not code) | **Complete** |
 | Phase 8.5B | Proposal logic — per-tier add-ons, cash/financing choice at signature, equipment visibility toggle (eye icon), sql/027 migration | **Complete** — sql/027 needs run in Supabase |
 | Phase 8.5D | Leads & permissions — Lead→Build Quote (pre-fill from lead), admin-only deletes (tightened template DELETE + UI guard), CSR email CC (notification_cc_emails setting + Resend CC) | **Complete** |
-| Phase 8.5C | Variable tiers (1-5 options) + badge label customization — dynamic grid, add/remove tier, badge_label/show_badge in tier_metadata, sql/028 migration | **Complete** — sql/028 needs run in Supabase |
+| Phase 8.5C | Variable tiers (1-5 options) + badge label customization — dynamic grid, add/remove tier, badge_label/show_badge in tier_metadata, sql/028 migration | **Complete** — sql/028 run in Supabase |
 | Phase 8.5E | Accessibility — browser zoom fix (overflow-x-auto wrappers, title tooltips on truncated text), font size toggle (S/M/L in sidebar, localStorage, html class) | **Complete** |
 | Phase 8.4 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 8.5-old | Commission dashboard | Not started |
