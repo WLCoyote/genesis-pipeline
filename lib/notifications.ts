@@ -197,6 +197,24 @@ function getEmailContent(
         detailUrl,
         bodyText: `A new lead has been assigned: ${opts.customerName}. Check the estimate details.`,
       };
+    case "commission_estimated":
+      return {
+        headline: "Commission Estimated",
+        customerName: opts.customerName,
+        estimateNumber: opts.estimateNumber,
+        amount: opts.amount || null,
+        detailUrl: `${APP_URL}/dashboard/commission`,
+        bodyText: `A commission has been estimated for ${opts.customerName}'s signed proposal. It will be confirmed once the job is complete and the invoice is paid.`,
+      };
+    case "commission_confirmed":
+      return {
+        headline: "Commission Confirmed!",
+        customerName: opts.customerName,
+        estimateNumber: opts.estimateNumber,
+        amount: opts.amount || null,
+        detailUrl: `${APP_URL}/dashboard/commission`,
+        bodyText: `Great news! Your commission for ${opts.customerName}'s job has been confirmed. The job is complete and the invoice has been paid.`,
+      };
     default:
       return null;
   }

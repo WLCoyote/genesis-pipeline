@@ -787,7 +787,7 @@ No SQL migration. 4 quick wins:
 
 ### Phase 8.5B: Proposal Logic ✅ COMPLETE
 
-**SQL Migration: `sql/027_proposal_enhancements.sql`** (needs to be run in Supabase)
+**SQL Migration: `sql/027_proposal_enhancements.sql`** — run in Supabase.
 - `estimates.payment_method` TEXT CHECK ('cash','financing')
 - `estimate_line_items.show_on_proposal` BOOLEAN DEFAULT true
 
@@ -825,119 +825,88 @@ No SQL migration. 4 quick wins:
 
 ---
 
-## PHASE 8.4: Commission Tracking — NOT STARTED
+## PHASE 8.4: Commission Tracking ✅ COMPLETE
 
 Two-stage commission from close to confirmed payout. See PRD v4.0 Section 6.
 
-### Step 8.4a: Database — Commission Tables
+### Step 8.4A: Database — Commission Tables ✅ COMPLETE
 
-Create SQL migrations for:
-- `commission_tiers` — period (monthly/quarterly/annual), min_revenue, max_revenue, rate_pct, is_active.
-- `commission_records` — estimate_id, user_id, manager_id, pre_tax_revenue, tier_rate_pct, estimated_amount, confirmed_amount, manager_commission_amount, status (estimated/confirmed/paid), confirmed_at, period_revenue_at_confirmation.
-- Add columns to `users`: avatar_url, manager_id, manager_commission_pct.
+- `sql/029_commission_schema.sql` created with `commission_tiers`, `commission_records`, user columns (avatar_url, manager_id, manager_commission_pct)
+- RLS: comfort pro reads own, admin reads all, service role full access
+- Seed: 4 monthly tiers (5%/$0-$25k, 6%/$25k-$50k, 7%/$50k-$100k, 8%/$100k+)
+- Types added to `lib/types.ts`: CommissionPeriod, CommissionStatus, CommissionTier, CommissionRecord
+- NotificationType extended with `commission_estimated | commission_confirmed`
+- **Needs: sql/029 run in Supabase**
 
-RLS: comfort pro reads own commission records. Admin reads all.
+### Step 8.4B: Commission Calculation Logic + QBO ✅ COMPLETE
 
-Seed default tier structure (admin-configurable rates 5-8%).
+- `lib/commission.ts`: getCurrentPeriodBounds, getUserPeriodRevenue, getTierRate, calculateEstimated, calculateConfirmed
+- `lib/qbo.ts`: getQboTokens, refreshQboToken, qboFetch (auto-refresh), getInvoiceByEstimateNumber, isInvoicePaid, getPreTaxTotal, isQboConnected
+- `app/api/auth/qbo/route.ts`: OAuth callback — exchanges code for tokens, stores in settings, redirects to settings page
+- Env vars needed: QBO_CLIENT_ID, QBO_CLIENT_SECRET
 
-**VERIFY:** Tables created. Tier structure seeded. RLS working.
+### Step 8.4C: Commission Hook + Confirmation Cron ✅ COMPLETE
 
-### Step 8.4b: Commission Calculation Logic
+- Sign route (`proposals/[token]/sign/route.ts`): step (g) added in `runPostSignTasks()` — calls `calculateEstimated()`, sends `commission_estimated` notification. Wrapped in try/catch.
+- `lib/notifications.ts`: Added `commission_estimated` and `commission_confirmed` email content templates
+- `app/api/cron/confirm-commission/route.ts`: Daily cron — queries estimated records, checks QBO invoice paid, confirms commission, sends notification + webhook
+- `vercel.json`: Added `0 18 * * *` cron schedule
 
-Create `lib/commission.ts`:
-- `getTierRate(userId, periodRevenue)` — looks up cumulative revenue against tier table
-- `calculateEstimated(estimateId)` — pre-tax proposal total × tier rate. Creates commission_record with status "estimated".
-- `calculateConfirmed(estimateId, qboInvoiceTotal)` — pre-tax invoice total × tier rate with updated YTD revenue. Updates commission_record to "confirmed".
+### Step 8.4D: Commission Admin + Dashboard ✅ COMPLETE
 
-Called automatically: estimated at proposal signing (Phase 7), confirmed by cron (Step 8.4).
-
-**VERIFY:** Estimated commission calculates correctly at signing. Tier rate lookup works.
-
-### Step 8.4c: QBO Integration
-
-Create `lib/qbo.ts`:
-- OAuth 2.0 flow: `/api/auth/qbo` callback for token exchange
-- `refreshToken()` — auto-refresh expired tokens. Store encrypted in settings table.
-- `getInvoiceByReference(hcpEstimateId)` — query QBO for invoice linked to the job
-- `getInvoicePaidStatus(invoiceId)` — check if invoice is paid in full
-- `getPreTaxTotal(invoiceId)` — invoice total minus tax line
-
-QBO OAuth connection UI in Settings page (admin only).
-
-**VERIFY:** QBO OAuth connects. Can query invoices. Paid status detected correctly.
-
-### Step 8.4d: Commission Confirmation Cron
-
-New cron job: `/api/cron/confirm-commission` — 1x daily.
-
-1. Query `commission_records` with status "estimated"
-2. Check HCP: is the job marked complete?
-3. Check QBO: is the invoice paid in full?
-4. Both true → pull pre-tax total from QBO, recalculate tier rate with updated YTD, update commission_record to "confirmed"
-5. If manager_id set: calculate manager commission at manager_commission_pct
-6. Fire notifications to comfort pro and admin
-
-Add to `vercel.json` cron schedule.
-
-**VERIFY:** Cron detects job complete + paid. Commission confirmed with correct amount. Notifications fire.
-
-### Step 8.5: Commission Dashboard
-
-New page: `/dashboard/commission`
-
-- **Comfort pro view:** own commission history (estimated and confirmed), by job, by period. YTD confirmed total, current tier rate, revenue to next tier.
-- **Admin view:** all comfort pros, sortable by commission earned, close rate, pipeline value. Export to CSV for payroll.
-
-**VERIFY:** Comfort pro sees only their data. Admin sees all. Amounts match calculations.
+- Admin page: `/dashboard/admin/commission-tiers` with `CommissionTierManager.tsx` (CRUD, period/min/max/rate fields, preview)
+- API routes: `GET/POST /api/admin/commission-tiers`, `PUT/DELETE /api/admin/commission-tiers/[id]`
+- Dashboard page: `/dashboard/commission` with `CommissionDashboard.tsx` — stat cards (YTD/MTD/Rate/Pending), tier progress bar, history table, CSV export, admin user filter
+- API route: `GET /api/admin/commission-records` — admin sees all, comfort_pro sees own
+- Settings: QBO connection section in SettingsForm (connect/disconnect/status), `GET/DELETE /api/admin/qbo-status`
+- Sidebar: "Commission" nav (admin + comfort_pro), "Commission Tiers" nav (admin)
 
 ---
 
-## PHASE 9: Command Layer API — NOT STARTED
+## PHASE 9: Command Layer API ✅ COMPLETE
 
 `/api/v1/` endpoints for the Genesis AI Command Layer. See PRD v4.0 Section 8 and `GENESIS_CONVENTIONS_v2.1.md`.
 
-### Step 9.1: Auth Middleware
+### Step 9A: Auth Middleware + Envelope Helpers ✅ COMPLETE
 
-Create shared middleware for `/api/v1/` routes:
-- Validates `Authorization: Bearer {GENESIS_INTERNAL_API_KEY}` header
-- Returns standard error envelope `{data: null, error: {code, message}, meta: {app, version, timestamp}}` on auth failure
-- No Supabase Auth session required — these are app-to-app endpoints
+- `lib/api-auth.ts`: `validateApiKey(request)` — returns 401 envelope if invalid, null if valid
+- `lib/api-envelope.ts`: `apiSuccess(data, status?)` and `apiError(code, message, status)` — standard `{data, error, meta}` envelope
+- Existing `app/api/v1/pricebook/route.ts` refactored to use helpers (de-duplicated envelope code)
 
-Generate and set `GENESIS_INTERNAL_API_KEY` (64-char random string) in Vercel env vars and on Mac Mini.
+### Step 9B: Pipeline Endpoints (9 total) ✅ COMPLETE
 
-**VERIFY:** Requests without valid key get 401. Valid key passes through.
+All use `validateApiKey()` + `createServiceClient()` + standard envelope:
 
-### Step 9.2: Pipeline Endpoints
+| Endpoint | Method | Status |
+|----------|--------|--------|
+| `/api/v1/estimates/stats` | GET | ✅ Pipeline value, status counts, close rate, avg days, commission MTD |
+| `/api/v1/estimates/stale` | GET | ✅ Estimates with no activity 5+ days, configurable min_days param |
+| `/api/v1/estimates/[id]` | GET | ✅ Full detail with options, line items, engagement, sequence state |
+| `/api/v1/estimates/[id]/snooze` | POST | ✅ Snooze with days + note, pauses follow-up events |
+| `/api/v1/estimates/[id]/send-next` | POST | ✅ Creates follow-up event for immediate execution, advances step index |
+| `/api/v1/estimates/[id]/status` | POST | ✅ Won/lost with option approval/decline, skips remaining sequence |
+| `/api/v1/leads` | GET | ✅ Open leads list with status/date filters |
+| `/api/v1/leads/[id]/move-to-hcp` | POST | ✅ Creates HCP customer + local customer, updates lead status |
+| `/api/v1/commission/summary` | GET | ✅ Per-rep breakdown: estimated/confirmed totals, tier rate, revenue to next tier |
 
-Build each endpoint per conventions (standard envelope, shared field names, `total_count` on lists, `start_date`/`end_date` query params on time-based endpoints):
+### Step 9C: Webhook Event Dispatcher ✅ COMPLETE
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/api/v1/estimates/stats` | GET | Pipeline value, count by status, close rate MTD, avg days to close, total commission estimated MTD |
-| `/api/v1/estimates/stale` | GET | Estimates with no engagement in 5+ days |
-| `/api/v1/estimates/[id]` | GET | Full estimate detail |
-| `/api/v1/estimates/[id]/snooze` | POST | Snooze estimate. Body: `{ days, note }` |
-| `/api/v1/estimates/[id]/send-next` | POST | Send next due sequence step |
-| `/api/v1/estimates/[id]/status` | POST | Mark won/lost. Body: `{ action, selected_option_ids }` |
-| `/api/v1/leads` | GET | Open leads list |
-| `/api/v1/leads/[id]/move-to-hcp` | POST | Push lead to HCP |
-| `/api/v1/commission/summary` | GET | Commission by comfort pro, current period |
+- `lib/webhooks.ts`: `fireWebhookEvent({event, data})` — fire-and-forget POST to `WEBHOOK_RECEIVER_URL` with `GENESIS_INTERNAL_API_KEY` auth
+- Env var needed: `WEBHOOK_RECEIVER_URL`
 
-**VERIFY:** Each endpoint returns correct data in standard envelope. Auth works. Update `ENDPOINT_REGISTRY.md` status from 🔴 to 🟢 as each goes live.
+Wired into:
+| Event | Fire Location |
+|-------|--------------|
+| `proposal.signed` | sign route → runPostSignTasks() |
+| `proposal.opened` | engage route → on first page_open |
+| `proposal.approaching_decline` | auto-decline cron → declining_soon warning |
+| `commission.confirmed` | confirm-commission cron → after confirmation |
+| `lead.created` | leads/inbound/route.ts + leads/route.ts POST |
 
-### Step 9.3: Webhook Events
+### Step 9D: Command Layer Event Receiver ✅ COMPLETE
 
-Fire events to Command Layer webhook receiver at `/api/command/events`:
-
-- `proposal.signed` — when customer signs proposal
-- `proposal.opened` — when customer first opens proposal link
-- `proposal.approaching_decline` — 3 days before auto-decline
-- `commission.confirmed` — when commission confirmed
-- `lead.created` — when new lead enters Pipeline
-
-Payload format per `WEBHOOK_CONTRACTS.md`. Auth with `GENESIS_INTERNAL_API_KEY`.
-
-**VERIFY:** Events fire correctly. Payloads match contracts. Update `WEBHOOK_CONTRACTS.md` with any changes.
+- `app/api/command/events/route.ts`: POST handler, validates API key, logs event type + payload, returns 200
+- Stub — future: forward to Mac Mini agent, Telegram alerts
 
 ---
 

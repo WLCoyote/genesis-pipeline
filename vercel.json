@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/auto-decline",
       "schedule": "0 17 * * *"
+    },
+    {
+      "path": "/api/cron/confirm-commission",
+      "schedule": "0 18 * * *"
     }
   ]
 }

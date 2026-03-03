@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { fireWebhookEvent } from "@/lib/webhooks";
 
 const VALID_EVENTS = new Set([
   "page_open",
@@ -66,6 +67,26 @@ export async function POST(
   if (insertError) {
     console.error("Failed to insert engagement event:", insertError);
     return NextResponse.json({ error: "Failed to record event" }, { status: 500 });
+  }
+
+  // Fire webhook on first page_open
+  if (eventType === "page_open") {
+    // Check if this is the first page_open for this estimate
+    const { count } = await supabase
+      .from("proposal_engagement")
+      .select("id", { count: "exact", head: true })
+      .eq("estimate_id", estimate.id)
+      .eq("event_type", "page_open");
+
+    if (count === 1) {
+      fireWebhookEvent({
+        event: "proposal.opened",
+        data: {
+          estimate_id: estimate.id,
+          device_type: deviceType,
+        },
+      });
+    }
   }
 
   return NextResponse.json({ ok: true });

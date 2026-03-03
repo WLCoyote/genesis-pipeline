@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import NotificationSettings from "@/app/components/NotificationSettings";
 import Button from "@/app/components/ui/Button";
 
@@ -367,6 +367,9 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
         </a>
       </div>
 
+      {/* QuickBooks Online */}
+      <QboConnectionSection />
+
       {/* Email Notifications */}
       <NotificationSettings />
 
@@ -381,6 +384,79 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
           {saving ? "Saving..." : "Save All Settings"}
         </Button>
       </div>
+    </div>
+  );
+}
+
+// --- QBO Connection Section ---
+function QboConnectionSection() {
+  const [connected, setConnected] = useState<boolean | null>(null);
+  const [disconnecting, setDisconnecting] = useState(false);
+
+  useEffect(() => {
+    // Check connection status
+    fetch("/api/admin/qbo-status")
+      .then((res) => res.json())
+      .then((data) => setConnected(data.connected))
+      .catch(() => setConnected(false));
+
+    // Handle redirect params
+    const params = new URLSearchParams(window.location.search);
+    const qbo = params.get("qbo");
+    if (qbo === "connected") {
+      setConnected(true);
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
+
+  function handleConnect() {
+    const clientId = process.env.NEXT_PUBLIC_QBO_CLIENT_ID;
+    const redirectUri = `${window.location.origin}/api/auth/qbo`;
+    const scope = "com.intuit.quickbooks.accounting";
+    const url = `https://appcenter.intuit.com/connect/oauth2?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${scope}&response_type=code&state=genesis`;
+    window.location.href = url;
+  }
+
+  async function handleDisconnect() {
+    if (!confirm("Disconnect QuickBooks Online? Commission confirmation will stop working.")) return;
+    setDisconnecting(true);
+    await fetch("/api/admin/qbo-status", { method: "DELETE" });
+    setConnected(false);
+    setDisconnecting(false);
+  }
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+      <h2 className="font-display text-lg font-normal text-ds-text dark:text-gray-100 mb-1">
+        QuickBooks Online
+      </h2>
+      <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+        Connect QBO for automatic commission confirmation when invoices are paid.
+      </p>
+      {connected === null ? (
+        <span className="text-sm text-gray-400">Checking connection...</span>
+      ) : connected ? (
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center gap-1.5 text-sm text-green-600 dark:text-green-400">
+            <span className="w-2 h-2 bg-green-500 rounded-full" />
+            Connected
+          </span>
+          <button
+            onClick={handleDisconnect}
+            disabled={disconnecting}
+            className="text-sm text-red-600 dark:text-red-400 hover:underline disabled:opacity-50"
+          >
+            {disconnecting ? "Disconnecting..." : "Disconnect"}
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={handleConnect}
+          className="px-4 py-2 bg-[#2CA01C] hover:bg-[#259017] text-white text-sm font-medium rounded-md transition-colors"
+        >
+          Connect to QuickBooks
+        </button>
+      )}
     </div>
   );
 }

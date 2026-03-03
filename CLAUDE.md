@@ -174,7 +174,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 complete (polish, restructure, notifications, ds- consistency pass including Quote Builder, Outfit font weight refinement). Phase 8.3 complete (design system component library — 7 reusable UI components, 45+ files refactored). Phase 8.5 complete: 8.5A complete, 8.5F complete, 8.5B complete, 8.5D complete, 8.5C complete, 8.5E complete. E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023–026 run in Supabase. sql/027 created (needs run in Supabase). sql/028 run in Supabase.
+Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 complete (polish, restructure, notifications, ds- consistency pass including Quote Builder, Outfit font weight refinement). Phase 8.3 complete (design system component library — 7 reusable UI components, 45+ files refactored). Phase 8.5 complete: 8.5A complete, 8.5F complete, 8.5B complete, 8.5D complete, 8.5C complete, 8.5E complete. Phase 8.4 complete (commission tracking — two-stage, QBO OAuth, cron confirmation, admin tiers, dashboard). Phase 9 complete (Command Layer API — 9 /api/v1/ endpoints, auth middleware, envelope helpers, webhook event dispatcher, event receiver). E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023–028 all run in Supabase. sql/029 needs to be run in Supabase.
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -208,13 +208,18 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 8.3 | Design system component library — 7 reusable UI components (Button, PageTopbar, Card, SectionHeader, StatCard, Modal, FormField) in `app/components/ui/`, swapped across 45+ files. No visual changes. | **Complete** |
 | Phase 8.5A | Proposal polish + branding — monthly payment hero, sticky footer fix, Veteran Owned badge, friendship tagline, bottom bar totals swap | **Complete** |
 | Phase 8.5F | Address fix (data issue, no code) + Google 403 (config, not code) | **Complete** |
-| Phase 8.5B | Proposal logic — per-tier add-ons, cash/financing choice at signature, equipment visibility toggle (eye icon), sql/027 migration | **Complete** — sql/027 needs run in Supabase |
+| Phase 8.5B | Proposal logic — per-tier add-ons, cash/financing choice at signature, equipment visibility toggle (eye icon), sql/027 migration | **Complete** — sql/027 run in Supabase |
 | Phase 8.5D | Leads & permissions — Lead→Build Quote (pre-fill from lead), admin-only deletes (tightened template DELETE + UI guard), CSR email CC (notification_cc_emails setting + Resend CC) | **Complete** |
 | Phase 8.5C | Variable tiers (1-5 options) + badge label customization — dynamic grid, add/remove tier, badge_label/show_badge in tier_metadata, sql/028 migration | **Complete** — sql/028 run in Supabase |
 | Phase 8.5E | Accessibility — browser zoom fix (overflow-x-auto wrappers, title tooltips on truncated text), font size toggle (S/M/L in sidebar, localStorage, html class) | **Complete** |
-| Phase 8.4 | Commission tracking (two-stage, QBO) | Not started |
-| Phase 8.5-old | Commission dashboard | Not started |
-| Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
+| Phase 8.4A | SQL migration (commission_tiers, commission_records, users columns, seed tiers) | **Complete** — sql/029 needs run in Supabase |
+| Phase 8.4B | Commission library (`lib/commission.ts`) + QBO OAuth (`lib/qbo.ts`, `/api/auth/qbo`) | **Complete** |
+| Phase 8.4C | Commission hook in sign route + confirmation cron (`/api/cron/confirm-commission`) + commission notification types | **Complete** |
+| Phase 8.4D | Commission admin page (`/dashboard/admin/commission-tiers`), commission dashboard (`/dashboard/commission`), QBO settings section, sidebar nav, API routes | **Complete** |
+| Phase 9A | API auth middleware (`lib/api-auth.ts`) + envelope helpers (`lib/api-envelope.ts`), pricebook v1 refactored | **Complete** |
+| Phase 9B | Command Layer API — 9 endpoints (stats, stale, detail, snooze, send-next, status, leads, move-to-hcp, commission/summary) | **Complete** |
+| Phase 9C | Webhook event dispatcher (`lib/webhooks.ts`) — wired into sign, engage, auto-decline, confirm-commission, leads routes | **Complete** |
+| Phase 9D | Command Layer event receiver (`/api/command/events`) — stub (logs + returns 200) | **Complete** |
 | v0.2 | HCP webhooks, analytics | Future |
 | Phase 2+ | Campaigns & segmentation | Future |
 | Phase 3+ | AI, weather triggers | Future |
@@ -260,6 +265,8 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | ~~Badge label customization~~ | **Done** (Phase 8.5C) — editable badge text per tier, show/hide toggle, stored in tier_metadata JSONB |
 | ~~Browser zoom fix~~ | **Done** (Phase 8.5E) — overflow-x-auto on tables/grids, title tooltips on truncated text, min-width guards |
 | ~~Font size toggle (S/M/L)~~ | **Done** (Phase 8.5E) — S/M/L toggle in sidebar, html class + localStorage, 14px/16px/18px scale |
+| ~~Commission tracking~~ | **Done** (Phase 8.4) — two-stage (estimated at sign, confirmed by cron), QBO OAuth, tier-based rates, admin tiers CRUD, dashboard with stats + CSV export, manager commission support |
+| ~~Command Layer API~~ | **Done** (Phase 9) — 9 `/api/v1/` endpoints, auth middleware, envelope helpers, webhook dispatcher (5 events), event receiver stub |
 | Install materials builder | Pricebook tool to bundle install materials |
 | Maintenance plan builder | Service plans, subscriptions |
 | Configurable payment terms | 50/50 default, 4-payment option, configurable in quote builder |

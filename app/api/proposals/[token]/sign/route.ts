@@ -18,6 +18,8 @@ import {
   addHcpOptionNote,
 } from "@/lib/hcp-estimate";
 import { getCompanyInfo, getProposalTerms } from "@/lib/company-settings";
+import { calculateEstimated } from "@/lib/commission";
+import { fireWebhookEvent } from "@/lib/webhooks";
 
 export async function POST(
   request: NextRequest,
@@ -527,6 +529,19 @@ async function runPostSignTasks(ctx: {
     console.error("[Sign] Failed to record engagement:", err);
   }
 
+  // a2. Fire webhook: proposal.signed
+  fireWebhookEvent({
+    event: "proposal.signed",
+    data: {
+      estimate_id: ctx.estimateId,
+      estimate_number: ctx.estimateNumber,
+      customer_name: ctx.customer?.name || ctx.signedName,
+      selected_tier: ctx.selectedTier,
+      total_amount: ctx.totalAmount,
+      signed_at: ctx.signedAt,
+    },
+  });
+
   // Tier names for email/HCP
   const defaultTierNames: Record<number, string> = {
     1: "Standard Comfort",
@@ -697,6 +712,41 @@ async function runPostSignTasks(ctx: {
       console.log(`[Sign] Follow-up sequence skipped for ${ctx.estimateNumber}`);
     } catch (err) {
       console.error("[Sign] Skip sequence failed:", err);
+    }
+  }
+
+  // g. Calculate estimated commission
+  if (ctx.assignedTo) {
+    try {
+      const result = await calculateEstimated(
+        ctx.estimateId,
+        ctx.assignedTo,
+        ctx.subtotal
+      );
+      if (result) {
+        console.log(
+          `[Sign] Commission estimated: $${result.estimatedAmount} (${(result.tierRate * 100).toFixed(1)}%) for ${ctx.estimateNumber}`
+        );
+
+        // Send commission notification to the rep
+        try {
+          await sendEstimateNotifications(
+            {
+              type: "commission_estimated",
+              estimateId: ctx.estimateId,
+              estimateNumber: ctx.estimateNumber,
+              customerName: ctx.customer?.name || ctx.signedName,
+              message: `Commission estimated: $${result.estimatedAmount.toFixed(2)} for ${ctx.customer?.name || ctx.signedName} — ${ctx.estimateNumber}`,
+              amount: result.estimatedAmount,
+            },
+            ctx.assignedTo
+          );
+        } catch (notifyErr) {
+          console.error("[Sign] Commission notification failed:", notifyErr);
+        }
+      }
+    } catch (err) {
+      console.error("[Sign] Commission calculation failed:", err);
     }
   }
 

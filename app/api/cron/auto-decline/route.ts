@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { fireWebhookEvent } from "@/lib/webhooks";
 
 export async function GET(request: NextRequest) {
   // Verify cron secret
@@ -166,6 +167,15 @@ export async function GET(request: NextRequest) {
         type: "declining_soon",
         estimate_id: estimate.id,
         message: `Estimate for ${customerName} will auto-decline in ${warningDays} days.`,
+      });
+
+      fireWebhookEvent({
+        event: "proposal.approaching_decline",
+        data: {
+          estimate_id: estimate.id,
+          customer_name: customerName,
+          days_remaining: warningDays,
+        },
       });
 
       results.warnings++;

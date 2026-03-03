@@ -10,6 +10,9 @@ export interface User {
   role: UserRole;
   google_id: string | null;
   is_active: boolean;
+  avatar_url: string | null;
+  manager_id: string | null;
+  manager_commission_pct: number;
   created_at: string;
 }
 
@@ -116,7 +119,9 @@ export type NotificationType =
   | "estimate_declined"
   | "declining_soon"
   | "sms_received"
-  | "unmatched_sms";
+  | "unmatched_sms"
+  | "commission_estimated"
+  | "commission_confirmed";
 
 export interface Notification {
   id: string;
@@ -374,6 +379,38 @@ export interface LargeJobTag {
   id: string;
   tag_name: string;
   is_active: boolean;
+}
+
+// Commission types
+export type CommissionPeriod = "monthly" | "quarterly" | "annual";
+export type CommissionStatus = "estimated" | "confirmed" | "paid";
+
+export interface CommissionTier {
+  id: string;
+  period: CommissionPeriod;
+  min_revenue: number;
+  max_revenue: number | null;
+  rate_pct: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CommissionRecord {
+  id: string;
+  estimate_id: string;
+  user_id: string;
+  manager_id: string | null;
+  pre_tax_revenue: number | null;
+  tier_rate_pct: number;
+  estimated_amount: number;
+  confirmed_amount: number | null;
+  manager_commission_amount: number | null;
+  status: CommissionStatus;
+  confirmed_at: string | null;
+  period_revenue_at_confirmation: number | null;
+  created_at: string;
+  updated_at: string;
 }
 
 // Joined types used in UI queries

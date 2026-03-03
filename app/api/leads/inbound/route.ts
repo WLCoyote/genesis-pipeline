@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { fireWebhookEvent } from "@/lib/webhooks";
 
 // Public webhook for receiving leads from Zapier, Facebook, Google, website forms, etc.
 // Secured with LEADS_WEBHOOK_SECRET API key passed as Bearer token or query param.
@@ -158,6 +159,18 @@ export async function POST(request: NextRequest) {
 
     await supabase.from("notifications").insert(notifications);
   }
+
+  fireWebhookEvent({
+    event: "lead.created",
+    data: {
+      lead_id: lead.id,
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      phone,
+      lead_source: leadSource,
+    },
+  });
 
   return NextResponse.json({ success: true, lead_id: lead.id });
 }

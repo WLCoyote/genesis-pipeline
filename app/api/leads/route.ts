@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { fireWebhookEvent } from "@/lib/webhooks";
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
@@ -60,6 +61,18 @@ export async function POST(request: NextRequest) {
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
+
+  fireWebhookEvent({
+    event: "lead.created",
+    data: {
+      lead_id: lead.id,
+      first_name: body.first_name?.trim(),
+      last_name: body.last_name?.trim() || "",
+      email: body.email || null,
+      phone,
+      lead_source: body.lead_source || null,
+    },
+  });
 
   return NextResponse.json({ success: true, lead_id: lead.id });
 }

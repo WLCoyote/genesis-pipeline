@@ -1,27 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { createServiceClient } from "@/lib/supabase/server";
+import { validateApiKey } from "@/lib/api-auth";
+import { apiSuccess, apiError } from "@/lib/api-envelope";
 
 // GET /api/v1/pricebook — Cross-app read-only pricebook endpoint
 // Auth: GENESIS_INTERNAL_API_KEY (Bearer token)
 // Response: { data, error, meta } conventions envelope
 // Omits internal fields (cost, hcp_uuid, hcp_type, hcp_category_uuid)
 export async function GET(request: NextRequest) {
-  // Authenticate with shared API key
-  const apiKey = request.headers.get("Authorization")?.replace("Bearer ", "");
-  if (apiKey !== process.env.GENESIS_INTERNAL_API_KEY) {
-    return NextResponse.json(
-      {
-        data: null,
-        error: { code: "UNAUTHORIZED", message: "Invalid API key" },
-        meta: {
-          app: "pipeline",
-          version: "1.0",
-          timestamp: new Date().toISOString(),
-        },
-      },
-      { status: 401 }
-    );
-  }
+  const authErr = validateApiKey(request);
+  if (authErr) return authErr;
 
   try {
     const supabase = createServiceClient();
@@ -51,45 +39,15 @@ export async function GET(request: NextRequest) {
     const { data, error } = await query;
 
     if (error) {
-      return NextResponse.json(
-        {
-          data: null,
-          error: { code: "INTERNAL_ERROR", message: error.message },
-          meta: {
-            app: "pipeline",
-            version: "1.0",
-            timestamp: new Date().toISOString(),
-          },
-        },
-        { status: 500 }
-      );
+      return apiError("INTERNAL_ERROR", error.message);
     }
 
-    return NextResponse.json({
-      data: {
-        items: data,
-        total_count: data.length,
-      },
-      error: null,
-      meta: {
-        app: "pipeline",
-        version: "1.0",
-        timestamp: new Date().toISOString(),
-      },
+    return apiSuccess({
+      items: data,
+      total_count: data.length,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json(
-      {
-        data: null,
-        error: { code: "INTERNAL_ERROR", message },
-        meta: {
-          app: "pipeline",
-          version: "1.0",
-          timestamp: new Date().toISOString(),
-        },
-      },
-      { status: 500 }
-    );
+    return apiError("INTERNAL_ERROR", message);
   }
 }
