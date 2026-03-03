@@ -21,6 +21,7 @@ interface UserPrefs {
 export default function NotificationSettings() {
   const [userPrefs, setUserPrefs] = useState<UserPrefs[]>([]);
   const [eventTypes, setEventTypes] = useState<string[]>([]);
+  const [ccEmails, setCcEmails] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saveResult, setSaveResult] = useState("");
@@ -32,6 +33,7 @@ export default function NotificationSettings() {
       const data = await res.json();
 
       setEventTypes(data.event_types || []);
+      if (data.cc_emails) setCcEmails(data.cc_emails);
 
       // Build per-user preference maps
       const prefsByUser = new Map<string, Record<string, boolean>>();
@@ -93,6 +95,19 @@ export default function NotificationSettings() {
           setSaving(false);
           return;
         }
+      }
+
+      // Save CC emails setting
+      const ccRes = await fetch("/api/admin/notification-preferences", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ cc_emails: ccEmails.trim() }),
+      });
+
+      if (!ccRes.ok) {
+        setSaveResult("Preferences saved, but CC emails failed");
+        setSaving(false);
+        return;
       }
 
       setSaveResult("Notification preferences saved");
@@ -181,6 +196,22 @@ export default function NotificationSettings() {
           </table>
         </div>
       )}
+
+      <div className="mt-5 border-t border-gray-200 dark:border-gray-700 pt-4">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          CC Email Addresses
+        </label>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
+          Additional email addresses to CC on all notification emails. Comma-separated.
+        </p>
+        <input
+          type="text"
+          value={ccEmails}
+          onChange={(e) => setCcEmails(e.target.value)}
+          placeholder="office@genesishvacr.com, dispatch@genesishvacr.com"
+          className="w-full max-w-lg px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm dark:bg-gray-700 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
 
       <div className="mt-4 flex items-center gap-3">
         <Button

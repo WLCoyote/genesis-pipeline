@@ -440,14 +440,16 @@ export default function QuoteTemplateManager({
                 >
                   Edit
                 </Button>
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  onClick={() => handleDelete(t.id)}
-                  className="text-red-600 dark:text-red-400 hover:underline"
-                >
-                  Delete
-                </Button>
+                {isAdmin && (
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={() => handleDelete(t.id)}
+                    className="text-red-600 dark:text-red-400 hover:underline"
+                  >
+                    Delete
+                  </Button>
+                )}
               </div>
             </div>
           </div>

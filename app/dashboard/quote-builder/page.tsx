@@ -60,6 +60,32 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
     .in("role", ["admin", "comfort_pro"])
     .order("name", { ascending: true });
 
+  // If coming from a lead, fetch lead data for customer pre-fill
+  let prefilledCustomer: {
+    name: string;
+    email: string | null;
+    phone: string | null;
+    address: string | null;
+  } | null = null;
+
+  if (lead_id && !estimate_id) {
+    const { data: lead } = await supabase
+      .from("leads")
+      .select("first_name, last_name, email, phone, address, city, state, zip")
+      .eq("id", lead_id)
+      .single();
+
+    if (lead) {
+      const addressParts = [lead.address, lead.city, lead.state, lead.zip].filter(Boolean);
+      prefilledCustomer = {
+        name: `${lead.first_name} ${lead.last_name}`.trim(),
+        email: lead.email || null,
+        phone: lead.phone || null,
+        address: addressParts.length > 0 ? addressParts.join(", ") : null,
+      };
+    }
+  }
+
   // If building from a draft estimate, fetch its data
   let draftEstimate: {
     id: string;
@@ -168,6 +194,7 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
       users={teamUsers || []}
       currentUserId={user.id}
       draftEstimate={draftEstimate}
+      prefilledCustomer={prefilledCustomer}
     />
   );
 }

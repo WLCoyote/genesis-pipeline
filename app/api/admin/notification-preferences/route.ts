@@ -38,10 +38,20 @@ export async function GET() {
       .from("notification_preferences")
       .select("user_id, event_type, email_enabled");
 
+    // Load CC emails setting
+    const { data: ccSetting } = await serviceClient
+      .from("settings")
+      .select("value")
+      .eq("key", "notification_cc_emails")
+      .single();
+
+    const ccEmails = ccSetting?.value ? JSON.parse(ccSetting.value as string) : "";
+
     return NextResponse.json({
       users: allUsers || [],
       preferences: allPrefs || [],
       event_types: EVENT_TYPES,
+      cc_emails: ccEmails,
     });
   }
 
@@ -74,29 +84,47 @@ export async function PUT(request: NextRequest) {
     .single();
 
   const body = await request.json();
-  const { user_id, preferences } = body as {
+  const { user_id, preferences, cc_emails } = body as {
     user_id?: string;
-    preferences: { event_type: string; email_enabled: boolean }[];
+    preferences?: { event_type: string; email_enabled: boolean }[];
+    cc_emails?: string;
   };
-
-  // Non-admin can only update own preferences
-  const targetUserId = dbUser?.role === "admin" && user_id ? user_id : user.id;
 
   const serviceClient = createServiceClient();
 
-  for (const pref of preferences) {
-    if (!EVENT_TYPES.includes(pref.event_type as typeof EVENT_TYPES[number])) continue;
-
+  // Handle CC emails update (admin only)
+  if (cc_emails !== undefined && dbUser?.role === "admin") {
     await serviceClient
-      .from("notification_preferences")
+      .from("settings")
       .upsert(
-        {
-          user_id: targetUserId,
-          event_type: pref.event_type,
-          email_enabled: pref.email_enabled,
-        },
-        { onConflict: "user_id,event_type" }
+        { key: "notification_cc_emails", value: JSON.stringify(cc_emails) },
+        { onConflict: "key" }
       );
+
+    // If this was a CC-only update, return early
+    if (!preferences) {
+      return NextResponse.json({ success: true });
+    }
+  }
+
+  if (preferences) {
+    // Non-admin can only update own preferences
+    const targetUserId = dbUser?.role === "admin" && user_id ? user_id : user.id;
+
+    for (const pref of preferences) {
+      if (!EVENT_TYPES.includes(pref.event_type as typeof EVENT_TYPES[number])) continue;
+
+      await serviceClient
+        .from("notification_preferences")
+        .upsert(
+          {
+            user_id: targetUserId,
+            event_type: pref.event_type,
+            email_enabled: pref.email_enabled,
+          },
+          { onConflict: "user_id,event_type" }
+        );
+    }
   }
 
   return NextResponse.json({ success: true });

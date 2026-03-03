@@ -198,8 +198,8 @@ export async function DELETE(
     .eq("id", user.id)
     .single();
 
-  if (existing.created_by !== user.id && dbUser?.role !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  if (dbUser?.role !== "admin") {
+    return NextResponse.json({ error: "Forbidden — admin only" }, { status: 403 });
   }
 
   const { error } = await supabase

@@ -51,6 +51,7 @@ export default function QuoteBuilder({
   users,
   currentUserId,
   draftEstimate,
+  prefilledCustomer,
 }: QuoteBuilderProps) {
   const router = useRouter();
 
@@ -69,11 +70,11 @@ export default function QuoteBuilder({
         }
       : null
   );
-  const [customerName, setCustomerName] = useState(draftEstimate?.customer_name || "");
-  const [customerEmail, setCustomerEmail] = useState(draftEstimate?.customer_email || "");
-  const [customerPhone, setCustomerPhone] = useState(draftEstimate?.customer_phone || "");
-  const [customerAddress, setCustomerAddress] = useState(draftEstimate?.customer_address || "");
-  const [isNewCustomer, setIsNewCustomer] = useState(false);
+  const [customerName, setCustomerName] = useState(draftEstimate?.customer_name || prefilledCustomer?.name || "");
+  const [customerEmail, setCustomerEmail] = useState(draftEstimate?.customer_email || prefilledCustomer?.email || "");
+  const [customerPhone, setCustomerPhone] = useState(draftEstimate?.customer_phone || prefilledCustomer?.phone || "");
+  const [customerAddress, setCustomerAddress] = useState(draftEstimate?.customer_address || prefilledCustomer?.address || "");
+  const [isNewCustomer, setIsNewCustomer] = useState(!!prefilledCustomer && !draftEstimate);
 
   // ---- Template state ----
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);

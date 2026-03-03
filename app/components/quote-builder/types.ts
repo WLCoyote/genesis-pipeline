@@ -147,6 +147,13 @@ export interface DraftEstimate {
   tax_rate?: number | null;
 }
 
+export interface PrefilledCustomer {
+  name: string;
+  email: string | null;
+  phone: string | null;
+  address: string | null;
+}
+
 export interface QuoteBuilderProps {
   templates: TemplateData[];
   pricebookItems: PricebookItemSlim[];
@@ -154,6 +161,7 @@ export interface QuoteBuilderProps {
   users: UserSlim[];
   currentUserId: string;
   draftEstimate?: DraftEstimate | null;
+  prefilledCustomer?: PrefilledCustomer | null;
 }
 
 export type BuilderStep = 1 | 2 | 3 | 4 | 5;

@@ -57,6 +57,25 @@ export async function sendEstimateNotifications(
 
   if (!usersToNotify || usersToNotify.length === 0) return;
 
+  // Load CC emails from settings (comma-separated list)
+  let ccEmails: string[] = [];
+  try {
+    const { data: ccSetting } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("key", "notification_cc_emails")
+      .single();
+
+    if (ccSetting?.value) {
+      const parsed = JSON.parse(ccSetting.value as string);
+      if (typeof parsed === "string" && parsed.trim()) {
+        ccEmails = parsed.split(",").map((e: string) => e.trim()).filter(Boolean);
+      }
+    }
+  } catch {
+    // no CC setting configured — skip
+  }
+
   // Load notification preferences for these users
   const { data: prefs } = await supabase
     .from("notification_preferences")
@@ -94,6 +113,7 @@ export async function sendEstimateNotifications(
         const { error } = await resend.emails.send({
           from: "Genesis Pipeline <marketing@genesishvacr.com>",
           to: user.email,
+          ...(ccEmails.length > 0 && { cc: ccEmails }),
           subject: emailOpts.headline,
           html,
         });
