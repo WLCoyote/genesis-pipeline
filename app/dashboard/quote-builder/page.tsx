@@ -52,6 +52,72 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
     .eq("is_active", true)
     .order("display_order", { ascending: true });
 
+  // Fetch active install kits with items
+  const { data: installKitsRaw } = await supabase
+    .from("install_kits")
+    .select(`
+      id, name, description, system_type,
+      install_kit_items (
+        pricebook_item_id, quantity,
+        pricebook_items ( id, display_name, unit_price )
+      )
+    `)
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+
+  const installKits = (installKitsRaw || []).map((kit) => {
+    const items = ((kit as Record<string, unknown>).install_kit_items as Array<{
+      pricebook_item_id: string;
+      quantity: number;
+      pricebook_items: { id: string; display_name: string; unit_price: number | null } | null;
+    }>) || [];
+    return {
+      id: kit.id,
+      name: kit.name,
+      description: kit.description,
+      system_type: kit.system_type,
+      items: items.map((i) => ({
+        pricebook_item_id: i.pricebook_item_id,
+        quantity: i.quantity,
+        display_name: i.pricebook_items?.display_name || "Unknown",
+        unit_price: i.pricebook_items?.unit_price ?? 0,
+      })),
+      total_price: items.reduce((sum, i) => sum + (i.pricebook_items?.unit_price ?? 0) * i.quantity, 0),
+    };
+  });
+
+  // Fetch active maintenance plans
+  const { data: maintenancePlansRaw } = await supabase
+    .from("maintenance_plans")
+    .select("id, name, description, interval, coverage_items, monthly_price, annual_price")
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+
+  const maintenancePlans = (maintenancePlansRaw || []).map((p) => ({
+    id: p.id,
+    name: p.name,
+    description: p.description,
+    interval: p.interval,
+    coverage_items: p.coverage_items || [],
+    monthly_price: p.monthly_price,
+    annual_price: p.annual_price,
+  }));
+
+  // Fetch active payment schedules
+  const { data: paymentSchedulesRaw } = await supabase
+    .from("payment_schedules")
+    .select("id, name, stages, is_default, trigger_tags")
+    .eq("is_active", true)
+    .order("name", { ascending: true });
+
+  const paymentSchedules = (paymentSchedulesRaw || []).map((s) => ({
+    id: s.id,
+    name: s.name,
+    stages: s.stages || [],
+    is_default: s.is_default,
+    trigger_tags: s.trigger_tags || [],
+  }));
+
   // Fetch users for assignment dropdown
   const { data: teamUsers } = await supabase
     .from("users")
@@ -191,6 +257,9 @@ export default async function QuoteBuilderPage({ searchParams }: Props) {
       templates={templates || []}
       pricebookItems={pricebookItems || []}
       financingPlans={financingPlans || []}
+      installKits={installKits}
+      maintenancePlans={maintenancePlans}
+      paymentSchedules={paymentSchedules}
       users={teamUsers || []}
       currentUserId={user.id}
       draftEstimate={draftEstimate}

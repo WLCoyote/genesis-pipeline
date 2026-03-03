@@ -174,7 +174,7 @@ These come up often enough to call out explicitly:
 
 ### **Current Deployed Version: v3.2**
 
-Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 complete (polish, restructure, notifications, ds- consistency pass including Quote Builder, Outfit font weight refinement). Phase 8.3 complete (design system component library — 7 reusable UI components, 45+ files refactored). Phase 8.5 complete: 8.5A complete, 8.5F complete, 8.5B complete, 8.5D complete, 8.5C complete, 8.5E complete. Phase 8.4 complete (commission tracking — two-stage, QBO OAuth, cron confirmation, admin tiers, dashboard). Phase 9 complete (Command Layer API — 9 /api/v1/ endpoints, auth middleware, envelope helpers, webhook event dispatcher, event receiver). E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023–028 all run in Supabase. sql/029 needs to be run in Supabase.
+Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (including 7.6 quote builder overhaul, 7.7 QA fixes, 7.8 UI polish + rebates, 7.9 design system + pricebook decomposition). Phase 8.0 complete (estimates list UI overhaul). Phase 8.1A complete (estimate detail page UI overhaul). Phase 8.1B complete (sequences page UI overhaul + decomposition). Phase 8.2 complete (polish, restructure, notifications, ds- consistency pass including Quote Builder, Outfit font weight refinement). Phase 8.3 complete (design system component library — 7 reusable UI components, 45+ files refactored). Phase 8.5 complete: 8.5A complete, 8.5F complete, 8.5B complete, 8.5D complete, 8.5C complete, 8.5E complete. Phase 8.4 complete (commission tracking — two-stage, QBO OAuth, cron confirmation, admin tiers, dashboard). Phase 9 complete (Command Layer API — 9 /api/v1/ endpoints, auth middleware, envelope helpers, webhook event dispatcher, event receiver). Backlog A complete (Install Materials Builder — install_kits CRUD, QB Kits tab). Backlog B complete (Maintenance Plan Builder — maintenance_plans CRUD, QB add-ons integration). Backlog C in progress (Configurable Payment Terms — sql/032 + types + API done, QB + proposal rendering remaining). E2E bug fixes done (sql/021). HCP writeback fixed for draft flow. sql/023–028 all run in Supabase. sql/029–032 need to be run in Supabase.
 
 | Phase | Focus | Status |
 | ----- | ----- | ----- |
@@ -220,6 +220,9 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 9B | Command Layer API — 9 endpoints (stats, stale, detail, snooze, send-next, status, leads, move-to-hcp, commission/summary) | **Complete** |
 | Phase 9C | Webhook event dispatcher (`lib/webhooks.ts`) — wired into sign, engage, auto-decline, confirm-commission, leads routes | **Complete** |
 | Phase 9D | Command Layer event receiver (`/api/command/events`) — stub (logs + returns 200) | **Complete** |
+| Backlog A | Install Materials Builder — sql/030, InstallKitManager CRUD, API routes, QB pricebook panel "Kits" tab, sidebar nav | **Complete** — sql/030 needs run in Supabase |
+| Backlog B | Maintenance Plan Builder — sql/031, MaintenancePlanManager CRUD, API routes, QB add-ons step integration, sidebar nav | **Complete** — sql/031 needs run in Supabase |
+| Backlog C | Configurable Payment Terms — sql/032, PaymentSchedule types, API routes, QB financing step selector, dynamic PaymentSchedule component, proposal PDF update | **In Progress** — sql/032 needs run in Supabase. QB FinancingStep + PaymentSchedule component + PDF update remaining |
 | v0.2 | HCP webhooks, analytics | Future |
 | Phase 2+ | Campaigns & segmentation | Future |
 | Phase 3+ | AI, weather triggers | Future |
@@ -267,6 +270,6 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | ~~Font size toggle (S/M/L)~~ | **Done** (Phase 8.5E) — S/M/L toggle in sidebar, html class + localStorage, 14px/16px/18px scale |
 | ~~Commission tracking~~ | **Done** (Phase 8.4) — two-stage (estimated at sign, confirmed by cron), QBO OAuth, tier-based rates, admin tiers CRUD, dashboard with stats + CSV export, manager commission support |
 | ~~Command Layer API~~ | **Done** (Phase 9) — 9 `/api/v1/` endpoints, auth middleware, envelope helpers, webhook dispatcher (5 events), event receiver stub |
-| Install materials builder | Pricebook tool to bundle install materials |
-| Maintenance plan builder | Service plans, subscriptions |
-| Configurable payment terms | 50/50 default, 4-payment option, configurable in quote builder |
+| ~~Install materials builder~~ | **Done** (Backlog A) — sql/030, InstallKitManager CRUD admin page, API routes, QB pricebook panel "Kits" tab with "Add Kit" expanding items into target tier |
+| ~~Maintenance plan builder~~ | **Done** (Backlog B) — sql/031, MaintenancePlanManager CRUD admin page, API routes, QB add-ons step "Maintenance Plans" section with per-tier add/remove, coverage items display |
+| Configurable payment terms | **In Progress** (Backlog C) — sql/032 created (payment_schedules table + seed data), types added, API routes done. Remaining: QB financing step selector, dynamic PaymentSchedule proposal component, proposal-pdf.ts update |

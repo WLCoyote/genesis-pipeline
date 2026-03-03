@@ -413,6 +413,60 @@ export interface CommissionRecord {
   updated_at: string;
 }
 
+// Payment schedules — configurable payment milestones for proposals
+export interface PaymentScheduleStage {
+  label: string;
+  percentage: number;
+  condition: string;
+  fixed_amount?: number;
+}
+
+export interface PaymentSchedule {
+  id: string;
+  name: string;
+  stages: PaymentScheduleStage[];
+  is_default: boolean;
+  trigger_tags: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Maintenance plans — recurring service plans
+export type MaintenancePlanInterval = "annual" | "semi-annual" | "quarterly";
+
+export interface MaintenancePlan {
+  id: string;
+  name: string;
+  description: string | null;
+  interval: MaintenancePlanInterval;
+  coverage_items: string[];
+  monthly_price: number;
+  annual_price: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// Install kits — pre-built material bundles for the quote builder
+export interface InstallKit {
+  id: string;
+  name: string;
+  description: string | null;
+  system_type: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface InstallKitItem {
+  id: string;
+  kit_id: string;
+  pricebook_item_id: string;
+  quantity: number;
+  sort_order: number;
+}
+
 // Joined types used in UI queries
 export interface EstimateWithRelations extends Estimate {
   customers: Customer;

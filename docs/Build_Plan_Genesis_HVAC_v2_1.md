@@ -931,4 +931,69 @@ Wired into:
 
 ---
 
+## BACKLOG FEATURES
+
+### Backlog A: Install Materials Builder ✅ COMPLETE
+
+Pre-built material bundles that expand into individual pricebook items in the quote builder.
+
+**SQL:** `sql/030_install_kits.sql` — `install_kits` + `install_kit_items` tables with RLS.
+
+**Files created:**
+- `app/api/admin/install-kits/route.ts` — GET (list with items) + POST (create)
+- `app/api/admin/install-kits/[id]/route.ts` — PUT (update + replace items) + DELETE (soft-delete)
+- `app/dashboard/admin/install-kits/page.tsx` — Admin page (server component)
+- `app/components/InstallKitManager.tsx` — CRUD component with pricebook item picker + quantity fields
+
+**Files modified:**
+- `lib/types.ts` — Added InstallKit, InstallKitItem interfaces
+- `app/components/Sidebar.tsx` — Added "Install Kits" nav (admin-only)
+- `app/dashboard/quote-builder/page.tsx` — Fetches install kits, passes to QuoteBuilder
+- `app/components/quote-builder/types.ts` — Added InstallKitSlim interface
+- `app/components/quote-builder/QuoteBuilder.tsx` — Threads installKits prop
+- `app/components/quote-builder/QuoteBuilderPricebookPanel.tsx` — Items/Kits toggle, "Add Kit" expands all items into target tier with correct quantities
+
+### Backlog B: Maintenance Plan Builder ✅ COMPLETE
+
+Recurring service plans that can be added to proposals as add-ons.
+
+**SQL:** `sql/031_maintenance_plans.sql` — `maintenance_plans` table with coverage_items JSONB, monthly/annual pricing, interval, RLS.
+
+**Files created:**
+- `app/api/admin/maintenance-plans/route.ts` — GET + POST
+- `app/api/admin/maintenance-plans/[id]/route.ts` — PUT + DELETE (soft-delete)
+- `app/dashboard/admin/maintenance-plans/page.tsx` — Admin page (server component)
+- `app/components/MaintenancePlanManager.tsx` — CRUD component with dynamic coverage items list (add/remove)
+
+**Files modified:**
+- `lib/types.ts` — Added MaintenancePlan, MaintenancePlanInterval types
+- `app/components/Sidebar.tsx` — Added "Maintenance Plans" nav (admin-only)
+- `app/dashboard/quote-builder/page.tsx` — Fetches maintenance plans, passes to QuoteBuilder
+- `app/components/quote-builder/types.ts` — Added MaintenancePlanSlim interface
+- `app/components/quote-builder/QuoteBuilder.tsx` — Threads maintenancePlans prop
+- `app/components/quote-builder/QuoteBuilderAddonsStep.tsx` — "Maintenance Plans" section with per-tier add/remove, coverage items display, stored as line items with category='maintenance_plan'
+
+### Backlog C: Configurable Payment Terms — IN PROGRESS
+
+Configurable payment milestone schedules replacing hardcoded standard/large_job logic.
+
+**SQL:** `sql/032_payment_schedules.sql` — `payment_schedules` table with stages JSONB, trigger_tags, is_default. ALTER estimates ADD payment_schedule_id. Seeded: Standard 50/50 (default), Large Job 4-Payment.
+
+**Completed:**
+- `lib/types.ts` — Added PaymentSchedule, PaymentScheduleStage types
+- `app/api/admin/payment-schedules/route.ts` — GET + POST
+- `app/api/admin/payment-schedules/[id]/route.ts` — PUT + DELETE
+- `app/dashboard/quote-builder/page.tsx` — Fetches payment schedules, passes to QuoteBuilder
+- `app/components/quote-builder/types.ts` — Added PaymentScheduleSlim interface
+- `app/components/quote-builder/QuoteBuilder.tsx` — Added selectedPaymentScheduleId state, threaded to FinancingStep
+
+**Remaining:**
+- QuoteBuilderFinancingStep — Add payment schedule selector UI (accept Props, render schedule cards)
+- PaymentSchedule component — Dynamic rendering from selected schedule stages (replace hardcoded standard/large_job)
+- proposal-pdf.ts — Dynamic payment section from stages JSONB
+- Quote create/draft routes — Save payment_schedule_id to estimate
+- Proposal page — Pass schedule stages to PaymentSchedule component
+
+---
+
 *Genesis Refrigeration & HVAC  •  Genesis Pipeline  •  Build Plan v4.0  •  February 2026  •  CONFIDENTIAL*

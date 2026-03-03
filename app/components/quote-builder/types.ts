@@ -156,10 +156,40 @@ export interface PrefilledCustomer {
   address: string | null;
 }
 
+export interface InstallKitSlim {
+  id: string;
+  name: string;
+  description: string | null;
+  system_type: string | null;
+  items: { pricebook_item_id: string; quantity: number; display_name: string; unit_price: number }[];
+  total_price: number;
+}
+
+export interface MaintenancePlanSlim {
+  id: string;
+  name: string;
+  description: string | null;
+  interval: string;
+  coverage_items: string[];
+  monthly_price: number;
+  annual_price: number;
+}
+
+export interface PaymentScheduleSlim {
+  id: string;
+  name: string;
+  stages: { label: string; percentage: number; condition: string; fixed_amount?: number }[];
+  is_default: boolean;
+  trigger_tags: string[];
+}
+
 export interface QuoteBuilderProps {
   templates: TemplateData[];
   pricebookItems: PricebookItemSlim[];
   financingPlans: FinancingPlanFull[];
+  installKits: InstallKitSlim[];
+  maintenancePlans: MaintenancePlanSlim[];
+  paymentSchedules: PaymentScheduleSlim[];
   users: UserSlim[];
   currentUserId: string;
   draftEstimate?: DraftEstimate | null;

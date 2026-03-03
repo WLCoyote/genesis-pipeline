@@ -48,6 +48,9 @@ export default function QuoteBuilder({
   templates,
   pricebookItems,
   financingPlans,
+  installKits,
+  maintenancePlans,
+  paymentSchedules,
   users,
   currentUserId,
   draftEstimate,
@@ -171,6 +174,12 @@ export default function QuoteBuilder({
   const selectedFinancingPlan = useMemo(
     () => financingPlans.find((p) => p.id === selectedFinancingPlanId) || null,
     [financingPlans, selectedFinancingPlanId]
+  );
+
+  // ---- Payment Schedule ----
+  const defaultSchedule = paymentSchedules.find((s) => s.is_default) || paymentSchedules[0] || null;
+  const [selectedPaymentScheduleId, setSelectedPaymentScheduleId] = useState<string | null>(
+    defaultSchedule?.id || null
   );
 
   // ---- Tax ----
@@ -773,6 +782,7 @@ export default function QuoteBuilder({
             <QuoteBuilderAddonsStep
               tiers={tiers}
               pricebookItems={pricebookItems}
+              maintenancePlans={maintenancePlans}
               onToggleAddon={toggleAddon}
               onAddItem={addItemToTier}
               onRemoveItem={removeItemFromTier}
@@ -784,6 +794,9 @@ export default function QuoteBuilder({
               financingPlans={financingPlans}
               selectedFinancingPlanId={selectedFinancingPlanId}
               onSelectPlan={setSelectedFinancingPlanId}
+              paymentSchedules={paymentSchedules}
+              selectedPaymentScheduleId={selectedPaymentScheduleId}
+              onSelectPaymentSchedule={setSelectedPaymentScheduleId}
               includeTax={includeTax}
               taxRate={taxRate}
               taxLoading={taxLoading}
@@ -820,6 +833,7 @@ export default function QuoteBuilder({
         {activeStep >= 2 && (
           <QuoteBuilderPricebookPanel
             pricebookItems={pricebookItems}
+            installKits={installKits}
             search={pricebookSearch}
             onSearchChange={setPricebookSearch}
             categoryFilter={pricebookCategoryFilter}

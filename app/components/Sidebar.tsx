@@ -30,6 +30,8 @@ const navItems: NavItem[] = [
   { href: "/dashboard/admin/pricebook", label: "Pricebook", roles: ["admin"] },
   { href: "/dashboard/admin/quote-templates", label: "Templates", roles: ["admin"] },
   { href: "/dashboard/admin/financing-plans", label: "Financing Plans", roles: ["admin"] },
+  { href: "/dashboard/admin/install-kits", label: "Install Kits", roles: ["admin"] },
+  { href: "/dashboard/admin/maintenance-plans", label: "Maintenance Plans", roles: ["admin"] },
   { href: "/dashboard/admin/commission-tiers", label: "Commission Tiers", roles: ["admin"] },
   { href: "/dashboard/admin/settings", label: "Settings", roles: ["admin"] },
   { href: "/dashboard/admin/team", label: "Team", roles: ["admin"] },

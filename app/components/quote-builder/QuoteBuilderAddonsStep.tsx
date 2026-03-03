@@ -1,12 +1,13 @@
 "use client";
 
-import type { TierForm, PricebookItemSlim } from "./types";
+import type { TierForm, PricebookItemSlim, MaintenancePlanSlim } from "./types";
 import { formatCurrency } from "./utils";
 import SectionHeader from "@/app/components/ui/SectionHeader";
 
 interface Props {
   tiers: TierForm[];
   pricebookItems: PricebookItemSlim[];
+  maintenancePlans: MaintenancePlanSlim[];
   onToggleAddon: (tierNumber: number, pbItemId: string, checked: boolean) => void;
   onAddItem: (tierNumber: number, item: PricebookItemSlim, qty?: number) => void;
   onRemoveItem: (tierNumber: number, pbItemId: string) => void;
@@ -15,6 +16,7 @@ interface Props {
 export default function QuoteBuilderAddonsStep({
   tiers,
   pricebookItems,
+  maintenancePlans,
   onToggleAddon,
   onAddItem,
   onRemoveItem,
@@ -160,6 +162,107 @@ export default function QuoteBuilderAddonsStep({
                 <span className="text-xs text-gray-400">{formatCurrency(addon.unit_price ?? 0)}</span>
               </button>
             ))}
+          </div>
+        </div>
+      )}
+      {/* Maintenance Plans */}
+      {maintenancePlans.length > 0 && (
+        <div className="mt-6">
+          <SectionHeader className="mb-3">Maintenance Plans</SectionHeader>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {maintenancePlans.map((plan) => {
+              // Check if plan is already added (by matching plan ID in pricebook_item_id)
+              const planItemId = `maint-plan-${plan.id}`;
+              const isInAnyTier = tiers.some((t) =>
+                t.items.some((i) => i.pricebook_item_id === planItemId)
+              );
+
+              return (
+                <div
+                  key={plan.id}
+                  className={`border rounded-lg p-4 transition-colors ${
+                    isInAnyTier
+                      ? "border-ds-green bg-ds-green-bg"
+                      : "border-gray-200 dark:border-gray-600 bg-ds-card dark:bg-gray-800"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2 mb-2">
+                    <div>
+                      <div className="text-sm font-bold text-ds-text">{plan.name}</div>
+                      {plan.description && (
+                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                          {plan.description}
+                        </div>
+                      )}
+                    </div>
+                    <div className="text-right shrink-0">
+                      <div className="text-sm font-semibold text-ds-text">
+                        {formatCurrency(plan.monthly_price)}/mo
+                      </div>
+                      <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                        {formatCurrency(plan.annual_price)}/yr
+                      </div>
+                    </div>
+                  </div>
+
+                  {plan.coverage_items.length > 0 && (
+                    <div className="mb-3 space-y-0.5">
+                      {plan.coverage_items.map((item, i) => (
+                        <div key={i} className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-gray-400">
+                          <span className="text-ds-green">&#10003;</span>
+                          {item}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {isInAnyTier ? (
+                    <button
+                      onClick={() => {
+                        for (const tier of tiers) {
+                          if (tier.items.some((i) => i.pricebook_item_id === planItemId)) {
+                            onRemoveItem(tier.tier_number, planItemId);
+                          }
+                        }
+                      }}
+                      className="w-full text-center text-xs font-bold text-ds-red bg-ds-red-bg px-3 py-1.5 rounded-md hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                    >
+                      Remove from All Tiers
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => {
+                        const fakePbItem: PricebookItemSlim = {
+                          id: planItemId,
+                          display_name: plan.name,
+                          spec_line: plan.description,
+                          unit_price: plan.monthly_price,
+                          cost: null,
+                          manufacturer: null,
+                          model_number: null,
+                          part_number: null,
+                          category: "maintenance_plan",
+                          system_type: null,
+                          efficiency_rating: null,
+                          is_addon: true,
+                          addon_default_checked: true,
+                          unit_of_measure: "mo",
+                          hcp_type: null,
+                          refrigerant_type: null,
+                          is_favorite: false,
+                        };
+                        for (const tier of tiers) {
+                          onAddItem(tier.tier_number, fakePbItem);
+                        }
+                      }}
+                      className="w-full text-center text-xs font-bold text-ds-blue bg-ds-blue-bg px-3 py-1.5 rounded-md hover:bg-ds-blue hover:text-white transition-colors"
+                    >
+                      Add to All Tiers
+                    </button>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
