@@ -1,7 +1,7 @@
 // Genesis Pipeline — Service Worker
 // Network-first strategy, offline fallback for navigation requests
 
-const CACHE_NAME = "genesis-v1";
+const CACHE_NAME = "genesis-v2";
 const OFFLINE_URL = "/offline.html";
 
 // Install: cache offline fallback + icons

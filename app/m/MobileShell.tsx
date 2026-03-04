@@ -69,8 +69,8 @@ export default function MobileShell({ role, userName, userId, children }: Mobile
 
   return (
     <div
-      className="flex flex-col min-h-screen bg-ds-bg"
-      style={{ minHeight: "100dvh" }}
+      className="flex flex-col h-screen bg-ds-bg"
+      style={{ height: "100dvh" }}
     >
       {/* Top header */}
       <header
