@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import Link from "next/link";
 import PushOptIn from "@/app/components/PushOptIn";
 
 interface MobileProfileProps {
@@ -68,15 +67,18 @@ export default function MobileProfile({ name, email, role, phone }: MobileProfil
 
       {/* Links */}
       <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden mb-4">
-        <Link
-          href="/dashboard/estimates"
-          className="flex items-center justify-between px-4 py-3 text-sm text-ds-text dark:text-gray-100 no-underline border-b border-gray-200 dark:border-gray-700 active:bg-gray-50 dark:active:bg-gray-750"
+        <button
+          onClick={() => {
+            localStorage.setItem("stay_desktop", "1");
+            router.push("/dashboard/estimates");
+          }}
+          className="flex items-center justify-between w-full px-4 py-3 text-sm text-ds-text dark:text-gray-100 cursor-pointer active:bg-gray-50 dark:active:bg-gray-750"
         >
           <span>Switch to Desktop View</span>
           <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
-        </Link>
+        </button>
       </div>
 
       {/* Sign Out */}

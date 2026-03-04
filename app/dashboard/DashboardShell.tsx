@@ -4,6 +4,7 @@ import { useState } from "react";
 import { UserRole } from "@/lib/types";
 import Sidebar from "@/app/components/Sidebar";
 import Header from "@/app/components/Header";
+import MobileRedirect from "@/app/components/MobileRedirect";
 
 interface DashboardShellProps {
   role: UserRole;
@@ -22,6 +23,7 @@ export default function DashboardShell({
 
   return (
     <div className="flex h-screen bg-ds-bg dark:bg-gray-900">
+      {role === "comfort_pro" && <MobileRedirect />}
       <Sidebar
         role={role}
         userName={userName}

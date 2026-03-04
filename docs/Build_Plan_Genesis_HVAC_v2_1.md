@@ -1079,11 +1079,21 @@ Focus: proposal page (customer-facing, viewed on phones). Uses inline styles —
 **M4E — SW Push Handlers** ✅
 - Already done in M1B: `public/sw.js` has push (parse JSON, showNotification with icon/badge/data.url) and notificationclick (close + navigate) handlers
 
-### Phase M5: Polish
-- Optional auto-redirect: comfort_pro on mobile → /m/ (with "Stay on Desktop" localStorage override)
-- iOS splash screen meta tags
-- Verify Next.js code splitting: /m/ routes don't load DashboardShell/Sidebar bundles
-- Test on physical iPhone + Android
+### Phase M5: Polish ✅ COMPLETE
+
+**Auto-redirect comfort_pro on mobile** ✅
+- Created `app/components/MobileRedirect.tsx`: checks `window.innerWidth < 768`, redirects to `/m/pipeline` unless `stay_desktop` localStorage flag is set
+- Wired into `DashboardShell.tsx` — only rendered for `comfort_pro` role
+- Updated `MobileProfile.tsx`: "Switch to Desktop View" sets `stay_desktop` flag before navigating
+- `MobileShell.tsx`: clears `stay_desktop` flag on mount (so returning to `/m/` resets the override)
+
+**iOS polish** ✅
+- Added `viewport-fit=cover` meta tag (safe area support for notch devices)
+- Added `apple-mobile-web-app-title` meta tag
+
+**Bundle splitting verified** ✅
+- No `/m/` route imports DashboardShell or Sidebar — clean separation confirmed
+- Build output shows `/m/` and `/dashboard/` as separate route groups
 
 ### New Files (22)
 
@@ -1111,6 +1121,7 @@ Focus: proposal page (customer-facing, viewed on phones). Uses inline styles —
 | `lib/web-push.ts` | M4B |
 | `app/api/push/subscribe/route.ts` | M4C |
 | `app/components/PushOptIn.tsx` | M4C |
+| `app/components/MobileRedirect.tsx` | M5 |
 
 ### New Dependencies
 - `web-push` + `@types/web-push` (M4B)

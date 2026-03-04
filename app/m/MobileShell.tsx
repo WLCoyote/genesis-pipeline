@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import NotificationBell from "@/app/components/NotificationBell";
@@ -53,6 +54,11 @@ const tabs = [
 
 export default function MobileShell({ role, userName, userId, children }: MobileShellProps) {
   const pathname = usePathname();
+
+  // Clear "stay on desktop" override when user navigates to mobile app
+  useEffect(() => {
+    localStorage.removeItem("stay_desktop");
+  }, []);
 
   const isActive = (href: string) => {
     if (href === "/m/pipeline") {
