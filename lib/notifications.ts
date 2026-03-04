@@ -6,6 +6,7 @@
 import { Resend } from "resend";
 import { createServiceClient } from "@/lib/supabase/server";
 import { buildNotificationEmailHtml } from "@/lib/email-templates";
+import { sendPushNotification } from "@/lib/web-push";
 import type { NotificationType } from "@/lib/types";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
@@ -129,7 +130,15 @@ export async function sendEstimateNotifications(
     }
   }
 
-  // 3. Send to marketing email (from settings) for signed proposals
+  // 3. Send push notifications to all notified users
+  const pushPayload = getPushContent(opts);
+  if (pushPayload) {
+    for (const user of usersToNotify) {
+      sendPushNotification(user.id, pushPayload).catch(() => {});
+    }
+  }
+
+  // 4. Send to marketing email (from settings) for signed proposals
   if (opts.type === "estimate_approved") {
     try {
       const { data: setting } = await supabase
@@ -214,6 +223,61 @@ function getEmailContent(
         amount: opts.amount || null,
         detailUrl: `${APP_URL}/dashboard/commission`,
         bodyText: `Great news! Your commission for ${opts.customerName}'s job has been confirmed. The job is complete and the invoice has been paid.`,
+      };
+    default:
+      return null;
+  }
+}
+
+function getPushContent(
+  opts: NotifyOpts
+): { title: string; body: string; url: string } | null {
+  switch (opts.type) {
+    case "estimate_approved":
+      return {
+        title: "Proposal Signed!",
+        body: `${opts.customerName} signed their proposal`,
+        url: `/m/estimates/${opts.estimateId}`,
+      };
+    case "sms_received":
+      return {
+        title: `New SMS from ${opts.customerName}`,
+        body: opts.message.length > 80 ? opts.message.slice(0, 77) + "..." : opts.message,
+        url: `/m/estimates/${opts.estimateId}`,
+      };
+    case "commission_estimated":
+      return {
+        title: "Commission Estimated",
+        body: opts.amount
+          ? `$${opts.amount.toLocaleString()} from ${opts.customerName}`
+          : `Commission estimated for ${opts.customerName}`,
+        url: "/m/commission",
+      };
+    case "commission_confirmed":
+      return {
+        title: "Commission Confirmed!",
+        body: opts.amount
+          ? `$${opts.amount.toLocaleString()} confirmed`
+          : `Commission confirmed for ${opts.customerName}`,
+        url: "/m/commission",
+      };
+    case "call_due":
+      return {
+        title: "Call Due Today",
+        body: `Call ${opts.customerName} for follow-up`,
+        url: `/m/estimates/${opts.estimateId}`,
+      };
+    case "email_opened":
+      return {
+        title: "Proposal Viewed",
+        body: `${opts.customerName} opened their proposal`,
+        url: `/m/estimates/${opts.estimateId}`,
+      };
+    case "lead_assigned":
+      return {
+        title: "New Lead Assigned",
+        body: `${opts.customerName} assigned to you`,
+        url: `/m/estimates/${opts.estimateId}`,
       };
     default:
       return null;

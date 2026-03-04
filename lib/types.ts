@@ -467,6 +467,16 @@ export interface InstallKitItem {
   sort_order: number;
 }
 
+// Push subscription record
+export interface PushSubscriptionRecord {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  created_at: string;
+}
+
 // Joined types used in UI queries
 export interface EstimateWithRelations extends Estimate {
   customers: Customer;

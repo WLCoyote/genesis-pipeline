@@ -1057,26 +1057,27 @@ Focus: proposal page (customer-facing, viewed on phones). Uses inline styles —
 - `WhyGenesis.tsx`: Added section classNames + extended 600px media query
 - `PaymentSchedule.tsx`: Added 600px media query (stages stack vertically, amounts 22→18px) — previously had NO responsive rules
 
-### Phase M4: Web Push Notifications
+### Phase M4: Web Push Notifications ✅ COMPLETE
 
-**M4A — SQL Migration**
-- Create `sql/033_push_subscriptions.sql`: push_subscriptions table (user_id FK CASCADE, endpoint, p256dh, auth, UNIQUE(user_id, endpoint)), RLS policies, ALTER notification_preferences ADD push_enabled
+**M4A — SQL Migration** ✅
+- `sql/033_push_subscriptions.sql`: push_subscriptions table (user_id FK CASCADE, endpoint, p256dh, auth, UNIQUE(user_id, endpoint)), RLS policies, ALTER notification_preferences ADD push_enabled. **Run in Supabase.**
 
-**M4B — Push Sender**
-- Install: `web-push` + `@types/web-push`
-- New env vars: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_SUBJECT`
-- Create `lib/web-push.ts`: sendPushNotification(userId, payload) — queries subscriptions, sends via webpush.sendNotification(), auto-deletes stale 410 subs
+**M4B — Push Sender** ✅
+- Installed `web-push` + `@types/web-push`
+- Created `lib/web-push.ts`: sendPushNotification(userId, payload) — queries subscriptions, checks push_enabled pref, sends via webpush.sendNotification(), auto-deletes stale 410/404 subs, fire-and-forget error handling
+- Added `PushSubscriptionRecord` type to `lib/types.ts`
+- Env vars needed: `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_SUBJECT`
 
-**M4C — Subscribe API + Opt-In UI**
-- Create `app/api/push/subscribe/route.ts`: POST (subscribe) + DELETE (unsubscribe)
-- Create `app/components/PushOptIn.tsx`: toggle for push permission, Notification.requestPermission(), PushManager.subscribe(), iOS caveat message
+**M4C — Subscribe API + Opt-In UI** ✅
+- Created `app/api/push/subscribe/route.ts`: POST (upsert subscription) + DELETE (remove by endpoint), auth required
+- Created `app/components/PushOptIn.tsx`: toggle switch, Notification.requestPermission(), PushManager.subscribe() with VAPID key, unsubscribe, iOS caveat message, denied state handling
+- Wired into `/m/profile/MobileProfile.tsx`
 
-**M4D — Wire into Notification Dispatcher**
-- Modify `lib/notifications.ts`: after email dispatch, fire push for: estimate_approved ("Proposal Signed!"), sms_received ("New SMS from {customer}"), commission_estimated/confirmed, call_due, email_opened ("Proposal Viewed")
-- Add PushSubscriptionRecord to `lib/types.ts`
+**M4D — Wire into Notification Dispatcher** ✅
+- Modified `lib/notifications.ts`: added `sendPushNotification` import, fires push after email dispatch via `getPushContent()` for 7 event types: estimate_approved, sms_received, commission_estimated, commission_confirmed, call_due, email_opened, lead_assigned — all with `/m/` URLs
 
-**M4E — SW Push Handlers**
-- Modify `public/sw.js`: push event (parse JSON, showNotification), notificationclick event (close + navigate to data.url)
+**M4E — SW Push Handlers** ✅
+- Already done in M1B: `public/sw.js` has push (parse JSON, showNotification with icon/badge/data.url) and notificationclick (close + navigate) handlers
 
 ### Phase M5: Polish
 - Optional auto-redirect: comfort_pro on mobile → /m/ (with "Stay on Desktop" localStorage override)

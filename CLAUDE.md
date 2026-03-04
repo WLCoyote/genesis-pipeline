@@ -226,7 +226,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 10 M1 | PWA Foundation — manifest.ts, app icons, service worker, offline fallback, SW registration, Apple meta tags | **Complete** |
 | Phase 10 M2 | Mobile Comfort Pro App — `/m/` routes with bottom tab nav, pipeline list, estimate detail + SMS, commission, notifications, profile | **Complete** |
 | Phase 10 M3 | Responsive Dashboard Fixes — proposal page responsive overhaul (8 components), iPhone-sized layouts | **Complete** |
-| Phase 10 M4 | Web Push Notifications — sql/033 push_subscriptions, web-push library, VAPID keys, subscribe API, push opt-in UI, SW push handlers, wired into notification dispatcher | **Not started** |
+| Phase 10 M4 | Web Push Notifications — sql/033 push_subscriptions, web-push library, VAPID keys, subscribe API, push opt-in UI, SW push handlers, wired into notification dispatcher | **Complete** |
 | Phase 10 M5 | Mobile Polish — auto-redirect comfort pros, iOS fixes, bundle splitting verification | **Not started** |
 | v0.2 | HCP webhooks, analytics | Future |
 | Phase 2+ | Campaigns & segmentation | Future |
@@ -278,4 +278,4 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | ~~Install materials builder~~ | **Done** (Backlog A) — sql/030, InstallKitManager CRUD admin page, API routes, QB pricebook panel "Kits" tab with "Add Kit" expanding items into target tier |
 | ~~Maintenance plan builder~~ | **Done** (Backlog B) — sql/031, MaintenancePlanManager CRUD admin page, API routes, QB add-ons step "Maintenance Plans" section with per-tier add/remove, coverage items display |
 | ~~Configurable payment terms~~ | **Done** (Backlog C) — sql/032 payment_schedules table, admin CRUD, QB payment schedule selector, dynamic PaymentSchedule proposal component, proposal-pdf.ts dynamic stages, backward-compatible fallback from legacy `payment_schedule_type` |
-| Mobile app (PWA) for Comfort Pros | **In Progress** (Phase 10) — M1 PWA Foundation done, M2 Mobile `/m/` routes done (pipeline, estimate detail, commission, notifications, profile), M3 responsive proposal done. M4 web push + M5 polish remaining. |
+| Mobile app (PWA) for Comfort Pros | **In Progress** (Phase 10) — M1 PWA Foundation done, M2 Mobile `/m/` routes done, M3 responsive proposal done, M4 web push done. M5 polish remaining. |

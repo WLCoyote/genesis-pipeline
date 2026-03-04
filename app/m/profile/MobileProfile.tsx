@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
+import PushOptIn from "@/app/components/PushOptIn";
 
 interface MobileProfileProps {
   name: string;
@@ -58,6 +59,11 @@ export default function MobileProfile({ name, email, role, phone }: MobileProfil
             </div>
           )}
         </div>
+      </div>
+
+      {/* Push Notifications */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-4">
+        <PushOptIn />
       </div>
 
       {/* Links */}
