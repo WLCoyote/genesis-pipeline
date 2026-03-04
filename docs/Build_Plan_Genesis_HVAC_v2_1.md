@@ -997,24 +997,24 @@ Configurable payment milestone schedules replacing hardcoded standard/large_job 
 
 ---
 
-## PHASE 10: Mobile App + Responsive + PWA + Web Push — NOT STARTED
+## PHASE 10: Mobile App + Responsive + PWA + Web Push — IN PROGRESS
 
 Comfort Pros need mobile access to their pipeline, customer SMS, proposal engagement, and commission tracking. This phase delivers three things: (1) responsive fixes so the dashboard and proposal page work on iPhone, (2) a separate mobile-first `/m/` experience for Comfort Pros with bottom tab navigation, and (3) PWA installability with native web push notifications.
 
 **Approach:** PWA (Progressive Web App) — same codebase, no React Native, no App Store. Install to home screen via "Add to Home Screen" on iOS/Android. Web push for real-time alerts.
 
-### Phase M1: PWA Foundation
+### Phase M1: PWA Foundation ✅ COMPLETE
 
-**M1A — Manifest + Icons**
-- Create `app/manifest.ts` (Next.js metadata API): name "Genesis Pipeline", start_url "/m/", display "standalone", theme_color "#0a1628"
-- Create `public/icon-192.png` + `public/icon-512.png` from Genesis logo
-- Add Apple meta tags to `app/layout.tsx` (apple-touch-icon, apple-mobile-web-app-capable, theme-color)
+**M1A — Manifest + Icons** ✅
+- Created `app/manifest.ts` (Next.js metadata API): name "Genesis Pipeline", start_url "/m/", display "standalone", theme_color "#0a1628"
+- Created `public/icon-192.png` + `public/icon-512.png` resized from Genesis logo (1024→192/512)
+- Added Apple meta tags to `app/layout.tsx` (apple-touch-icon, apple-mobile-web-app-capable, theme-color)
 
-**M1B — Service Worker + Registration**
-- Create `public/sw.js`: minimal manual SW (no Workbox). Cache-first for static, network-first for API, offline fallback for navigation
-- Create `public/offline.html`: branded offline page (self-contained, inline styles)
-- Create `app/components/ServiceWorkerRegistration.tsx`: client component, registers SW on mount
-- Modify `app/layout.tsx`: render `<ServiceWorkerRegistration />` in body
+**M1B — Service Worker + Registration** ✅
+- Created `public/sw.js`: manual SW — network-first for navigation, offline fallback, push + notificationclick handlers pre-wired for M4
+- Created `public/offline.html`: branded offline page (dark navy, self-contained, inline styles)
+- Created `app/components/ServiceWorkerRegistration.tsx`: client component, registers SW on mount
+- Modified `app/layout.tsx`: renders `<ServiceWorkerRegistration />` in body
 
 ### Phase M2: Mobile Comfort Pro App
 

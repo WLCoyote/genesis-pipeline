@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Offline — Genesis Pipeline</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0a1628;
+      color: #e8edf5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      text-align: center;
+      padding: 24px;
+    }
+    .container { max-width: 360px; }
+    .logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 24px;
+      border-radius: 16px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    p {
+      font-size: 15px;
+      color: #7a8fa8;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .retry {
+      display: inline-block;
+      padding: 12px 28px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    .retry:active { opacity: 0.85; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <img src="/icon-192.png" alt="Genesis" class="logo" />
+    <h1>You're Offline</h1>
+    <p>Check your internet connection and try again. Genesis Pipeline needs a network connection to load your data.</p>
+    <a href="/" class="retry" onclick="location.reload(); return false;">Try Again</a>
+  </div>
+</body>
+</html>
