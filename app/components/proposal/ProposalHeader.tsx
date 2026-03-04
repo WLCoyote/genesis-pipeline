@@ -46,6 +46,7 @@ export default function ProposalHeader({
         }}
       >
         <div
+          className="proposal-header-bar"
           style={{
             display: "flex",
             alignItems: "center",
@@ -58,6 +59,7 @@ export default function ProposalHeader({
           {/* Logo */}
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
             <div
+              className="proposal-header-logo-box"
               style={{
                 width: 46,
                 height: 46,
@@ -75,6 +77,7 @@ export default function ProposalHeader({
             </div>
             <div>
               <div
+                className="proposal-header-brand"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontSize: 28,
@@ -134,6 +137,7 @@ export default function ProposalHeader({
 
           {/* Price guarantee badge */}
           <div
+            className="proposal-header-badge"
             style={{
               background:
                 "linear-gradient(135deg, #e65100, #ff6d00)",
@@ -155,6 +159,7 @@ export default function ProposalHeader({
 
       {/* HERO */}
       <div
+        className="proposal-hero"
         style={{
           background: "linear-gradient(180deg, #091a35 0%, #050d1a 100%)",
           padding: "44px 40px 36px",
@@ -165,6 +170,7 @@ export default function ProposalHeader({
         }}
       >
         <div
+          className="proposal-hero-glow"
           style={{
             position: "absolute",
             top: -100,
@@ -190,6 +196,7 @@ export default function ProposalHeader({
           &#10022; Your personalized estimate
         </div>
         <div
+          className="proposal-hero-title"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: 48,
@@ -206,6 +213,7 @@ export default function ProposalHeader({
           <span style={{ color: "#42a5f5" }}>Perfect</span> Comfort System
         </div>
         <div
+          className="proposal-hero-subtitle"
           style={{
             fontSize: 15,
             color: "#7a8fa8",
@@ -221,6 +229,7 @@ export default function ProposalHeader({
 
         {/* Step indicators */}
         <div
+          className="proposal-steps-row"
           style={{
             display: "flex",
             justifyContent: "center",
@@ -238,6 +247,7 @@ export default function ProposalHeader({
             return (
               <div
                 key={step.num}
+                className="proposal-step-indicator"
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -272,6 +282,18 @@ export default function ProposalHeader({
       <style>{`
         @media (max-width: 900px) {
           .proposal-header-customer { display: none !important; }
+        }
+        @media (max-width: 600px) {
+          .proposal-header-bar { padding: 10px 16px !important; }
+          .proposal-header-logo-box { width: 36px !important; height: 36px !important; font-size: 18px !important; }
+          .proposal-header-brand { font-size: 20px !important; letter-spacing: 2px !important; }
+          .proposal-header-badge { padding: 6px 12px !important; font-size: 10px !important; }
+          .proposal-hero { padding: 24px 16px 20px !important; }
+          .proposal-hero-glow { width: 300px !important; height: 150px !important; }
+          .proposal-hero-title { font-size: 28px !important; }
+          .proposal-hero-subtitle { font-size: 13px !important; max-width: 100% !important; }
+          .proposal-step-indicator { padding: 4px 8px !important; font-size: 10px !important; gap: 4px !important; }
+          .proposal-steps-row { gap: 4px !important; margin-top: 16px !important; }
         }
       `}</style>
     </>

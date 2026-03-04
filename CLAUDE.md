@@ -225,7 +225,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Backlog C | Configurable Payment Terms — sql/032, PaymentSchedule types, API routes, QB financing step selector, dynamic PaymentSchedule component, proposal PDF update | **Complete** — sql/032 run in Supabase |
 | Phase 10 M1 | PWA Foundation — manifest.ts, app icons, service worker, offline fallback, SW registration, Apple meta tags | **Complete** |
 | Phase 10 M2 | Mobile Comfort Pro App — `/m/` routes with bottom tab nav, pipeline list, estimate detail + SMS, commission, notifications, profile | **Complete** |
-| Phase 10 M3 | Responsive Dashboard Fixes — proposal page responsive overhaul (8 components), iPhone-sized layouts | **Not started** |
+| Phase 10 M3 | Responsive Dashboard Fixes — proposal page responsive overhaul (8 components), iPhone-sized layouts | **Complete** |
 | Phase 10 M4 | Web Push Notifications — sql/033 push_subscriptions, web-push library, VAPID keys, subscribe API, push opt-in UI, SW push handlers, wired into notification dispatcher | **Not started** |
 | Phase 10 M5 | Mobile Polish — auto-redirect comfort pros, iOS fixes, bundle splitting verification | **Not started** |
 | v0.2 | HCP webhooks, analytics | Future |

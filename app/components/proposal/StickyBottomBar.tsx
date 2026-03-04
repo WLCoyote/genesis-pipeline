@@ -22,6 +22,7 @@ export default function StickyBottomBar({
   const ctaEnabled = hasSelection && disclosuresComplete;
   return (
     <div
+      className="proposal-bottom-bar"
       style={{
         position: "fixed",
         bottom: 0,
@@ -46,7 +47,7 @@ export default function StickyBottomBar({
         }}
       >
         {/* Package name */}
-        <div style={{ display: "flex", flexDirection: "column", minWidth: 180 }}>
+        <div className="proposal-bar-pkg" style={{ display: "flex", flexDirection: "column", minWidth: 180 }}>
           <span
             style={{
               fontSize: 9,
@@ -82,6 +83,7 @@ export default function StickyBottomBar({
 
         {/* Addon tags */}
         <div
+          className="proposal-bar-addons"
           style={{
             flex: 1,
             display: "flex",
@@ -149,6 +151,7 @@ export default function StickyBottomBar({
                   As Low As
                 </div>
                 <div
+                  className="proposal-bar-monthly"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
                     fontSize: 34,
@@ -200,6 +203,7 @@ export default function StickyBottomBar({
                 Cash Total
               </div>
               <div
+                className="proposal-bar-monthly"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontSize: 34,
@@ -216,6 +220,7 @@ export default function StickyBottomBar({
 
         {/* CTA */}
         <button
+          className="proposal-bar-cta"
           onClick={onAcceptClick}
           disabled={!ctaEnabled}
           style={{
@@ -247,6 +252,14 @@ export default function StickyBottomBar({
       <style>{`
         @media (max-width: 900px) {
           .proposal-summary-inner { flex-wrap: wrap !important; gap: 12px !important; padding: 12px 0 !important; }
+        }
+        @media (max-width: 600px) {
+          .proposal-bottom-bar { padding: 0 12px !important; }
+          .proposal-summary-inner { gap: 8px !important; }
+          .proposal-bar-pkg { min-width: auto !important; }
+          .proposal-bar-addons { display: none !important; }
+          .proposal-bar-monthly { font-size: 24px !important; }
+          .proposal-bar-cta { padding: 12px 16px !important; font-size: 12px !important; letter-spacing: 1px !important; }
         }
       `}</style>
     </div>

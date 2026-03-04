@@ -1041,17 +1041,21 @@ Comfort Pros need mobile access to their pipeline, customer SMS, proposal engage
 **M2F — Profile** ✅
 - Created `app/m/profile/page.tsx` + `MobileProfile.tsx`: user card with avatar/name/role/email/phone, "Switch to Desktop View" link, sign out button
 
-### Phase M3: Responsive Dashboard Fixes
+### Phase M3: Responsive Dashboard Fixes ✅ COMPLETE
 
 Focus: proposal page (customer-facing, viewed on phones). Uses inline styles — responsive fixes use `<style>` + `@media (max-width: 600px)` queries.
 
-**M3A — Core proposal components**
-- `ProposalHeader.tsx`: hero padding 40→16px, title 48→28px, logo 46→36px, stack info rows
-- `TierCards.tsx`: section padding 40→16px, monthly price 46→30px, card padding reduced
-- `StickyBottomBar.tsx`: padding 40→12px, stack vertically on mobile, hide addon tags
+**M3A — Core proposal components** ✅
+- `ProposalHeader.tsx`: Added 11 mobile classNames + 600px media query (hero padding 40→16px, title 48→28px, logo 46→36px, badge shrunk, steps condensed)
+- `TierCards.tsx`: Added classNames + 600px media query (section padding, section num 48→28px, heading 28→20px, tier name 36→24px, price 46→30px)
+- `StickyBottomBar.tsx`: Added classNames + 600px media query (padding 40→12px, addon tags hidden, monthly 34→24px, CTA button shrunk)
 
-**M3B — Supporting proposal components**
-- `AddonCards.tsx`, `FinancingCalculator.tsx`, `SignatureBlock.tsx`, `WhyGenesis.tsx`, `PaymentSchedule.tsx`: padding reduction, grid column collapse, canvas fit for signature
+**M3B — Supporting proposal components** ✅
+- `AddonCards.tsx`: Added section classNames + extended 600px media query
+- `FinancingCalculator.tsx`: Added section classNames + 600px media query (APR 32→24px)
+- `SignatureBlock.tsx`: Added section classNames + 600px media query (card padding 36→20px, bottom padding 160→120px)
+- `WhyGenesis.tsx`: Added section classNames + extended 600px media query
+- `PaymentSchedule.tsx`: Added 600px media query (stages stack vertically, amounts 22→18px) — previously had NO responsive rules
 
 ### Phase M4: Web Push Notifications
 

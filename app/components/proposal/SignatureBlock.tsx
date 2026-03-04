@@ -93,7 +93,7 @@ export default function SignatureBlock({
   });
 
   return (
-    <div style={{ padding: "0 40px 160px" }}>
+    <div className="proposal-section proposal-sig-section" style={{ padding: "0 40px 160px" }}>
       {/* Section label */}
       <div
         style={{
@@ -104,6 +104,7 @@ export default function SignatureBlock({
         }}
       >
         <div
+          className="proposal-section-num"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: 48,
@@ -117,6 +118,7 @@ export default function SignatureBlock({
         </div>
         <div>
           <h2
+            className="proposal-section-heading"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               fontSize: 28,
@@ -145,6 +147,7 @@ export default function SignatureBlock({
       />
 
       <div
+        className="proposal-sig-card"
         style={{
           background: "#0c1c35",
           border: "1.5px solid #1a3357",
@@ -588,6 +591,13 @@ export default function SignatureBlock({
       <style>{`
         @media (max-width: 900px) {
           .proposal-sig-fields { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 600px) {
+          .proposal-section { padding: 0 16px 28px !important; }
+          .proposal-sig-section { padding-bottom: 120px !important; }
+          .proposal-section-num { font-size: 28px !important; }
+          .proposal-section-heading { font-size: 20px !important; }
+          .proposal-sig-card { padding: 20px 16px !important; }
         }
       `}</style>
     </div>

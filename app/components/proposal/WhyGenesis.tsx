@@ -41,7 +41,7 @@ const defaultCards = [
 
 export default function WhyGenesis({ reviews, companyStory }: WhyGenesisProps) {
   return (
-    <div style={{ padding: "0 40px 52px" }}>
+    <div className="proposal-section" style={{ padding: "0 40px 52px" }}>
       {/* Section label */}
       <div
         style={{
@@ -52,6 +52,7 @@ export default function WhyGenesis({ reviews, companyStory }: WhyGenesisProps) {
         }}
       >
         <div
+          className="proposal-section-num"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: 48,
@@ -65,6 +66,7 @@ export default function WhyGenesis({ reviews, companyStory }: WhyGenesisProps) {
         </div>
         <div>
           <h2
+            className="proposal-section-heading"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               fontSize: 28,
@@ -206,6 +208,9 @@ export default function WhyGenesis({ reviews, companyStory }: WhyGenesisProps) {
         }
         @media (max-width: 600px) {
           .proposal-why-grid { grid-template-columns: 1fr !important; }
+          .proposal-section { padding: 0 16px 28px !important; }
+          .proposal-section-num { font-size: 28px !important; }
+          .proposal-section-heading { font-size: 20px !important; }
         }
       `}</style>
     </div>

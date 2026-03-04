@@ -33,7 +33,7 @@ export default function FinancingCalculator({
   };
 
   return (
-    <div style={{ padding: "0 40px 52px" }}>
+    <div className="proposal-section" style={{ padding: "0 40px 52px" }}>
       {/* Section label */}
       <div
         style={{
@@ -44,6 +44,7 @@ export default function FinancingCalculator({
         }}
       >
         <div
+          className="proposal-section-num"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: 48,
@@ -57,6 +58,7 @@ export default function FinancingCalculator({
         </div>
         <div>
           <h2
+            className="proposal-section-heading"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               fontSize: 28,
@@ -171,6 +173,7 @@ export default function FinancingCalculator({
                 {plan.label}
               </div>
               <div
+                className="proposal-fin-apr"
                 style={{
                   fontFamily: "'Barlow Condensed', sans-serif",
                   fontSize: 32,
@@ -272,6 +275,12 @@ export default function FinancingCalculator({
         @media (max-width: 900px) {
           .proposal-fin-bar { flex-direction: column !important; }
           .proposal-fin-plans { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 600px) {
+          .proposal-section { padding: 0 16px 28px !important; }
+          .proposal-section-num { font-size: 28px !important; }
+          .proposal-section-heading { font-size: 20px !important; }
+          .proposal-fin-apr { font-size: 24px !important; }
         }
       `}</style>
     </div>

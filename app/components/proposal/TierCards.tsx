@@ -126,7 +126,7 @@ export default function TierCards({
   getMonthly,
 }: TierCardsProps) {
   return (
-    <div style={{ padding: "52px 40px" }}>
+    <div className="proposal-section" style={{ padding: "52px 40px" }}>
       {/* Section label */}
       <div
         style={{
@@ -137,6 +137,7 @@ export default function TierCards({
         }}
       >
         <div
+          className="proposal-section-num"
           style={{
             fontFamily: "'Barlow Condensed', sans-serif",
             fontSize: 48,
@@ -150,6 +151,7 @@ export default function TierCards({
         </div>
         <div>
           <h2
+            className="proposal-section-heading"
             style={{
               fontFamily: "'Barlow Condensed', sans-serif",
               fontSize: 28,
@@ -314,6 +316,7 @@ export default function TierCards({
                   )}
                 </div>
                 <div
+                  className="proposal-tier-name"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
                     fontSize: 36,
@@ -470,6 +473,7 @@ export default function TierCards({
                     </div>
                     <div style={{ marginBottom: 6 }}>
                       <span
+                        className="proposal-tier-price"
                         style={{
                           fontFamily: "'Barlow Condensed', sans-serif",
                           fontSize: 46,
@@ -539,6 +543,7 @@ export default function TierCards({
                     </div>
                     <div style={{ marginBottom: 14 }}>
                       <span
+                        className="proposal-tier-price"
                         style={{
                           fontFamily: "'Barlow Condensed', sans-serif",
                           fontSize: 46,
@@ -601,6 +606,13 @@ export default function TierCards({
       <style>{`
         @media (max-width: 900px) {
           .proposal-tiers-grid { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 600px) {
+          .proposal-section { padding: 28px 16px !important; }
+          .proposal-section-num { font-size: 28px !important; }
+          .proposal-section-heading { font-size: 20px !important; }
+          .proposal-tier-name { font-size: 24px !important; }
+          .proposal-tier-price { font-size: 30px !important; }
         }
       `}</style>
     </div>

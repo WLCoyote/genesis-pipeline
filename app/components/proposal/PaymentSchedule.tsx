@@ -19,8 +19,9 @@ export default function PaymentSchedule({
   if (stages.length === 0) return null;
 
   return (
-    <div style={{ padding: "0 40px 40px" }}>
+    <div className="proposal-section proposal-payment" style={{ padding: "0 40px 40px" }}>
       <div
+        className="proposal-payment-card"
         style={{
           background: "rgba(21,101,192,0.06)",
           border: "1px solid rgba(30,136,229,0.15)",
@@ -41,7 +42,7 @@ export default function PaymentSchedule({
           Payment Schedule
         </div>
 
-        <div style={{ display: "flex", gap: 12, alignItems: "stretch" }}>
+        <div className="proposal-payment-stages" style={{ display: "flex", gap: 12, alignItems: "stretch" }}>
           {stages.map((step, i) => {
             const amount = step.fixed_amount ?? Math.round((totalAmount * step.percentage) / 100);
             return (
@@ -69,6 +70,7 @@ export default function PaymentSchedule({
                   {step.label}
                 </div>
                 <div
+                  className="proposal-payment-amount"
                   style={{
                     fontFamily: "'Barlow Condensed', sans-serif",
                     fontSize: 22,
@@ -104,6 +106,15 @@ export default function PaymentSchedule({
           })}
         </div>
       </div>
+
+      <style>{`
+        @media (max-width: 600px) {
+          .proposal-payment { padding: 0 16px 20px !important; }
+          .proposal-payment-card { padding: 14px 16px !important; }
+          .proposal-payment-stages { flex-direction: column !important; gap: 8px !important; }
+          .proposal-payment-amount { font-size: 18px !important; }
+        }
+      `}</style>
     </div>
   );
 }
