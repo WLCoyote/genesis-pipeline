@@ -1016,34 +1016,30 @@ Comfort Pros need mobile access to their pipeline, customer SMS, proposal engage
 - Created `app/components/ServiceWorkerRegistration.tsx`: client component, registers SW on mount
 - Modified `app/layout.tsx`: renders `<ServiceWorkerRegistration />` in body
 
-### Phase M2: Mobile Comfort Pro App
+### Phase M2: Mobile Comfort Pro App ✅ COMPLETE
 
-**M2A — Layout + Shell**
-- Create `app/m/layout.tsx`: server component with auth check (same pattern as dashboard/layout.tsx), role guard (comfort_pro + admin only, redirect CSR away)
-- Create `app/m/MobileShell.tsx`: client component — slim top header (44px, Genesis logo + NotificationBell), fixed bottom tab bar (56px: Pipeline | Commission | Notifications | Profile), safe-area padding for iPhone
-- Create `app/m/page.tsx`: redirect to /m/pipeline
-- Modify `app/components/NotificationBell.tsx`: add optional `basePath` prop (default "/dashboard") so /m/ routes navigate correctly
+**M2A — Layout + Shell** ✅
+- Created `app/m/layout.tsx`: auth + role guard (comfort_pro + admin only, CSR → dashboard redirect)
+- Created `app/m/MobileShell.tsx`: 48px header (Genesis + NotificationBell) + 56px bottom tabs (Pipeline/Commission/Notifications/Profile) + safe-area padding
+- Created `app/m/page.tsx`: redirect to /m/pipeline
+- Modified `app/components/NotificationBell.tsx`: added `basePath` prop (default "/dashboard")
 
-**M2B — Pipeline List**
-- Create `app/m/pipeline/page.tsx`: server component, fetch user's assigned estimates
-- Create `app/m/pipeline/MobilePipelineList.tsx`: client component — pill tabs (Pipeline/Won/Lost), search bar, card list with avatar/customer/amount/status/urgency, tap to navigate, "Load more" pagination. Reuses StatusBadge, getFollowUpStatus, getAvatarColor from existing components.
+**M2B — Pipeline List** ✅
+- Created `app/m/pipeline/page.tsx`: fetches user's assigned estimates (admin sees all)
+- Created `app/m/pipeline/MobilePipelineList.tsx`: pill tabs (Pipeline/Won/Lost), search bar, card list with avatars/amount/status/urgency, "Load more" pagination
 
-**M2C — Estimate Detail (highest complexity)**
-- Create `app/m/estimates/[id]/page.tsx`: server component, same data query as dashboard estimate detail
-- Create `app/m/estimates/[id]/MobileEstimateDetail.tsx`: client component — stacked single-column layout:
-  - Top: back button + customer name + status badge + amount
-  - Quick action strip: horizontal scroll of touch buttons (Send SMS, Call, Snooze, Won, Lost, Send Next, Skip)
-  - Sections (collapsible): SMS Conversation (reuse ConversationThread), Timeline (simplified FollowUpTimeline), Customer Info (reuse CustomerInfo), Proposal Activity (simplified ProposalEngagementPanel), Line Items (reuse LineItemsView/OptionsList)
-  - All API calls use existing routes
+**M2C — Estimate Detail** ✅
+- Created `app/m/estimates/[id]/page.tsx`: full data query + role guard (comfort pro sees own only)
+- Created `app/m/estimates/[id]/MobileEstimateDetail.tsx`: header with customer/status/amount, quick action strip (Call/Send Next/Skip/Won/Lost/View Proposal), collapsible sections (Messages, Customer, Line Items, Proposal Activity) reusing existing components
 
-**M2D — Commission**
-- Create `app/m/commission/page.tsx` + `MobileCommissionView.tsx`: 2x2 stat cards, tier progress bar (extract from CommissionDashboard), recent records as cards
+**M2D — Commission** ✅
+- Created `app/m/commission/page.tsx`: wraps existing CommissionDashboard with mobile-friendly header
 
-**M2E — Notifications**
-- Create `app/m/notifications/page.tsx` + `MobileNotificationList.tsx`: mark-all-read button, scrollable list with real-time Supabase subscription, tap to navigate
+**M2E — Notifications** ✅
+- Created `app/m/notifications/page.tsx` + `MobileNotificationList.tsx`: mark-all-read button, scrollable list with real-time Supabase subscription, tap to navigate to estimate
 
-**M2F — Profile**
-- Create `app/m/profile/page.tsx`: name/email/role display, push opt-in toggle (M4C), sign out, "Switch to Desktop View" link
+**M2F — Profile** ✅
+- Created `app/m/profile/page.tsx` + `MobileProfile.tsx`: user card with avatar/name/role/email/phone, "Switch to Desktop View" link, sign out button
 
 ### Phase M3: Responsive Dashboard Fixes
 

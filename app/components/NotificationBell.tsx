@@ -8,9 +8,10 @@ import NotificationItem from "./NotificationItem";
 
 interface NotificationBellProps {
   userId: string;
+  basePath?: string;
 }
 
-export default function NotificationBell({ userId }: NotificationBellProps) {
+export default function NotificationBell({ userId, basePath = "/dashboard" }: NotificationBellProps) {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [open, setOpen] = useState(false);
@@ -92,10 +93,10 @@ export default function NotificationBell({ userId }: NotificationBellProps) {
 
     // Navigate based on notification type
     if (notification.type === "unmatched_sms") {
-      router.push("/dashboard/inbox");
+      router.push(`${basePath}/inbox`);
       setOpen(false);
     } else if (notification.estimate_id) {
-      router.push(`/dashboard/estimates/${notification.estimate_id}`);
+      router.push(`${basePath}/estimates/${notification.estimate_id}`);
       setOpen(false);
     }
   };
