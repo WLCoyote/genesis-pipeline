@@ -997,7 +997,7 @@ Configurable payment milestone schedules replacing hardcoded standard/large_job 
 
 ---
 
-## PHASE 10: Mobile App + Responsive + PWA + Web Push — IN PROGRESS
+## PHASE 10: Mobile App + Responsive + PWA + Web Push ✅ COMPLETE
 
 Comfort Pros need mobile access to their pipeline, customer SMS, proposal engagement, and commission tracking. This phase delivers three things: (1) responsive fixes so the dashboard and proposal page work on iPhone, (2) a separate mobile-first `/m/` experience for Comfort Pros with bottom tab navigation, and (3) PWA installability with native web push notifications.
 
@@ -1131,6 +1131,111 @@ Focus: proposal page (customer-facing, viewed on phones). Uses inline styles —
 
 ### SQL Migration
 - `sql/033_push_subscriptions.sql`
+
+---
+
+## PHASE 10.1: Mobile Conversations Tab ✅ COMPLETE
+
+Add a 5th bottom tab to the mobile app — an SMS Conversations view showing all threads for the Comfort Pro's assigned estimates. Currently SMS is buried 3-4 taps deep (Pipeline → estimate → expand Messages). This gives Comfort Pros instant access to customer communication.
+
+**Tab order (updated):** Pipeline | Inbox | Commission | Alerts | Profile
+
+### Phase 10.1A — Conversations Server Page + Data Query ✅
+
+**Created: `app/m/inbox/page.tsx`** — Server component
+- Auth + role guard (same pattern as other `/m/` pages)
+- Fetches estimates with customer names, queries messages grouped by estimate_id
+- Builds thread objects: customer_name, estimate_number, last_message, last_message_at, unread (heuristic: last message direction = inbound)
+- Sorted by most recent message first
+- Passes to `<MobileInboxList>`
+
+### Phase 10.1B — Conversations List UI ✅
+
+**Created: `app/m/inbox/MobileInboxList.tsx`** — Client component
+- Thread list: customer avatar (gradient initials) + name, message preview (truncated), time ago, unread blue dot
+- Tap thread → navigate to `/m/estimates/[id]`
+- Search bar: filter by customer name or estimate number
+- Empty state: "No conversations yet"
+- Real-time: Supabase subscription on `messages` table INSERT events, auto-updates thread list + re-sorts
+- Unread count displayed in header ("X unread")
+
+### Phase 10.1C — Update MobileShell + Navigation ✅
+
+**Modified: `app/m/MobileShell.tsx`**
+- Added "Inbox" tab at position 2 (after Pipeline, before Commission)
+- Tab order: Pipeline | Inbox | Commission | Alerts | Profile
+- "Notifications" shortened to "Alerts" to fit 5 tabs
+- Inbox icon: chat bubble SVG (speech bubble with dots)
+- `isActive()` logic: `/m/inbox` prefix match
+
+### Phase 10.1D — Unread Badge on Tab ✅
+
+**Modified: `app/m/MobileShell.tsx`**
+- Red badge on Inbox tab icon shows unread conversation count
+- Unread heuristic: conversations where most recent message is `direction: "inbound"` (customer sent, pro hasn't replied)
+- Client-side fetch on mount + Supabase realtime subscription for live updates
+- Badge shows count (max "9+"), hidden when 0
+- No schema changes needed
+
+### New Files (2)
+
+| File | Phase |
+|------|-------|
+| `app/m/inbox/page.tsx` | 10.1A |
+| `app/m/inbox/MobileInboxList.tsx` | 10.1B |
+
+### Modified Files (1)
+
+| File | Phase | Change |
+|------|-------|--------|
+| `app/m/MobileShell.tsx` | 10.1C+D | Add Inbox tab (5th tab, position 2), unread badge, realtime subscription |
+
+### Complexity
+
+| Sub-phase | Complexity |
+|-----------|-----------|
+| 10.1A | Low-Medium |
+| 10.1B | Medium |
+| 10.1C | Low |
+| 10.1D | Low-Medium |
+
+---
+
+## PHASE 11: Native App Store Distribution (Future)
+
+Wrap the existing PWA in a native shell using Capacitor for Apple App Store and Google Play Store distribution. Not needed while the user base is internal (Comfort Pros on the Genesis team), but becomes valuable when selling to other HVAC companies or when Apple improves PWA app review policies.
+
+**Prerequisites:**
+- Apple Developer Account ($99/year)
+- Google Play Developer Account ($25 one-time)
+- Code signing certificates + provisioning profiles
+
+### Phase 11A — Capacitor Setup
+
+- Install `@capacitor/core` + `@capacitor/cli`
+- Create `capacitor.config.ts` with appId, appName, webDir
+- Generate iOS project (`npx cap add ios`)
+- Generate Android project (`npx cap add android`)
+
+### Phase 11B — iOS Build + App Store Submission
+
+- Configure Xcode project: signing, capabilities (push notifications, background modes)
+- App Store Connect: create app listing, screenshots, description, privacy policy URL
+- Build + archive → submit for review
+- **Risk:** Apple may reject thin web wrappers. May need to add native features (camera, GPS) to pass review.
+
+### Phase 11C — Android Build + Play Store Submission
+
+- Configure Android Studio: signing keystore, push config (FCM)
+- Play Console: create listing, screenshots, content rating questionnaire
+- Build APK/AAB → submit for review
+
+### Phase 11D — Native Push Integration
+
+- Replace web-push with native push (APNs for iOS, FCM for Android) via Capacitor Push Notifications plugin
+- Server-side: add device token storage + native push sender alongside existing web-push
+
+**Status:** Future — not started. Revisit when Genesis Pipeline goes multi-tenant or team size exceeds ~20 users.
 
 ---
 

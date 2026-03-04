@@ -56,7 +56,7 @@ The platform replaces the need for expensive tools like Mailchimp ($45–$350/mo
 - Full CRM — jobs, invoicing, scheduling remain in Housecall Pro
 - Payment processing — deposit collection handled in HCP
 - Payroll — commission is tracked here, payroll processing is in QuickBooks
-- Native mobile app — responsive web only
+- Native mobile app — PWA delivered in Phase 10 (`/m/` routes, 5-tab bottom nav, web push) + Phase 10.1 (Conversations/Inbox tab with SMS threads). Native App Store distribution (Capacitor wrapper) planned as Phase 11 when user base grows beyond internal team.
 - Public user signups — internal team access only via Google SSO
 
 ---

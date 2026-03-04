@@ -805,7 +805,7 @@ For MVP, the built-in dashboards of Supabase, Vercel, Resend, and Twilio provide
 ## Section 10 — Future Architecture Considerations
 
 - **Service Titan migration:** If Genesis moves from HCP to Service Titan, the integration layer is modular. Replace the HCP API routes with Service Titan equivalents; the rest of the system is unaffected.
-- **Mobile app:** The Supabase backend and Vercel API routes can serve a React Native mobile app with no backend changes.
+- **Mobile app (App Store):** Phase 10 delivered a full PWA at `/m/` with bottom-tab navigation (5 tabs: Pipeline, Inbox, Commission, Alerts, Profile), web push, and offline support. Phase 10.1 added a Conversations tab (Inbox) showing SMS threads for assigned estimates with unread badges and realtime updates. Phase 11 (future) will wrap this in Capacitor for Apple App Store and Google Play Store distribution. The Supabase backend and Vercel API routes require no backend changes — Capacitor wraps the existing web app in a native shell. Native push (APNs/FCM) would replace web-push for better reliability on iOS.
 - **Multi-location:** The data model supports adding a `location_id` to estimates and users for multi-branch operations.
 - **Advanced AI:** The Phase 3 AI layer can expand to predictive lead scoring, optimal send-time analysis, and automated A/B testing recommendations.
 - **Gensco price feed:** Phase 2 integration to auto-update equipment costs from supplier pricing. Schema ready (`gensco_sku`, `last_price_sync` on `pricebook_items`).
