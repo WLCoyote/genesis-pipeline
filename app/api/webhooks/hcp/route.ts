@@ -72,6 +72,13 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.text();
 
+    // HCP sends {"foo":"bar"} as a connectivity test when saving the webhook URL
+    const parsed = JSON.parse(body);
+    if (parsed.foo === "bar") {
+      console.log(`${tag} HCP test ping — OK`);
+      return NextResponse.json({ received: true });
+    }
+
     // Verify HMAC signature if secret is configured
     const webhookSecret = process.env.HCP_WEBHOOK_SECRET;
     if (webhookSecret) {
@@ -84,7 +91,7 @@ export async function POST(request: NextRequest) {
       console.warn(`${tag} HCP_WEBHOOK_SECRET not set — skipping signature check`);
     }
 
-    const event = JSON.parse(body);
+    const event = parsed;
     const eventType: string = event.event || event.type || "";
 
     console.log(`${tag} Event: ${eventType}`, JSON.stringify(event).slice(0, 500));
