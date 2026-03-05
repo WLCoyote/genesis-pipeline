@@ -35,14 +35,30 @@ export async function pollHcpEstimates(
 
   console.log("[HCP Poll] Starting...");
 
-  // Read auto_decline_days from settings
-  const { data: setting } = await supabase
+  // Read settings
+  const { data: settingsRows } = await supabase
     .from("settings")
-    .select("value")
-    .eq("key", "auto_decline_days")
-    .single();
+    .select("key, value")
+    .in("key", ["auto_decline_days", "hcp_tag_filter_enabled", "hcp_exclude_tags"]);
 
-  const autoDeclineDays = (setting?.value as number) || 60;
+  const settingsMap: Record<string, unknown> = {};
+  for (const row of settingsRows || []) {
+    settingsMap[row.key] = row.value;
+  }
+
+  const autoDeclineDays = (settingsMap.auto_decline_days as number) || 60;
+  const tagFilterEnabled = settingsMap.hcp_tag_filter_enabled === true;
+  const excludeTagsRaw = (settingsMap.hcp_exclude_tags as string) || "";
+  const excludeTags = tagFilterEnabled
+    ? excludeTagsRaw
+        .split(",")
+        .map((t) => t.trim().toLowerCase())
+        .filter(Boolean)
+    : [];
+
+  if (tagFilterEnabled && excludeTags.length > 0) {
+    console.log(`[HCP Poll] Tag filter ON — excluding: ${excludeTags.join(", ")}`);
+  }
 
   // Cutoff date for filtering estimates by age (in code, not API params)
   // HCP's scheduled_start filters are for appointment date, not creation date
@@ -170,7 +186,7 @@ export async function pollHcpEstimates(
             // --- NEW: create if sent to customer ("awaiting response") ---
             const created = await handleNewEstimate(
               supabase, hcpEstimate, hcpId, hcpEstNumber, hcpOptions,
-              autoDeclineDays, defaultSequence?.id || null, userByName, results
+              autoDeclineDays, defaultSequence?.id || null, userByName, excludeTags, results
             );
 
             // Add to index so we don't re-process on subsequent pages
@@ -221,8 +237,23 @@ async function handleNewEstimate(
   autoDeclineDays: number,
   defaultSequenceId: string | null,
   userByName: Record<string, { id: string; name: string }>,
+  excludeTags: string[],
   results: PollResult
 ): Promise<boolean> {
+  // Check option tags against exclusion list
+  if (excludeTags.length > 0) {
+    const allOptionTags = hcpOptions.flatMap((o) => {
+      const tags = (o.tags || []) as string[];
+      return tags.map((t) => t.toLowerCase());
+    });
+    const matched = excludeTags.find((et) => allOptionTags.includes(et));
+    if (matched) {
+      console.log(`[HCP Poll] Skipped ${hcpEstNumber} — excluded tag: "${matched}"`);
+      results.skipped++;
+      return false;
+    }
+  }
+
   // Check if estimate was sent to customer
   // HCP uses option.status = "submitted for signoff" when sent (not approval_status)
   // Also check approval_status for already-resolved estimates (approved/declined)

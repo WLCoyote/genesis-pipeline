@@ -912,9 +912,44 @@ Wired into:
 
 ## FUTURE PHASES
 
-### Version 0.2: Real-Time Sync & Analytics
-- HCP webhook for automatic estimate ingestion (no more CSV for new records)
-- Pipeline analytics dashboard: conversion rates, avg close time, per-comfort-pro metrics
+### Version 0.2: Real-Time HCP Sync — PLANNED (next up)
+
+**Analytics:** Already complete (Phase 8.2) — close rate, avg days to close, per-rep performance, pipeline stats, activity feed.
+
+**HCP Webhook Receiver:** Real-time estimate ingestion via HCP webhooks (replaces reliance on 3x daily polling).
+
+HCP supports 47 webhook events. Estimate-specific events we'll handle:
+- `estimate.created` — new estimate in HCP → import immediately
+- `estimate.sent` — sent to customer → activate in pipeline
+- `estimate.updated` — general update → refresh fields
+- `estimate.option.approval_status_changed` — customer approved/declined → won/lost transition
+
+**Implementation (3 files):**
+
+1. **`lib/hcp-polling.ts`** — Export existing `handleNewEstimate` and `handleExistingEstimate` (add `export` keyword, no logic changes)
+2. **`app/api/webhooks/hcp/route.ts`** — New POST endpoint:
+   - HMAC-SHA256 signature verification via `HCP_WEBHOOK_SECRET` (follows Resend webhook pattern)
+   - Extracts estimate ID from payload → fetches full estimate from `GET /estimates/{id}` (guaranteed complete data with options[])
+   - Reads settings (auto_decline_days, tag filter), builds user name map, checks if estimate exists locally
+   - Delegates to exported `handleNewEstimate` or `handleExistingEstimate` — same logic as polling, zero duplication
+   - Always returns 200 to HCP (prevents retry storms). Errors logged internally.
+3. **Doc updates** — `ENV_MANIFEST.md` + `API_Routes.md`
+
+**New env var:** `HCP_WEBHOOK_SECRET` — signing secret provided by HCP when registering webhook URL.
+
+**HCP Configuration (manual, in HCP UI):**
+- My Apps → Webhooks → enable
+- Endpoint: `https://app.genesishvacr.com/api/webhooks/hcp`
+- Select events: estimate.created, estimate.sent, estimate.updated, estimate.option.approval_status_changed
+- Copy signing secret → Vercel env var
+
+**Note:** HCP webhooks require the MAX plan. Polling cron stays as safety net — can reduce to 1x daily after webhook reliability confirmed.
+
+**Key decisions:**
+- Always fetch full estimate from HCP API on webhook (payload format undocumented)
+- Reuse existing handler functions (no code duplication)
+- Keep polling cron unchanged as fallback
+- Idempotent via upsert on estimate_number (webhook + polling can't create duplicates)
 
 ### Phase 2+: Marketing Campaigns
 - Customer segmentation and audience builder

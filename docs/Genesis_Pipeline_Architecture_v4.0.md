@@ -26,7 +26,7 @@ Prepared for Wylee — Genesis Refrigeration & HVAC  •  Monroe, WA  •  Febru
 | Cron jobs | Vercel Cron (`vercel.json`) | Sequence execution 7x daily, HCP polling 3x daily, auto-decline 1x daily, commission confirmation 1x daily. |
 | Email | Resend | Transactional follow-up and proposal notifications from `marketing@genesishvacr.com`. Webhooks for open/click tracking. |
 | SMS | Twilio Messaging Service | Two-way SMS via 425-261-9095 hosted on Twilio. Outbound via Messaging Service SID `MGd102dd6d19268d0e867c30f9457caf2f`. A2P 10DLC registered. |
-| HCP integration | Housecall Pro REST API | GET estimates (polling), POST customers, POST estimates, POST options/decline, POST options/approve. Bearer token auth. |
+| HCP integration | Housecall Pro REST API | GET estimates (polling + webhook-triggered fetch), POST customers, POST estimates, POST options/decline, POST options/approve. Bearer token auth. Inbound webhooks via HMAC-SHA256 signing secret. |
 | QBO integration | QuickBooks Online API | Read invoice paid status for commission confirmation. OAuth 2.0 with refresh token. Tokens stored encrypted in settings table. |
 | Tax lookup | WA DOR Address API | `https://webgis.dor.wa.gov/webapi/addressrates.aspx` — free, no auth. Rate fetched at proposal generation. Cached on estimate record. |
 | Signatures | react-signature-canvas | Click-to-type or draw on mobile. Signature image + IP + timestamp stored. PDF generated via react-pdf. |
@@ -499,6 +499,7 @@ Admin-configurable. Tags that trigger the 4-payment schedule on proposals.
 |-------|--------|---------------|
 | `/api/webhooks/twilio` | POST | Twilio signature validation. Inbound SMS from customers. |
 | `/api/webhooks/resend` | POST | Resend signature validation. Email open/click/bounce events. |
+| `/api/webhooks/hcp` | POST | HMAC-SHA256 via `HCP_WEBHOOK_SECRET`. Real-time HCP estimate events (created, sent, updated, option.approval_status_changed). Fetches full estimate from HCP API, delegates to `handleNewEstimate`/`handleExistingEstimate` from `lib/hcp-polling.ts`. (v0.2) |
 | `/api/leads/inbound` | POST | Bearer `LEADS_WEBHOOK_SECRET`. Accepts leads from Retell AI, Webflow, Zapier, Facebook, Google. |
 | `/proposals/[token]` | GET | Public — no auth. Customer-facing proposal page. Token-gated. |
 | `/api/proposals/[token]/sign` | POST | Public — no auth. Customer submits signature. Records signature + status=won (blocking), then fire-and-forget: PDF generation, Supabase Storage upload, HCP option approve/decline + PDF attachment + note, confirmation email with PDF, notifications, skip follow-up steps. |
@@ -719,7 +720,7 @@ Admin creates campaign, selects audience via tag/segment filters, sets "not cont
 | `/app/components/LineItemsView.tsx` | Displays estimate_line_items grouped by tier for Pipeline-built estimates (replaces OptionsList). Shows addons, subtotal/tax/total breakdown. |
 | `/app/api/v1/` | Command Layer endpoints. `GENESIS_INTERNAL_API_KEY` auth. Standard response envelope. |
 | `/app/api/cron/` | All cron job routes. `CRON_SECRET` auth. |
-| `/app/api/webhooks/` | Twilio and Resend inbound webhooks. |
+| `/app/api/webhooks/` | Twilio, Resend, and HCP inbound webhooks. |
 | `/app/api/proposals/` | Sign and engage routes. Public — token-gated only. |
 | `/lib/hcp-pricebook.ts` | HCP Pricebook API client. `fetchAllHcpMaterials()`, `fetchAllHcpServices()`, `createHcpMaterial()`, `updateHcpMaterial()`, `buildHcpDescription()`. |
 | `/lib/hcp-estimate.ts` | HCP Estimate API client. `createHcpCustomer()`, `createHcpEstimate()`, `syncEstimateToHcp()`. Maps Pipeline tiers → HCP options, converts $ → cents. |
@@ -755,6 +756,7 @@ Admin creates campaign, selects audience via tag/segment filters, sets "not cont
 | `TWILIO_PHONE_NUMBER` | Server only | `+14252619095` |
 | `RESEND_API_KEY` | Server only | Resend transactional email API |
 | `RESEND_WEBHOOK_SECRET` | Server only | Resend webhook signature validation. Set from Resend dashboard. |
+| `HCP_WEBHOOK_SECRET` | Server only | HCP webhook signing secret. Set from HCP My Apps → Webhooks. (v0.2) |
 | `QBO_CLIENT_ID` | Server only | QuickBooks OAuth client ID |
 | `QBO_CLIENT_SECRET` | Server only | QuickBooks OAuth client secret |
 
@@ -804,6 +806,7 @@ For MVP, the built-in dashboards of Supabase, Vercel, Resend, and Twilio provide
 
 ## Section 10 — Future Architecture Considerations
 
+- **HCP real-time webhooks (v0.2 — planned):** HCP supports 47 webhook events including estimate lifecycle events. `/api/webhooks/hcp` receives real-time events (estimate.created, sent, updated, option.approval_status_changed), fetches the full estimate from HCP API, and processes via the same `handleNewEstimate`/`handleExistingEstimate` functions used by polling. Polling cron stays as safety net. Requires HCP MAX plan.
 - **Service Titan migration:** If Genesis moves from HCP to Service Titan, the integration layer is modular. Replace the HCP API routes with Service Titan equivalents; the rest of the system is unaffected.
 - **Mobile app (App Store):** Phase 10 delivered a full PWA at `/m/` with bottom-tab navigation (5 tabs: Pipeline, Inbox, Commission, Alerts, Profile), web push, and offline support. Phase 10.1 added a Conversations tab (Inbox) showing SMS threads for assigned estimates with unread badges and realtime updates. Phase 11 (future) will wrap this in Capacitor for Apple App Store and Google Play Store distribution. The Supabase backend and Vercel API routes require no backend changes — Capacitor wraps the existing web app in a native shell. Native push (APNs/FCM) would replace web-push for better reliability on iOS.
 - **Multi-location:** The data model supports adding a `location_id` to estimates and users for multi-branch operations.

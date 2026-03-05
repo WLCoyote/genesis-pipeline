@@ -34,6 +34,7 @@ These variables exist in every Genesis Next.js app.
 | `TWILIO_PHONE_NUMBER` | Twilio sender number | Server only |
 | `RESEND_API_KEY` | Resend email API | Server only |
 | `HCP_API_KEY` | Housecall Pro API | Server only |
+| `HCP_WEBHOOK_SECRET` | HCP webhook signing secret (from HCP My Apps → Webhooks) | Server only |
 | `LEADS_WEBHOOK_SECRET` | Inbound lead webhook auth | Server only |
 
 ### Inspection — `genesis-inspect.vercel.app`

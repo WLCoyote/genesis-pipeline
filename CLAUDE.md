@@ -230,7 +230,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 10 M5 | Mobile Polish — auto-redirect comfort pros, iOS viewport-fit, bundle splitting verification | **Complete** |
 | Phase 10.1 | Mobile Conversations Tab — 5th bottom tab (Inbox) showing SMS threads for assigned estimates, customer avatars, unread badges, tap to reply | **Complete** |
 | Phase 11 | Native App Store Distribution — Capacitor wrapper for iOS App Store + Google Play Store | **Future** — revisit when multi-tenant or team >20 |
-| v0.2 | HCP webhooks, analytics | Future |
+| v0.2 | HCP Real-Time Webhooks — `/api/webhooks/hcp` receiver for estimate events (created, sent, updated, approval_status_changed). Analytics already done (Phase 8.2). | **Planned** — next up |
 | Phase 2+ | Campaigns & segmentation | Future |
 | Phase 3+ | AI, weather triggers | Future |
 
@@ -282,4 +282,6 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | ~~Configurable payment terms~~ | **Done** (Backlog C) — sql/032 payment_schedules table, admin CRUD, QB payment schedule selector, dynamic PaymentSchedule proposal component, proposal-pdf.ts dynamic stages, backward-compatible fallback from legacy `payment_schedule_type` |
 | ~~Mobile app (PWA) for Comfort Pros~~ | **Done** (Phase 10) — M1 PWA Foundation, M2 Mobile `/m/` routes, M3 responsive proposal, M4 web push, M5 auto-redirect + iOS polish + bundle splitting |
 | ~~Mobile Conversations tab (Inbox)~~ | **Done** (Phase 10.1) — 5th bottom tab (Inbox) at `/m/inbox`, SMS threads for assigned estimates, customer avatars, unread badge on tab, realtime updates, search by name/estimate# |
+| HCP estimate tag filter | **Done** — Toggle in Settings to exclude estimates by option tag (e.g., "Service Estimate"). `hcp_tag_filter_enabled` + `hcp_exclude_tags` settings, filter in `handleNewEstimate`. |
+| HCP real-time webhooks | **v0.2 (Planned)** — `/api/webhooks/hcp` POST endpoint, HMAC-SHA256 auth, reuses `handleNewEstimate`/`handleExistingEstimate` from polling. Requires HCP MAX plan. |
 | Native App Store distribution | **Phase 11 (Future)** — Capacitor wrapper for iOS App Store + Google Play. Revisit when multi-tenant or team >20 users. |

@@ -249,6 +249,63 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
           </div>
         </div>
 
+        {/* HCP Tag Filter */}
+        <div className="mb-5 pb-5 border-b border-gray-200 dark:border-gray-700">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            HCP Estimate Tag Filter
+          </label>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mb-2">
+            Skip importing new estimates from HCP when any option has a matching tag.
+          </p>
+          <div className="flex items-center gap-3 mb-3">
+            <button
+              type="button"
+              onClick={() =>
+                setValues((prev) => ({
+                  ...prev,
+                  hcp_tag_filter_enabled: !prev.hcp_tag_filter_enabled,
+                }))
+              }
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                values.hcp_tag_filter_enabled
+                  ? "bg-blue-600"
+                  : "bg-gray-300 dark:bg-gray-600"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  values.hcp_tag_filter_enabled ? "translate-x-6" : "translate-x-1"
+                }`}
+              />
+            </button>
+            <span className="text-sm text-gray-700 dark:text-gray-300">
+              {values.hcp_tag_filter_enabled ? "Enabled" : "Disabled"}
+            </span>
+          </div>
+          {values.hcp_tag_filter_enabled && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Tags to Exclude (comma-separated)
+              </label>
+              <input
+                type="text"
+                value={String(values.hcp_exclude_tags ?? "")}
+                onChange={(e) =>
+                  setValues((prev) => ({
+                    ...prev,
+                    hcp_exclude_tags: e.target.value,
+                  }))
+                }
+                placeholder="Service Estimate, Service Estimate (Estimate Type)"
+                className={inputClass}
+              />
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                Estimates with any option tagged with these names will be skipped during HCP polling.
+              </p>
+            </div>
+          )}
+        </div>
+
         <div className="space-y-4">
           {pipelineSettingsConfig.map((setting) => (
             <div key={setting.key}>
