@@ -118,7 +118,7 @@ Complete dashboard UI with dark mode, all user-facing features.
 - Inbox POST route rewritten to call Twilio directly (Vercel can't self-fetch) ✅
 - A2P 10DLC campaign resubmitted (first rejected for MESSAGE_FLOW — resubmitted Feb 25 with detailed verbal + web form opt-in) ✅
 
-**Blocked:** A2P campaign carrier approval. Outbound SMS returns error 30034 until approved.
+**Blocked:** A2P campaign carrier approval. Outbound SMS returns error 30034 until approved. 3 rejections so far (MESSAGE_FLOW, then two more). Attempt 4 in progress — added `/sms-consent` public page with proper verbal opt-in CTA and consent language for CTIA compliance. Resubmitting with updated opt-in flow pointing to consent page.
 
 ### Step 4.4: End-to-End Testing Checklist
 
@@ -151,6 +151,8 @@ Run through each scenario with real data after A2P approval:
 **IMPORTANT:** Do not launch to the team until every item above passes.
 
 ### Build Notes (deployment bugs discovered and fixed)
+
+**v3.2.1 (Mar 2026):** A2P 10DLC campaign attempt 4 in progress. 3 prior rejections. Added `/sms-consent` public page with verbal opt-in CTA and CTIA-compliant consent language. Resubmitting campaign with consent page URL. Outbound SMS remains blocked (error 30034) until approved.
 
 **v3.2:** Twilio Messaging Service integrated. All SMS routes use `messagingServiceSid`. Inbox route calls Twilio directly. Error display on SMS components. A2P campaign first submission rejected (MESSAGE_FLOW too vague), resubmitted with detailed opt-in process.
 
@@ -912,7 +914,9 @@ Wired into:
 
 ## FUTURE PHASES
 
-### Version 0.2: Real-Time HCP Sync — ✅ COMPLETE
+### Version 0.2: Real-Time HCP Sync — ✅ COMPLETE & DEPLOYED
+
+**Status:** Webhook code is deployed and working. Events received from HCP confirmed in production.
 
 **Analytics:** Already complete (Phase 8.2) — close rate, avg days to close, per-rep performance, pipeline stats, activity feed.
 
@@ -962,6 +966,16 @@ Wired into:
 - HCP job amounts are in cents → divide by 100 (same pattern as estimate options in `hcp-polling.ts`)
 - Always fetch full entity from HCP API (webhook payload format undocumented)
 - Idempotent via upsert on estimate_number (webhook + polling can't create duplicates)
+
+**Deployment fixes (post-launch):**
+- **Payload structure mismatch:** HCP sends entity IDs at `event.estimate.id` (nested object), not `event.data.estimate_id` (flat). Fixed all event handlers to read from correct path.
+- **Test ping bypass:** HCP sends `{"foo":"bar"}` POST as a connectivity test when first configuring webhooks. Was returning 403 (failed HMAC). Added early bypass to return 200 for test pings.
+
+**Known issues:**
+- **HCP retry backlog:** HCP auto-disabled the webhook endpoint due to accumulated failed deliveries from the payload/ping issues above. Need HCP support to clear the retry queue and re-enable. Polling cron (3x daily) still covers estimate import in the meantime — no data loss.
+
+**A2P / SMS Consent Page:**
+- Added `/sms-consent` public page for A2P 10DLC campaign resubmission (attempt 4). Page provides proper verbal opt-in CTA and consent language required by CTIA. A2P still blocked — 3 rejections so far, resubmitting with consent page URL in campaign description.
 
 ### Phase 2+: Marketing Campaigns
 - Customer segmentation and audience builder

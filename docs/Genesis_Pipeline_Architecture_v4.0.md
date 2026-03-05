@@ -26,7 +26,7 @@ Prepared for Wylee — Genesis Refrigeration & HVAC  •  Monroe, WA  •  Febru
 | Cron jobs | Vercel Cron (`vercel.json`) | Sequence execution 7x daily, HCP polling 3x daily, auto-decline 1x daily, commission confirmation 1x daily. |
 | Email | Resend | Transactional follow-up and proposal notifications from `marketing@genesishvacr.com`. Webhooks for open/click tracking. |
 | SMS | Twilio Messaging Service | Two-way SMS via 425-261-9095 hosted on Twilio. Outbound via Messaging Service SID `MGd102dd6d19268d0e867c30f9457caf2f`. A2P 10DLC registered. |
-| HCP integration | Housecall Pro REST API | GET estimates (polling + webhook-triggered fetch), POST customers, POST estimates, POST options/decline, POST options/approve. Bearer token auth. Inbound webhooks via HMAC-SHA256 signing secret. |
+| HCP integration | Housecall Pro REST API | GET estimates (polling + webhook-triggered fetch), POST customers, POST estimates, POST options/decline, POST options/approve. Bearer token auth. Inbound webhooks via HMAC-SHA256 signing secret (optional — signature check skipped if `HCP_WEBHOOK_SECRET` not set). Webhook payloads use `event.estimate.id`, `event.customer.id`, `event.job.id` (not `event.data.*`). HCP sends a test ping (`{"foo":"bar"}`) to verify the URL — must return 200 before any signature check. |
 | QBO integration | QuickBooks Online API | Read invoice paid status for commission confirmation. OAuth 2.0 with refresh token. Tokens stored encrypted in settings table. |
 | Tax lookup | WA DOR Address API | `https://webgis.dor.wa.gov/webapi/addressrates.aspx` — free, no auth. Rate fetched at proposal generation. Cached on estimate record. |
 | Signatures | react-signature-canvas | Click-to-type or draw on mobile. Signature image + IP + timestamp stored. PDF generated via react-pdf. |
@@ -502,7 +502,7 @@ Admin-configurable. Tags that trigger the 4-payment schedule on proposals.
 |-------|--------|---------------|
 | `/api/webhooks/twilio` | POST | Twilio signature validation. Inbound SMS from customers. |
 | `/api/webhooks/resend` | POST | Resend signature validation. Email open/click/bounce events. |
-| `/api/webhooks/hcp` | POST | HMAC-SHA256 via `HCP_WEBHOOK_SECRET`. 10 HCP events: customer.updated/deleted, estimate.created (log only)/completed (primary import)/sent/updated, estimate.option.approval_status_changed/created, estimate.copy_to_job, job.paid (commission confirm). Fetches full entity from HCP API, delegates to handler functions. (v0.2) |
+| `/api/webhooks/hcp` | POST | HMAC-SHA256 via `HCP_WEBHOOK_SECRET` (optional — skipped if env var not set). Returns 200 for HCP test ping (`{"foo":"bar"}`) before signature check. 10 HCP events: customer.updated/deleted, estimate.created (log only)/completed (primary import)/sent/updated, estimate.option.approval_status_changed/created, estimate.copy_to_job, job.paid (commission confirm). Payload structure: entity IDs at `event.estimate.id`, `event.customer.id`, `event.job.id` (not `event.data.*`). Fetches full entity from HCP API, delegates to handler functions. (v0.2) |
 | `/api/leads/inbound` | POST | Bearer `LEADS_WEBHOOK_SECRET`. Accepts leads from Retell AI, Webflow, Zapier, Facebook, Google. |
 | `/proposals/[token]` | GET | Public — no auth. Customer-facing proposal page. Token-gated. |
 | `/api/proposals/[token]/sign` | POST | Public — no auth. Customer submits signature. Records signature + status=won (blocking), then fire-and-forget: PDF generation, Supabase Storage upload, HCP option approve/decline + PDF attachment + note, confirmation email with PDF, notifications, skip follow-up steps. |
@@ -759,7 +759,7 @@ Admin creates campaign, selects audience via tag/segment filters, sets "not cont
 | `TWILIO_PHONE_NUMBER` | Server only | `+14252619095` |
 | `RESEND_API_KEY` | Server only | Resend transactional email API |
 | `RESEND_WEBHOOK_SECRET` | Server only | Resend webhook signature validation. Set from Resend dashboard. |
-| `HCP_WEBHOOK_SECRET` | Server only | HCP webhook signing secret. Set from HCP My Apps → Webhooks. (v0.2) |
+| `HCP_WEBHOOK_SECRET` | Server only | HCP webhook signing secret. Set from HCP My Apps → Webhooks. **Optional** — if not set, signature verification is skipped (useful for dev/testing). (v0.2) |
 | `QBO_CLIENT_ID` | Server only | QuickBooks OAuth client ID |
 | `QBO_CLIENT_SECRET` | Server only | QuickBooks OAuth client secret |
 
@@ -809,7 +809,7 @@ For MVP, the built-in dashboards of Supabase, Vercel, Resend, and Twilio provide
 
 ## Section 10 — Future Architecture Considerations
 
-- **HCP real-time webhooks (v0.2 — complete):** `/api/webhooks/hcp` handles 10 HCP events across customers, estimates, and jobs. Customer sync (updated/deleted), estimate lifecycle (created→log, completed→import, sent, updated, option.*), job linking (copy_to_job), and real-time commission confirmation (job.paid). sql/034 added `hcp_job_id`, `job_paid_at`, `job_paid_amount` to estimates. Polling cron stays as safety net. Requires HCP MAX plan.
+- **HCP real-time webhooks (v0.2 — complete):** `/api/webhooks/hcp` handles 10 HCP events across customers, estimates, and jobs. Customer sync (updated/deleted), estimate lifecycle (created→log, completed→import, sent, updated, option.*), job linking (copy_to_job), and real-time commission confirmation (job.paid). sql/034 added `hcp_job_id`, `job_paid_at`, `job_paid_amount` to estimates. Polling cron stays as safety net. Requires HCP MAX plan. **Payload notes:** HCP webhook payloads use `event.estimate.id`, `event.customer.id`, `event.job.id` to reference entity IDs (not `event.data.*`). HCP sends a test ping POST with `{"foo":"bar"}` to verify the URL — the handler returns 200 immediately for this ping before any signature validation. `HCP_WEBHOOK_SECRET` is optional; if not configured, HMAC signature verification is skipped.
 - **Service Titan migration:** If Genesis moves from HCP to Service Titan, the integration layer is modular. Replace the HCP API routes with Service Titan equivalents; the rest of the system is unaffected.
 - **Mobile app (App Store):** Phase 10 delivered a full PWA at `/m/` with bottom-tab navigation (5 tabs: Pipeline, Inbox, Commission, Alerts, Profile), web push, and offline support. Phase 10.1 added a Conversations tab (Inbox) showing SMS threads for assigned estimates with unread badges and realtime updates. Phase 11 (future) will wrap this in Capacitor for Apple App Store and Google Play Store distribution. The Supabase backend and Vercel API routes require no backend changes — Capacitor wraps the existing web app in a native shell. Native push (APNs/FCM) would replace web-push for better reliability on iOS.
 - **Multi-location:** The data model supports adding a `location_id` to estimates and users for multi-branch operations.

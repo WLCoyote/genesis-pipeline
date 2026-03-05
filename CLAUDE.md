@@ -182,7 +182,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 1 | Database & auth | Complete |
 | Phase 2 | Backend API routes & cron jobs | Complete |
 | Phase 3 | Frontend dashboard + dark mode | Complete |
-| Phase 4 | Deployment & E2E testing | In progress — blocked on A2P campaign approval for outbound SMS |
+| Phase 4 | Deployment & E2E testing | In progress — blocked on A2P campaign approval (3 rejections, attempt 4 pending with `/sms-consent` page) |
 | Phase 5 | Team launch | Not started |
 | Phase 6.1–6.5 | Pricebook CRUD, HCP import/sync, markup tiers, labor calc, manual price flag, bulk recalculate from tiers, bulk actions, cascading nav, dynamic categories, suppliers, bulk edit, refrigerant indicators, rich HCP descriptions, adaptive form fields by category | **Complete** |
 | Phase 6.6A | Database migrations (quote templates, estimate line items, financing plans, proposal engagement, large job tags + estimate columns) | **Complete** |
@@ -230,7 +230,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 10 M5 | Mobile Polish — auto-redirect comfort pros, iOS viewport-fit, bundle splitting verification | **Complete** |
 | Phase 10.1 | Mobile Conversations Tab — 5th bottom tab (Inbox) showing SMS threads for assigned estimates, customer avatars, unread badges, tap to reply | **Complete** |
 | Phase 11 | Native App Store Distribution — Capacitor wrapper for iOS App Store + Google Play Store | **Future** — revisit when multi-tenant or team >20 |
-| v0.2 | HCP Real-Time Webhooks — `/api/webhooks/hcp` receiver for 10 events (customer.updated/deleted, estimate.created/completed/sent/updated, option.approval_status_changed/created, estimate.copy_to_job, job.paid). sql/034 adds hcp_job_id + job payment fields. job.paid confirms commission in real-time. | **Complete** — sql/034 run in Supabase |
+| v0.2 | HCP Real-Time Webhooks — `/api/webhooks/hcp` receiver for 10 events (customer.updated/deleted, estimate.created/completed/sent/updated, option.approval_status_changed/created, estimate.copy_to_job, job.paid). sql/034 adds hcp_job_id + job payment fields. job.paid confirms commission in real-time. | **Complete** — sql/034 run in Supabase. Code deployed, events confirmed received. HCP auto-disabling due to retry backlog — needs HCP support to clear. |
 | Phase 2+ | Campaigns & segmentation | Future |
 | Phase 3+ | AI, weather triggers | Future |
 
@@ -283,5 +283,6 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | ~~Mobile app (PWA) for Comfort Pros~~ | **Done** (Phase 10) — M1 PWA Foundation, M2 Mobile `/m/` routes, M3 responsive proposal, M4 web push, M5 auto-redirect + iOS polish + bundle splitting |
 | ~~Mobile Conversations tab (Inbox)~~ | **Done** (Phase 10.1) — 5th bottom tab (Inbox) at `/m/inbox`, SMS threads for assigned estimates, customer avatars, unread badge on tab, realtime updates, search by name/estimate# |
 | HCP estimate tag filter | **Done** — Toggle in Settings to exclude estimates by option tag (e.g., "Service Estimate"). `hcp_tag_filter_enabled` + `hcp_exclude_tags` settings, filter in `handleNewEstimate`. |
-| ~~HCP real-time webhooks~~ | **Done** (v0.2) — `/api/webhooks/hcp` handles 10 events: customer sync, estimate lifecycle (completed=primary import, created=log only), option events, estimate.copy_to_job (stores hcp_job_id), job.paid (real-time commission confirm). sql/034 adds hcp_job_id, job_paid_at, job_paid_amount to estimates. |
+| ~~HCP real-time webhooks~~ | **Done** (v0.2) — `/api/webhooks/hcp` handles 10 events: customer sync, estimate lifecycle (completed=primary import, created=log only), option events, estimate.copy_to_job (stores hcp_job_id), job.paid (real-time commission confirm). sql/034 adds hcp_job_id, job_paid_at, job_paid_amount to estimates. HCP payload uses `event.estimate.id` / `event.customer.id` / `event.job.id`. |
+| A2P 10DLC SMS approval | **Blocked** — 3 rejections (opt-in CTA, privacy policy). Attempt 4 pending with `/sms-consent` page (verbal consent script, CTIA disclosures). `/privacy` and `/terms` pages already deployed. |
 | Native App Store distribution | **Phase 11 (Future)** — Capacitor wrapper for iOS App Store + Google Play. Revisit when multi-tenant or team >20 users. |
