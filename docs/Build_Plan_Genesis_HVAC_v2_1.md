@@ -970,9 +970,10 @@ Wired into:
 **Deployment fixes (post-launch):**
 - **Payload structure mismatch:** HCP sends entity IDs at `event.estimate.id` (nested object), not `event.data.estimate_id` (flat). Fixed all event handlers to read from correct path.
 - **Test ping bypass:** HCP sends `{"foo":"bar"}` POST as a connectivity test when first configuring webhooks. Was returning 403 (failed HMAC). Added early bypass to return 200 for test pings.
+- **Response timing fix:** All event processing moved to Next.js `after()` background execution. The 200 response now returns instantly to HCP, preventing the 5-second timeout that was causing auto-disable. Commit `5c0af7f`.
 
 **Known issues:**
-- **HCP retry backlog:** HCP auto-disabled the webhook endpoint due to accumulated failed deliveries from the payload/ping issues above. Need HCP support to clear the retry queue and re-enable. Polling cron (3x daily) still covers estimate import in the meantime — no data loss.
+- **HCP retry backlog:** The `after()` timing fix above should prevent new timeouts from causing auto-disable going forward. However, the existing retry backlog of old failed deliveries (from the payload/ping issues) may still need HCP support to clear before the webhook is fully re-enabled. Polling cron (3x daily) still covers estimate import in the meantime — no data loss.
 
 **A2P / SMS Consent Page:**
 - Added `/sms-consent` public page for A2P 10DLC campaign resubmission (attempt 4). Page provides proper verbal opt-in CTA and consent language required by CTIA. A2P still blocked — 3 rejections so far, resubmitting with consent page URL in campaign description.
