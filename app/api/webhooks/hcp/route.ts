@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import crypto from "crypto";
 import { createServiceClient } from "@/lib/supabase/server";
 import { handleNewEstimate, handleExistingEstimate } from "@/lib/hcp-polling";
@@ -94,44 +94,50 @@ export async function POST(request: NextRequest) {
     const event = parsed;
     const eventType: string = event.event || event.type || "";
 
-    console.log(`${tag} Event: ${eventType}`, JSON.stringify(event).slice(0, 500));
+    console.log(`${tag} Event: ${eventType}`);
 
     if (!HANDLED_EVENTS.has(eventType)) {
       return NextResponse.json({ received: true });
     }
 
-    // --- Customer events ---
-    if (eventType === "customer.updated") {
-      await handleCustomerUpdated(event);
-      return NextResponse.json({ received: true });
-    }
+    // Return 200 immediately — process the event in the background.
+    // HCP disables webhooks if it doesn't get a 2xx within 5 seconds,
+    // and our handlers make multiple network calls (HCP API + Supabase).
+    after(async () => {
+      try {
+        if (eventType === "estimate.created") {
+          console.log(`${tag} estimate.created — logged only (no import)`);
+          return;
+        }
 
-    if (eventType === "customer.deleted") {
-      await handleCustomerDeleted(event);
-      return NextResponse.json({ received: true });
-    }
+        if (eventType === "customer.updated") {
+          await handleCustomerUpdated(event);
+          return;
+        }
 
-    // --- Job events ---
-    if (eventType === "estimate.copy_to_job") {
-      await handleCopyToJob(event);
-      return NextResponse.json({ received: true });
-    }
+        if (eventType === "customer.deleted") {
+          await handleCustomerDeleted(event);
+          return;
+        }
 
-    if (eventType === "job.paid") {
-      await handleJobPaid(event);
-      return NextResponse.json({ received: true });
-    }
+        if (eventType === "estimate.copy_to_job") {
+          await handleCopyToJob(event);
+          return;
+        }
 
-    // --- Estimate events ---
-    if (eventType === "estimate.created") {
-      // Too early to import — estimate may have no options yet
-      console.log(`${tag} estimate.created — logged only (no import)`);
-      return NextResponse.json({ received: true });
-    }
+        if (eventType === "job.paid") {
+          await handleJobPaid(event);
+          return;
+        }
 
-    // estimate.completed, estimate.sent, estimate.updated,
-    // estimate.option.approval_status_changed, estimate.option.created
-    await handleEstimateEvent(event, eventType);
+        // estimate.completed, estimate.sent, estimate.updated,
+        // estimate.option.approval_status_changed, estimate.option.created
+        await handleEstimateEvent(event, eventType);
+      } catch (err) {
+        console.error(`${tag} after() error processing ${eventType}:`, err);
+      }
+    });
+
     return NextResponse.json({ received: true });
   } catch (error) {
     console.error(`${tag} Error:`, error);
