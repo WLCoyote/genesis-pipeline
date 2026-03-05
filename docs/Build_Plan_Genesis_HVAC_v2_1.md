@@ -914,7 +914,7 @@ Wired into:
 
 ## FUTURE PHASES
 
-### Version 0.2: Real-Time HCP Sync — ✅ COMPLETE & DEPLOYED
+### Version 0.2: Real-Time HCP Sync — ✅ COMPLETE & VERIFIED
 
 **Status:** Webhook code is deployed and working. Events received from HCP confirmed in production.
 
@@ -973,7 +973,7 @@ Wired into:
 - **Response timing fix:** All event processing moved to Next.js `after()` background execution. The 200 response now returns instantly to HCP, preventing the 5-second timeout that was causing auto-disable. Commit `5c0af7f`.
 
 **Known issues:**
-- **HCP retry backlog:** The `after()` timing fix above should prevent new timeouts from causing auto-disable going forward. However, the existing retry backlog of old failed deliveries (from the payload/ping issues) may still need HCP support to clear before the webhook is fully re-enabled. Polling cron (3x daily) still covers estimate import in the meantime — no data loss.
+- **Resolved.** The `after()` timing fix + removing `HCP_WEBHOOK_SECRET` from Vercel resolved the auto-disable issue. Webhooks confirmed working with test estimate 1589565 flowing through all events correctly.
 
 **A2P / SMS Consent Page:**
 - Added `/sms-consent` public page for A2P 10DLC campaign resubmission (attempt 4). Page provides proper verbal opt-in CTA and consent language required by CTIA. A2P still blocked — 3 rejections so far, resubmitting with consent page URL in campaign description.
