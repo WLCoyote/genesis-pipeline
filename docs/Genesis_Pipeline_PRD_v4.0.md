@@ -344,7 +344,7 @@ Agent skill examples: "How's the pipeline looking?" → /stats. "Which proposals
 | **MUST** | Team management | Admin Team page to invite new users (email, name, phone, role), edit roles, activate/deactivate. Invite-based provisioning. Already built. |
 | **MUST** | SMS inbox | Unmatched inbound SMS threads. Staff can reply, convert to lead, or dismiss. Already built. |
 | **MUST** | HCP estimate polling | Cron-based polling of HCP API (3x daily). Detects sent estimates, status changes. Manual "Update Estimates" button. Already built. |
-| **SHOULD** | HCP real-time webhooks | Webhook receiver at `/api/webhooks/hcp` for instant estimate events from HCP (created, sent, updated, approval_status_changed). Supplements polling. v0.2 — planned. |
+| **SHOULD** | HCP real-time webhooks | Webhook receiver at `/api/webhooks/hcp` handling 10 HCP events: customer sync (updated/deleted), estimate lifecycle (created→log, completed→import, sent, updated), option events (approval_status_changed, created), job linking (copy_to_job), real-time commission confirmation (job.paid). Supplements polling. v0.2 — built. |
 | **SHOULD** | HCP estimate tag filter | Toggle in Settings to exclude estimates by option tag (e.g., "Service Estimate"). Already built. |
 | **MUST** | Admin delete & lead archiving | Admin can delete estimates/leads with cascade cleanup. Leads can be archived/unarchived. Already built. |
 | **MUST** | Estimate options tracking | Track individual options with HCP option IDs for two-way approve/decline sync. Mark Won/Lost with option selection modal. Already built. |

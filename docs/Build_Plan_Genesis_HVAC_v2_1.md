@@ -912,43 +912,55 @@ Wired into:
 
 ## FUTURE PHASES
 
-### Version 0.2: Real-Time HCP Sync — PLANNED (next up)
+### Version 0.2: Real-Time HCP Sync — ✅ COMPLETE
 
 **Analytics:** Already complete (Phase 8.2) — close rate, avg days to close, per-rep performance, pipeline stats, activity feed.
 
-**HCP Webhook Receiver:** Real-time estimate ingestion via HCP webhooks (replaces reliance on 3x daily polling).
+**HCP Webhook Receiver:** Real-time estimate/customer/job ingestion via HCP webhooks (supplements 3x daily polling).
 
-HCP supports 47 webhook events. Estimate-specific events we'll handle:
-- `estimate.created` — new estimate in HCP → import immediately
-- `estimate.sent` — sent to customer → activate in pipeline
-- `estimate.updated` — general update → refresh fields
-- `estimate.option.approval_status_changed` — customer approved/declined → won/lost transition
+10 HCP events handled across 3 domains:
 
-**Implementation (3 files):**
+**Customer events:**
+- `customer.updated` — fetch customer from HCP → update local customer (name, email, phone, address)
+- `customer.deleted` — mark `do_not_contact = true`, cancel active follow-up sequences
 
-1. **`lib/hcp-polling.ts`** — Export existing `handleNewEstimate` and `handleExistingEstimate` (add `export` keyword, no logic changes)
-2. **`app/api/webhooks/hcp/route.ts`** — New POST endpoint:
-   - HMAC-SHA256 signature verification via `HCP_WEBHOOK_SECRET` (follows Resend webhook pattern)
-   - Extracts estimate ID from payload → fetches full estimate from `GET /estimates/{id}` (guaranteed complete data with options[])
-   - Reads settings (auto_decline_days, tag filter), builds user name map, checks if estimate exists locally
-   - Delegates to exported `handleNewEstimate` or `handleExistingEstimate` — same logic as polling, zero duplication
-   - Always returns 200 to HCP (prevents retry storms). Errors logged internally.
-3. **Doc updates** — `ENV_MANIFEST.md` + `API_Routes.md`
+**Estimate events:**
+- `estimate.created` — log only (too early, no options yet)
+- `estimate.completed` — **primary import trigger** → `handleNewEstimate` or `handleExistingEstimate`
+- `estimate.sent` — import if new, update if existing
+- `estimate.updated` — update if existing, skip if unknown
+- `estimate.option.approval_status_changed` — update if existing (won/lost transition)
+- `estimate.option.created` — update if existing (re-fetches full estimate)
 
-**New env var:** `HCP_WEBHOOK_SECRET` — signing secret provided by HCP when registering webhook URL.
+**Job events:**
+- `estimate.copy_to_job` — store `hcp_job_id` on local estimate
+- `job.paid` — fetch job from HCP → find linked estimate → store payment info → confirm commission (reuses `calculateConfirmed` + notifications + webhook, same pattern as QBO cron)
+
+**SQL migration:** `sql/034_add_job_fields.sql` — 3 columns on estimates: `hcp_job_id`, `job_paid_at`, `job_paid_amount`. Run in Supabase.
+
+**Implementation:**
+
+1. **`app/api/webhooks/hcp/route.ts`** — Expanded from ~140 to ~310 lines. HMAC-SHA256 auth, `hcpFetch()` helper, dedicated handler per event type.
+2. **`lib/hcp-polling.ts`** — No changes (handlers already exported from v0.2 initial)
+3. **`lib/commission.ts`** — No changes (`calculateConfirmed` reused by `job.paid`)
+4. **Doc updates** — `API_Routes.md` updated with all 10 events
+
+**Env var:** `HCP_WEBHOOK_SECRET` — signing secret from HCP My Apps → Webhooks.
 
 **HCP Configuration (manual, in HCP UI):**
 - My Apps → Webhooks → enable
 - Endpoint: `https://app.genesishvacr.com/api/webhooks/hcp`
-- Select events: estimate.created, estimate.sent, estimate.updated, estimate.option.approval_status_changed
+- Select events: all 10 listed above
 - Copy signing secret → Vercel env var
 
 **Note:** HCP webhooks require the MAX plan. Polling cron stays as safety net — can reduce to 1x daily after webhook reliability confirmed.
 
 **Key decisions:**
-- Always fetch full estimate from HCP API on webhook (payload format undocumented)
-- Reuse existing handler functions (no code duplication)
-- Keep polling cron unchanged as fallback
+- `estimate.created` → log only (estimate may have no options/pricing). `estimate.completed` is the primary import trigger.
+- `customer.deleted` → `do_not_contact = true` (no soft-delete column; preserves FK references)
+- `job.paid` confirms commission directly (same `calculateConfirmed` as QBO cron, different data source)
+- HCP job amounts are in cents → divide by 100 (same pattern as estimate options in `hcp-polling.ts`)
+- Always fetch full entity from HCP API (webhook payload format undocumented)
 - Idempotent via upsert on estimate_number (webhook + polling can't create duplicates)
 
 ### Phase 2+: Marketing Campaigns

@@ -6,7 +6,7 @@
 |-------|--------|------|---------|
 | `/api/webhooks/twilio` | POST | Twilio signature validation | Inbound SMS from customers |
 | `/api/webhooks/resend` | POST | Resend webhook signature | Email open/click/bounce events |
-| `/api/webhooks/hcp` | POST | HMAC-SHA256 (`HCP_WEBHOOK_SECRET`) | Real-time HCP estimate events (created, sent, updated, option.approval_status_changed) |
+| `/api/webhooks/hcp` | POST | HMAC-SHA256 (`HCP_WEBHOOK_SECRET`) | Real-time HCP events: customer.updated, customer.deleted, estimate.created (log only), estimate.completed (primary import), estimate.sent, estimate.updated, estimate.option.approval_status_changed, estimate.option.created, estimate.copy_to_job, job.paid (commission confirm) |
 | `/api/leads/inbound` | POST | Bearer token (`LEADS_WEBHOOK_SECRET`) | Inbound leads from Zapier, Facebook, Google, website forms |
 
 ## Cron Jobs (Vercel-triggered, server-only)

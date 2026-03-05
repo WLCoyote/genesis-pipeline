@@ -333,6 +333,9 @@ RLS: all authenticated can SELECT, admin only for write. Seeded with Gensco, Fer
 | payment_schedule_id | UUID FK → payment_schedules | References configurable payment schedule (sql/032). Stages stored as JSONB on the schedule. |
 | online_estimate_url | TEXT | HCP customer-facing URL if manually set. Not auto-populated (HCP API does not expose it). |
 | tier_metadata | JSONB | Stores per-tier metadata: `[{tier_number, tier_name, tagline, feature_bullets: string[], is_recommended, rebates?: [{id, name, amount}]}]`. Saved by quote builder (draft + create). Used by proposal page for tier names/taglines/features/rebates instead of hardcoded values. Added in sql/024. |
+| hcp_job_id | TEXT | HCP job ID linked via `estimate.copy_to_job` webhook. Used by `job.paid` to find linked estimate. Added in sql/034. |
+| job_paid_at | TIMESTAMPTZ | When the HCP job was marked paid (from `job.paid` webhook). Added in sql/034. |
+| job_paid_amount | DECIMAL(10,2) | Actual payment amount from HCP job (in dollars, converted from cents). Added in sql/034. |
 
 #### markup_tiers
 
@@ -499,7 +502,7 @@ Admin-configurable. Tags that trigger the 4-payment schedule on proposals.
 |-------|--------|---------------|
 | `/api/webhooks/twilio` | POST | Twilio signature validation. Inbound SMS from customers. |
 | `/api/webhooks/resend` | POST | Resend signature validation. Email open/click/bounce events. |
-| `/api/webhooks/hcp` | POST | HMAC-SHA256 via `HCP_WEBHOOK_SECRET`. Real-time HCP estimate events (created, sent, updated, option.approval_status_changed). Fetches full estimate from HCP API, delegates to `handleNewEstimate`/`handleExistingEstimate` from `lib/hcp-polling.ts`. (v0.2) |
+| `/api/webhooks/hcp` | POST | HMAC-SHA256 via `HCP_WEBHOOK_SECRET`. 10 HCP events: customer.updated/deleted, estimate.created (log only)/completed (primary import)/sent/updated, estimate.option.approval_status_changed/created, estimate.copy_to_job, job.paid (commission confirm). Fetches full entity from HCP API, delegates to handler functions. (v0.2) |
 | `/api/leads/inbound` | POST | Bearer `LEADS_WEBHOOK_SECRET`. Accepts leads from Retell AI, Webflow, Zapier, Facebook, Google. |
 | `/proposals/[token]` | GET | Public — no auth. Customer-facing proposal page. Token-gated. |
 | `/api/proposals/[token]/sign` | POST | Public — no auth. Customer submits signature. Records signature + status=won (blocking), then fire-and-forget: PDF generation, Supabase Storage upload, HCP option approve/decline + PDF attachment + note, confirmation email with PDF, notifications, skip follow-up steps. |
@@ -806,7 +809,7 @@ For MVP, the built-in dashboards of Supabase, Vercel, Resend, and Twilio provide
 
 ## Section 10 — Future Architecture Considerations
 
-- **HCP real-time webhooks (v0.2 — planned):** HCP supports 47 webhook events including estimate lifecycle events. `/api/webhooks/hcp` receives real-time events (estimate.created, sent, updated, option.approval_status_changed), fetches the full estimate from HCP API, and processes via the same `handleNewEstimate`/`handleExistingEstimate` functions used by polling. Polling cron stays as safety net. Requires HCP MAX plan.
+- **HCP real-time webhooks (v0.2 — complete):** `/api/webhooks/hcp` handles 10 HCP events across customers, estimates, and jobs. Customer sync (updated/deleted), estimate lifecycle (created→log, completed→import, sent, updated, option.*), job linking (copy_to_job), and real-time commission confirmation (job.paid). sql/034 added `hcp_job_id`, `job_paid_at`, `job_paid_amount` to estimates. Polling cron stays as safety net. Requires HCP MAX plan.
 - **Service Titan migration:** If Genesis moves from HCP to Service Titan, the integration layer is modular. Replace the HCP API routes with Service Titan equivalents; the rest of the system is unaffected.
 - **Mobile app (App Store):** Phase 10 delivered a full PWA at `/m/` with bottom-tab navigation (5 tabs: Pipeline, Inbox, Commission, Alerts, Profile), web push, and offline support. Phase 10.1 added a Conversations tab (Inbox) showing SMS threads for assigned estimates with unread badges and realtime updates. Phase 11 (future) will wrap this in Capacitor for Apple App Store and Google Play Store distribution. The Supabase backend and Vercel API routes require no backend changes — Capacitor wraps the existing web app in a native shell. Native push (APNs/FCM) would replace web-push for better reliability on iOS.
 - **Multi-location:** The data model supports adding a `location_id` to estimates and users for multi-branch operations.

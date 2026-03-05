@@ -230,7 +230,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 10 M5 | Mobile Polish — auto-redirect comfort pros, iOS viewport-fit, bundle splitting verification | **Complete** |
 | Phase 10.1 | Mobile Conversations Tab — 5th bottom tab (Inbox) showing SMS threads for assigned estimates, customer avatars, unread badges, tap to reply | **Complete** |
 | Phase 11 | Native App Store Distribution — Capacitor wrapper for iOS App Store + Google Play Store | **Future** — revisit when multi-tenant or team >20 |
-| v0.2 | HCP Real-Time Webhooks — `/api/webhooks/hcp` receiver for estimate events (created, sent, updated, approval_status_changed). Analytics already done (Phase 8.2). | **Planned** — next up |
+| v0.2 | HCP Real-Time Webhooks — `/api/webhooks/hcp` receiver for 10 events (customer.updated/deleted, estimate.created/completed/sent/updated, option.approval_status_changed/created, estimate.copy_to_job, job.paid). sql/034 adds hcp_job_id + job payment fields. job.paid confirms commission in real-time. | **Complete** — sql/034 run in Supabase |
 | Phase 2+ | Campaigns & segmentation | Future |
 | Phase 3+ | AI, weather triggers | Future |
 
@@ -283,5 +283,5 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | ~~Mobile app (PWA) for Comfort Pros~~ | **Done** (Phase 10) — M1 PWA Foundation, M2 Mobile `/m/` routes, M3 responsive proposal, M4 web push, M5 auto-redirect + iOS polish + bundle splitting |
 | ~~Mobile Conversations tab (Inbox)~~ | **Done** (Phase 10.1) — 5th bottom tab (Inbox) at `/m/inbox`, SMS threads for assigned estimates, customer avatars, unread badge on tab, realtime updates, search by name/estimate# |
 | HCP estimate tag filter | **Done** — Toggle in Settings to exclude estimates by option tag (e.g., "Service Estimate"). `hcp_tag_filter_enabled` + `hcp_exclude_tags` settings, filter in `handleNewEstimate`. |
-| HCP real-time webhooks | **v0.2 (Planned)** — `/api/webhooks/hcp` POST endpoint, HMAC-SHA256 auth, reuses `handleNewEstimate`/`handleExistingEstimate` from polling. Requires HCP MAX plan. |
+| ~~HCP real-time webhooks~~ | **Done** (v0.2) — `/api/webhooks/hcp` handles 10 events: customer sync, estimate lifecycle (completed=primary import, created=log only), option events, estimate.copy_to_job (stores hcp_job_id), job.paid (real-time commission confirm). sql/034 adds hcp_job_id, job_paid_at, job_paid_amount to estimates. |
 | Native App Store distribution | **Phase 11 (Future)** — Capacitor wrapper for iOS App Store + Google Play. Revisit when multi-tenant or team >20 users. |
