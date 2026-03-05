@@ -3,6 +3,11 @@ import crypto from "crypto";
 import { createServiceClient } from "@/lib/supabase/server";
 import { handleNewEstimate, handleExistingEstimate } from "@/lib/hcp-polling";
 
+// HCP sends a GET to verify the URL when registering
+export async function GET() {
+  return NextResponse.json({ status: "ok" });
+}
+
 // HMAC-SHA256 signature verification (same pattern as Resend webhook)
 function verifySignature(
   payload: string,
