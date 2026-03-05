@@ -2,6 +2,11 @@ import { SupabaseClient } from "@supabase/supabase-js";
 
 const MAX_PAGES = 5;
 
+// HCP timestamps are UTC — convert to Pacific date string (YYYY-MM-DD)
+function toPacificDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
+}
+
 export interface PollResult {
   new_estimates: number;
   updated: number;
@@ -410,13 +415,14 @@ export async function handleNewEstimate(
     (hcpEstimate.scheduled_start as string) ||
     null;
   if (scheduledStart) {
-    sentDate = scheduledStart.split("T")[0];
+    sentDate = toPacificDate(scheduledStart);
   }
 
   if (!sentDate) {
-    sentDate =
-      (hcpEstimate.created_at as string)?.split("T")[0] ||
-      new Date().toISOString().split("T")[0];
+    const createdAtStr = hcpEstimate.created_at as string | undefined;
+    sentDate = createdAtStr
+      ? toPacificDate(createdAtStr)
+      : new Date().toLocaleDateString("en-CA", { timeZone: "America/Los_Angeles" });
   }
 
   // Create local estimate (upsert on estimate_number for dedup safety)
@@ -538,12 +544,12 @@ export async function handleExistingEstimate(
     (hcpEstimate.scheduled_start as string) ||
     null;
   if (scheduledStart) {
-    sentDate = scheduledStart.split("T")[0];
+    sentDate = toPacificDate(scheduledStart);
   }
 
   if (!sentDate) {
-    sentDate =
-      (hcpEstimate.created_at as string)?.split("T")[0] || null;
+    const createdAtStr = hcpEstimate.created_at as string | undefined;
+    sentDate = createdAtStr ? toPacificDate(createdAtStr) : null;
   }
 
   const estimateUpdates: Record<string, unknown> = {};
