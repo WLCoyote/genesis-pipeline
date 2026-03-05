@@ -150,14 +150,16 @@ async function handleEstimateEvent(
 ) {
   const tag = "[HCP Webhook]";
 
+  // HCP payload: { event, estimate: { id, ... }, ... }
   const estimateId =
+    (event.estimate as Record<string, unknown>)?.id ||
     (event.data as Record<string, unknown>)?.estimate_id ||
     (event.data as Record<string, unknown>)?.id ||
     event.estimate_id ||
     event.id;
 
   if (!estimateId) {
-    console.error(`${tag} No estimate ID in payload for ${eventType}`);
+    console.error(`${tag} No estimate ID in payload for ${eventType}`, JSON.stringify(event).slice(0, 300));
     return;
   }
 
@@ -245,7 +247,9 @@ async function handleEstimateEvent(
 async function handleCustomerUpdated(event: Record<string, unknown>) {
   const tag = "[HCP Webhook]";
 
+  // HCP payload: { event, customer: { id, ... }, ... }
   const customerId =
+    (event.customer as Record<string, unknown>)?.id ||
     (event.data as Record<string, unknown>)?.customer_id ||
     (event.data as Record<string, unknown>)?.id ||
     event.customer_id ||
@@ -307,7 +311,9 @@ async function handleCustomerUpdated(event: Record<string, unknown>) {
 async function handleCustomerDeleted(event: Record<string, unknown>) {
   const tag = "[HCP Webhook]";
 
+  // HCP payload: { event, customer: { id, ... }, ... }
   const customerId =
+    (event.customer as Record<string, unknown>)?.id ||
     (event.data as Record<string, unknown>)?.customer_id ||
     (event.data as Record<string, unknown>)?.id ||
     event.customer_id ||
@@ -363,12 +369,16 @@ async function handleCustomerDeleted(event: Record<string, unknown>) {
 async function handleCopyToJob(event: Record<string, unknown>) {
   const tag = "[HCP Webhook]";
 
-  const data = (event.data || event) as Record<string, unknown>;
-  const estimateId = data.estimate_id || data.id;
-  const jobId = data.job_id || (data.job as Record<string, unknown>)?.id;
+  // HCP payload: { event, estimate: { id, ... }, job: { id, ... }, ... }
+  const estimateId =
+    (event.estimate as Record<string, unknown>)?.id ||
+    (event.data as Record<string, unknown>)?.estimate_id;
+  const jobId =
+    (event.job as Record<string, unknown>)?.id ||
+    (event.data as Record<string, unknown>)?.job_id;
 
   if (!estimateId || !jobId) {
-    console.error(`${tag} Missing estimate_id or job_id in copy_to_job payload`);
+    console.error(`${tag} Missing estimate_id or job_id in copy_to_job payload`, JSON.stringify(event).slice(0, 300));
     return;
   }
 
@@ -393,11 +403,14 @@ async function handleCopyToJob(event: Record<string, unknown>) {
 async function handleJobPaid(event: Record<string, unknown>) {
   const tag = "[HCP Webhook]";
 
-  const data = (event.data || event) as Record<string, unknown>;
-  const jobId = data.job_id || data.id;
+  // HCP payload: { event, job: { id, ... }, ... }
+  const jobId =
+    (event.job as Record<string, unknown>)?.id ||
+    (event.data as Record<string, unknown>)?.job_id ||
+    (event.data as Record<string, unknown>)?.id;
 
   if (!jobId) {
-    console.error(`${tag} No job ID in job.paid payload`);
+    console.error(`${tag} No job ID in job.paid payload`, JSON.stringify(event).slice(0, 300));
     return;
   }
 
