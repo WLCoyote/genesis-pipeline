@@ -971,6 +971,7 @@ Wired into:
 - **Payload structure mismatch:** HCP sends entity IDs at `event.estimate.id` (nested object), not `event.data.estimate_id` (flat). Fixed all event handlers to read from correct path.
 - **Test ping bypass:** HCP sends `{"foo":"bar"}` POST as a connectivity test when first configuring webhooks. Was returning 403 (failed HMAC). Added early bypass to return 200 for test pings.
 - **Response timing fix:** All event processing moved to Next.js `after()` background execution. The 200 response now returns instantly to HCP, preventing the 5-second timeout that was causing auto-disable. Commit `5c0af7f`.
+- **UTC→Pacific timezone fix:** `sent_date` was derived by splitting UTC timestamps on `T`, which could be off by a day for Pacific time. Added `toPacificDate()` helper in `lib/hcp-polling.ts` that converts to `America/Los_Angeles` timezone. Applied to both new estimate imports and existing estimate updates. Commit `74f0970`.
 
 **Known issues:**
 - **Resolved.** The `after()` timing fix + removing `HCP_WEBHOOK_SECRET` from Vercel resolved the auto-disable issue. Webhooks confirmed working with test estimate 1589565 flowing through all events correctly.

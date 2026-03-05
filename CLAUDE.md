@@ -230,7 +230,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 10 M5 | Mobile Polish — auto-redirect comfort pros, iOS viewport-fit, bundle splitting verification | **Complete** |
 | Phase 10.1 | Mobile Conversations Tab — 5th bottom tab (Inbox) showing SMS threads for assigned estimates, customer avatars, unread badges, tap to reply | **Complete** |
 | Phase 11 | Native App Store Distribution — Capacitor wrapper for iOS App Store + Google Play Store | **Future** — revisit when multi-tenant or team >20 |
-| v0.2 | HCP Real-Time Webhooks — `/api/webhooks/hcp` receiver for 10 events (customer.updated/deleted, estimate.created/completed/sent/updated, option.approval_status_changed/created, estimate.copy_to_job, job.paid). sql/034 adds hcp_job_id + job payment fields. job.paid confirms commission in real-time. | **Complete & Verified** — sql/034 run in Supabase. Code deployed. Event processing uses `after()` for instant 200 response. Webhooks confirmed working: estimate.created (log only), estimate.option.created (skip if unknown), estimate.completed (imports). HCP stays enabled. |
+| v0.2 | HCP Real-Time Webhooks — `/api/webhooks/hcp` receiver for 10 events (customer.updated/deleted, estimate.created/completed/sent/updated, option.approval_status_changed/created, estimate.copy_to_job, job.paid). sql/034 adds hcp_job_id + job payment fields. job.paid confirms commission in real-time. | **Complete & Verified** — sql/034 run in Supabase. Code deployed. Event processing uses `after()` for instant 200 response. Webhooks confirmed working. UTC→Pacific timezone fix for sent_date applied in `lib/hcp-polling.ts`. |
 | Phase 2+ | Campaigns & segmentation | Future |
 | Phase 3+ | AI, weather triggers | Future |
 
