@@ -228,7 +228,7 @@ export async function pollHcpEstimates(
 
 // --- New estimate detection ---
 // Returns true if an estimate was actually created
-async function handleNewEstimate(
+export async function handleNewEstimate(
   supabase: SupabaseClient,
   hcpEstimate: Record<string, unknown>,
   hcpId: string,
@@ -483,7 +483,7 @@ async function handleNewEstimate(
 }
 
 // --- Existing estimate update ---
-async function handleExistingEstimate(
+export async function handleExistingEstimate(
   supabase: SupabaseClient,
   hcpEstimate: Record<string, unknown>,
   hcpOptions: Record<string, unknown>[],
