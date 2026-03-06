@@ -1379,6 +1379,9 @@ Reuses C4/C5 infrastructure. SMS sending path was already built in C5 (`sendCamp
 - **campaign-sender.ts** reads sender name/email from settings table (with env var fallbacks via `getSenderSettings()`)
 - **CampaignWizard** accepts `defaultBatchSize`, `defaultBatchInterval`, `defaultWarmup` props — new campaign page fetches from settings and passes as initial state
 - **Files modified**: Sidebar.tsx, SettingsForm.tsx, campaign-sender.ts, CampaignWizard.tsx, campaigns/new/page.tsx
+- **Post-deploy fix**: Null guard on campaign stat fields (`audience_count`, `sent_count`, etc.) — fields can be null from Supabase, causing client-side crash. Fixed stats API fallback field names.
+- **Preset templates seeded** in production via `POST /api/admin/email-templates/seed` — 5 presets loaded and verified in UI
+- **Warmup mode enabled** — first campaign will ramp batches (25/50/100/200/500) to build sender reputation
 
 ### Key Design Decisions
 
