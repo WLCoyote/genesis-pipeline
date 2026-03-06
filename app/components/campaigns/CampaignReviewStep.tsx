@@ -48,6 +48,7 @@ export default function CampaignReviewStep({
   sending,
 }: Props) {
   const [testEmail, setTestEmail] = useState("");
+  const [testPhone, setTestPhone] = useState("");
   const [testSent, setTestSent] = useState(false);
   const [testError, setTestError] = useState<string | null>(null);
 
@@ -60,10 +61,20 @@ export default function CampaignReviewStep({
     setTestError(null);
 
     try {
+      const payload: Record<string, string> = {};
+      if (campaignType === "email" && testEmail) payload.email = testEmail;
+      if (campaignType === "sms") {
+        if (!testPhone.trim()) {
+          setTestError("Phone number is required for SMS test");
+          return;
+        }
+        payload.phone = testPhone;
+      }
+
       const res = await fetch(`/api/admin/campaigns/${campaignId}/test`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: testEmail || undefined }),
+        body: JSON.stringify(payload),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -147,23 +158,39 @@ export default function CampaignReviewStep({
       </Card>
 
       {/* Test send */}
-      {campaignType === "email" && campaignId && (
+      {campaignId && (
         <Card title="Test Send">
           <div className="flex items-end gap-3">
             <div className="flex-1">
-              <input
-                className={inputCls}
-                value={testEmail}
-                onChange={(e) => setTestEmail(e.target.value)}
-                placeholder="Email address (blank = your email)"
-              />
+              {campaignType === "email" ? (
+                <input
+                  className={inputCls}
+                  value={testEmail}
+                  onChange={(e) => setTestEmail(e.target.value)}
+                  placeholder="Email address (blank = your email)"
+                />
+              ) : (
+                <input
+                  className={inputCls}
+                  value={testPhone}
+                  onChange={(e) => setTestPhone(e.target.value)}
+                  placeholder="Phone number (e.g. +12065551234)"
+                />
+              )}
             </div>
             <Button variant="secondary" size="sm" onClick={handleTestSend}>
               Send Test
             </Button>
           </div>
+          {campaignType === "sms" && (
+            <p className="text-xs text-ds-orange mt-2">
+              SMS requires A2P 10DLC approval. Test may fail until approved.
+            </p>
+          )}
           {testSent && (
-            <p className="text-xs text-ds-green mt-2">Test email sent!</p>
+            <p className="text-xs text-ds-green mt-2">
+              Test {campaignType === "email" ? "email" : "SMS"} sent!
+            </p>
           )}
           {testError && (
             <p className="text-xs text-ds-red mt-2">{testError}</p>

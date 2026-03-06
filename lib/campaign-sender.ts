@@ -377,6 +377,7 @@ async function sendCampaignSms(
       body,
       from: TWILIO_FROM,
       to: customer.phone,
+      statusCallback: `${APP_URL}/api/webhooks/twilio`,
     });
 
     await supabase
