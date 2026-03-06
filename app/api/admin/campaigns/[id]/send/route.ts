@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
+import { buildAudience } from "@/lib/campaign-sender";
 
 // POST /api/admin/campaigns/[id]/send — start sending a campaign
 export async function POST(
@@ -46,6 +47,12 @@ export async function POST(
 
   if (error)
     return NextResponse.json({ error: error.message }, { status: 500 });
+
+  // Build audience in background using service client (RLS bypass)
+  const serviceClient = createServiceClient();
+  buildAudience(serviceClient, id).catch((err) =>
+    console.error(`[Campaign] Build audience error for ${id}:`, err)
+  );
 
   return NextResponse.json(data);
 }
