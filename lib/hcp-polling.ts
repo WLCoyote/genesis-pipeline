@@ -329,6 +329,19 @@ export async function handleNewEstimate(
     customerAddress = parts.join(", ");
   }
 
+  // Extract city/zip/state from address
+  let city: string | null = null;
+  let zip: string | null = null;
+  let state: string | null = null;
+  if (hcpAddress) {
+    city = (hcpAddress.city as string) || null;
+    state = (hcpAddress.state as string) || null;
+    zip = (hcpAddress.zip as string) || null;
+  }
+
+  // Extract tags from HCP customer
+  const hcpTags = (hcpCustomer.tags || []) as string[];
+
   // Upsert local customer
   let customerId: string;
   const { data: existingCustomer } = await supabase
@@ -347,6 +360,10 @@ export async function handleNewEstimate(
         ...(hcpCustomer.email ? { email: hcpCustomer.email } : {}),
         ...(hcpCustomer.mobile_number ? { phone: hcpCustomer.mobile_number } : {}),
         ...(customerAddress ? { address: customerAddress } : {}),
+        ...(hcpTags.length > 0 ? { tags: hcpTags } : {}),
+        ...(city ? { city } : {}),
+        ...(state ? { state } : {}),
+        ...(zip ? { zip } : {}),
       })
       .eq("id", existingCustomer.id);
   } else {
@@ -359,6 +376,10 @@ export async function handleNewEstimate(
         phone: (hcpCustomer.mobile_number as string) || null,
         address: customerAddress,
         lead_source: (hcpEstimate.lead_source as string) || null,
+        ...(hcpTags.length > 0 ? { tags: hcpTags } : {}),
+        ...(city ? { city } : {}),
+        ...(state ? { state } : {}),
+        ...(zip ? { zip } : {}),
       })
       .select("id")
       .single();

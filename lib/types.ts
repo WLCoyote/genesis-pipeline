@@ -28,6 +28,10 @@ export interface Customer {
   lead_source: string | null;
   tags: string[];
   do_not_contact: boolean;
+  marketing_unsubscribed: boolean;
+  city: string | null;
+  zip: string | null;
+  state: string | null;
   created_at: string;
   updated_at: string;
 }

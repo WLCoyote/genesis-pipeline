@@ -293,6 +293,20 @@ async function handleCustomerUpdated(event: Record<string, unknown>) {
     if (parts.length > 0) customerAddress = parts.join(", ");
   }
 
+  // Extract city/zip/state from address
+  let city: string | null = null;
+  let zip: string | null = null;
+  let state: string | null = null;
+  if (addresses.length > 0) {
+    const addr = addresses[0];
+    city = (addr.city as string) || null;
+    state = (addr.state as string) || null;
+    zip = (addr.zip as string) || null;
+  }
+
+  // Extract tags from HCP customer
+  const hcpTags = (hcpCustomer.tags || []) as string[];
+
   const { error } = await supabase
     .from("customers")
     .update({
@@ -300,13 +314,17 @@ async function handleCustomerUpdated(event: Record<string, unknown>) {
       ...(hcpCustomer.email ? { email: hcpCustomer.email } : {}),
       ...(hcpCustomer.mobile_number ? { phone: hcpCustomer.mobile_number } : {}),
       ...(customerAddress ? { address: customerAddress } : {}),
+      ...(hcpTags.length > 0 ? { tags: hcpTags } : {}),
+      ...(city ? { city } : {}),
+      ...(state ? { state } : {}),
+      ...(zip ? { zip } : {}),
     })
     .eq("hcp_customer_id", customerId);
 
   if (error) {
     console.error(`${tag} Failed to update customer ${customerId}:`, error);
   } else {
-    console.log(`${tag} customer.updated: ${customerName}`);
+    console.log(`${tag} customer.updated: ${customerName} (tags: ${hcpTags.length})`);
   }
 }
 

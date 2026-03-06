@@ -1272,7 +1272,7 @@ Add a 5th bottom tab to the mobile app — an SMS Conversations view showing all
 
 Broadcast marketing capability for the ~5,000 customer base. Replaces Mailchimp ($45-350/mo) or GoHighLevel ($97-297/mo). Customer data enrichment from HCP, visual email template builder, advanced audience segmentation, batch-controlled campaign execution (email + SMS), CAN-SPAM compliance, and campaign analytics.
 
-### Phase C1: Database Schema + Customer Enrichment — IN PROGRESS
+### Phase C1: Database Schema + Customer Enrichment — COMPLETE
 
 **SQL Migration — `sql/035_campaigns.sql`**
 - 4 new tables: `email_templates`, `campaigns`, `campaign_recipients`, `unsubscribe_tokens`
@@ -1288,7 +1288,7 @@ Broadcast marketing capability for the ~5,000 customer base. Replaces Mailchimp 
 **Types:** `lib/campaign-types.ts` — all campaign/template/segment types
 **Segment Builder:** `lib/segment-builder.ts` — segment filter → Supabase query
 
-### Phase C2: Unsubscribe Flow + Email Rendering
+### Phase C2: Unsubscribe Flow + Email Rendering — COMPLETE
 
 - `app/unsubscribe/[token]/page.tsx` — Public unsubscribe page (no auth)
 - `app/api/unsubscribe/[token]/route.ts` — GET for List-Unsubscribe one-click (RFC 8058), POST for form

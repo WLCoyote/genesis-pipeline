@@ -464,7 +464,7 @@ Genesis Pipeline has automated follow-up sequences (per-estimate, multi-channel)
 | Phase 7 | Proposal engine | **Complete.** 7.1 (proposal page), 7.2 (engagement tracking), 7.3 (signature + PDF + HCP writeback), 7.3b (unsent estimates), 7.4 (dashboard tracking), 7.5 (proposal polish), 7.6 (quote builder overhaul), 7.7 (QA fixes + proposal polish), 7.8 (UI polish + rebates). |
 | Phase 8 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
-| Campaigns | Marketing Campaigns — Email & SMS (C1-C8) | **In progress** — C1 started (sql/035 + types created) |
+| Campaigns | Marketing Campaigns — Email & SMS (C1-C8) | **In progress** — C1 complete, C2 complete, next: C3 email template builder UI |
 
 See `docs/Build_Plan_Genesis_HVAC_v2_1.md` for detailed step-by-step instructions per phase.
 

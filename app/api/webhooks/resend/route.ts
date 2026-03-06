@@ -47,18 +47,23 @@ export async function POST(request: NextRequest) {
 
     const supabase = createServiceClient();
 
-    // Match the event to a follow_up_event by the Resend email ID
-    // Resend includes the email_id in webhook payloads
     const emailId = eventData?.email_id;
     if (!emailId) {
       return NextResponse.json({ received: true });
     }
 
-    // Find the follow_up_event that matches this email
-    // We store Resend message IDs implicitly via the sent_at timestamp correlation,
-    // but a more robust approach is to store the message_id when sending.
-    // For now, match by looking at recently sent email events.
-    // TODO: Store resend_message_id on follow_up_events for direct matching.
+    // --- Campaign recipient matching (direct by resend_message_id) ---
+    const { data: campaignRecipient } = await supabase
+      .from("campaign_recipients")
+      .select("id, campaign_id, customer_id, status")
+      .eq("resend_message_id", emailId)
+      .single();
+
+    if (campaignRecipient) {
+      return handleCampaignEvent(supabase, eventType, campaignRecipient);
+    }
+
+    // --- Follow-up event matching (fuzzy by recipient email) ---
 
     // Map Resend event types to our follow_up_events statuses
     let newStatus: string | null = null;
@@ -167,4 +172,80 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+// --- Campaign stat increment helper ---
+async function incrementCampaignStat(
+  supabase: ReturnType<typeof createServiceClient>,
+  campaignId: string,
+  field: string
+) {
+  const { data } = await supabase
+    .from("campaigns")
+    .select(field)
+    .eq("id", campaignId)
+    .single();
+  if (data) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const current = ((data as any)[field] as number) || 0;
+    await supabase
+      .from("campaigns")
+      .update({ [field]: current + 1 })
+      .eq("id", campaignId);
+  }
+}
+
+// --- Campaign recipient event handling ---
+async function handleCampaignEvent(
+  supabase: ReturnType<typeof createServiceClient>,
+  eventType: string,
+  recipient: { id: string; campaign_id: string; customer_id: string; status: string }
+) {
+  const now = new Date().toISOString();
+
+  switch (eventType) {
+    case "email.opened": {
+      if (recipient.status === "sent") {
+        await supabase
+          .from("campaign_recipients")
+          .update({ status: "opened", opened_at: now })
+          .eq("id", recipient.id);
+        await incrementCampaignStat(supabase, recipient.campaign_id, "opened_count");
+      }
+      break;
+    }
+    case "email.clicked": {
+      if (recipient.status === "sent" || recipient.status === "opened") {
+        await supabase
+          .from("campaign_recipients")
+          .update({ status: "clicked", clicked_at: now })
+          .eq("id", recipient.id);
+        await incrementCampaignStat(supabase, recipient.campaign_id, "clicked_count");
+      }
+      break;
+    }
+    case "email.bounced": {
+      await supabase
+        .from("campaign_recipients")
+        .update({ status: "bounced" })
+        .eq("id", recipient.id);
+      await incrementCampaignStat(supabase, recipient.campaign_id, "bounced_count");
+      break;
+    }
+    case "email.complained":
+    case "email.unsubscribed": {
+      await supabase
+        .from("campaign_recipients")
+        .update({ status: "unsubscribed", unsubscribed_at: now })
+        .eq("id", recipient.id);
+      await supabase
+        .from("customers")
+        .update({ marketing_unsubscribed: true })
+        .eq("id", recipient.customer_id);
+      await incrementCampaignStat(supabase, recipient.campaign_id, "unsubscribed_count");
+      break;
+    }
+  }
+
+  return NextResponse.json({ received: true });
 }
