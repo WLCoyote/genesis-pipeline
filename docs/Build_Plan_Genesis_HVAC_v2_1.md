@@ -1361,9 +1361,15 @@ Block-based with predefined types. Blocks added from palette, reordered with up/
 
 **Updated:** Campaigns list page adds CampaignStats. CampaignDetail adds CampaignRecipientTable for non-draft campaigns.
 
-### Phase C7: SMS Campaigns
+### Phase C7: SMS Campaigns — COMPLETE
 
-Reuses C4/C5 infrastructure. SMS path in `sendBatch()` (Twilio + messages table). SMS content step with char count + segments indicator. A2P warning banner if not approved. "Reply STOP to unsubscribe" auto-appended.
+Reuses C4/C5 infrastructure. SMS sending path was already built in C5 (`sendCampaignSms` in `campaign-sender.ts`). SMS content step with char count + segments indicator already built in C4.
+
+**C7 additions:**
+- **STOP keyword handling** — Twilio webhook detects STOP/UNSUBSCRIBE/CANCEL/END/QUIT, sets `marketing_unsubscribed = true`, cancels queued campaign recipients for that customer
+- **Twilio status callbacks** — `statusCallback` URL on campaign SMS sends, `handleSmsStatusCallback()` in Twilio webhook updates campaign_recipients to bounced on failed/undelivered, corrects denormalized stats
+- **SMS test send** — Test route (`/api/admin/campaigns/[id]/test`) now supports SMS with phone param, variable replacement, STOP append. Review step shows phone input + A2P warning for SMS campaigns
+- **Files modified:** `app/api/webhooks/twilio/route.ts`, `lib/campaign-sender.ts`, `app/api/admin/campaigns/[id]/test/route.ts`, `app/components/campaigns/CampaignReviewStep.tsx`
 
 ### Phase C8: Polish + Settings
 

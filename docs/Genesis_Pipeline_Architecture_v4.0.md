@@ -673,7 +673,7 @@ These routes are called by the dashboard UI. They require an authenticated Supab
 | `/api/admin/campaigns` | GET/POST | Campaign CRUD. Admin only. **Live** (Phase C4) |
 | `/api/admin/campaigns/[id]` | GET/PUT/DELETE | Individual campaign management. Admin only. **Live** (Phase C4) |
 | `/api/admin/campaigns/[id]/send` | POST | Start sending a campaign (set status to sending). Admin only. **Live** (Phase C4) |
-| `/api/admin/campaigns/[id]/test` | POST | Send test email to requesting user via Resend. Admin only. **Live** (Phase C4) |
+| `/api/admin/campaigns/[id]/test` | POST | Send test email or SMS to specified address/phone. Admin only. **Live** (Phase C4, SMS added C7) |
 | `/api/admin/campaigns/[id]/duplicate` | POST | Duplicate campaign as new draft. Admin only. **Live** (Phase C4) |
 | `/api/admin/campaigns/[id]/pause` | POST | Pause/resume a sending campaign. Admin only. **Live** (Phase C4) |
 | `/api/admin/campaigns/audience-count` | POST | Live audience count from segment filter. Admin only. **Live** (Phase C4) |
@@ -763,12 +763,14 @@ The HCP polling cron (`/api/cron/poll-hcp-status`) and the manual "Update Estima
 
 When a customer replies to an SMS, Twilio POSTs to `/api/webhooks/twilio`. The handler:
 1. Validates the Twilio request signature (`X-Twilio-Signature`)
-2. Matches incoming phone number to a customer record
-3. Creates a row in `messages` with direction "inbound"
-4. If the customer has an active estimate, links the message via `estimate_id`
-5. Creates notification (type: `sms_received`) for the assigned comfort pro
-6. Notifies all active admins and CSRs (with deduplication — an assigned user who is also admin gets only one notification)
-7. Supabase Realtime pushes the new message to the frontend live
+2. **Status callbacks** — If the request is a delivery status callback (has `MessageStatus` but no `Body`), routes to `handleSmsStatusCallback()` which updates campaign_recipients (failed/undelivered → bounced, with denormalized stat correction on campaigns table). (Phase C7)
+3. Matches incoming phone number to a customer record
+4. **STOP keyword detection** — If message body is STOP/UNSUBSCRIBE/CANCEL/END/QUIT, sets `marketing_unsubscribed = true` on the customer and cancels any queued campaign recipients. (Phase C7)
+5. Creates a row in `messages` with direction "inbound"
+6. If the customer has an active estimate, links the message via `estimate_id`
+7. Creates notification (type: `sms_received`) for the assigned comfort pro
+8. Notifies all active admins and CSRs (with deduplication — an assigned user who is also admin gets only one notification)
+9. Supabase Realtime pushes the new message to the frontend live
 
 ### 4.6 Outbound SMS (Manual Reply)
 

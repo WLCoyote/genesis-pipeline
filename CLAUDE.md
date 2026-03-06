@@ -238,7 +238,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase C4 | Audience builder + campaign wizard (5-step: Setup/Content/Audience/Schedule/Review) + 10 components + 3 pages + 7 API routes | **Complete** |
 | Phase C5 | Campaign execution engine (`lib/campaign-sender.ts` — buildAudience/sendBatch/warmup + `/api/cron/send-campaigns` every 15 min + send route builds audience on launch) | **Complete** |
 | Phase C6 | Campaign dashboard + analytics (CampaignStats 6 cards, CampaignRecipientTable with filter/pagination/CSV export, 3 API routes: stats/recipients/export) | **Complete** |
-| Phase C7 | SMS campaigns (Twilio path in sendBatch, char count, A2P warning, STOP auto-append) | Not started |
+| Phase C7 | SMS campaigns (STOP keyword handling in Twilio webhook, delivery status callbacks, SMS test send in wizard, A2P warning) | **Complete** |
 | Phase C8 | Campaign polish + settings (default batch/interval/warmup, sender name/email, sidebar grouping) | Not started |
 | Phase 11 | Native App Store Distribution — Capacitor wrapper for iOS + Google Play | **Future** — revisit when multi-tenant or team >20 |
 | Phase 3+ | AI, weather triggers | Future |
