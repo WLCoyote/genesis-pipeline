@@ -2,7 +2,7 @@
 -- + Customer enrichment columns (city, zip, state, marketing_unsubscribed)
 
 -- Email templates (reusable block-based)
-CREATE TABLE email_templates (
+CREATE TABLE IF NOT EXISTS email_templates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   description TEXT,
@@ -15,7 +15,7 @@ CREATE TABLE email_templates (
 );
 
 -- Campaigns
-CREATE TABLE campaigns (
+CREATE TABLE IF NOT EXISTS campaigns (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   type TEXT NOT NULL CHECK (type IN ('email', 'sms')),
@@ -47,7 +47,7 @@ CREATE TABLE campaigns (
 );
 
 -- Campaign recipients (one row per customer per campaign)
-CREATE TABLE campaign_recipients (
+CREATE TABLE IF NOT EXISTS campaign_recipients (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   campaign_id UUID NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
   customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
@@ -63,17 +63,17 @@ CREATE TABLE campaign_recipients (
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(campaign_id, customer_id)
 );
-CREATE INDEX idx_cr_campaign ON campaign_recipients(campaign_id);
-CREATE INDEX idx_cr_status ON campaign_recipients(campaign_id, status);
+CREATE INDEX IF NOT EXISTS idx_cr_campaign ON campaign_recipients(campaign_id);
+CREATE INDEX IF NOT EXISTS idx_cr_status ON campaign_recipients(campaign_id, status);
 
 -- Unsubscribe tokens (CAN-SPAM one-click)
-CREATE TABLE unsubscribe_tokens (
+CREATE TABLE IF NOT EXISTS unsubscribe_tokens (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   customer_id UUID NOT NULL REFERENCES customers(id) ON DELETE CASCADE,
   token TEXT NOT NULL UNIQUE DEFAULT encode(gen_random_bytes(32), 'hex'),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
-CREATE INDEX idx_unsub_token ON unsubscribe_tokens(token);
+CREATE INDEX IF NOT EXISTS idx_unsub_token ON unsubscribe_tokens(token);
 
 -- Customer enrichment columns
 ALTER TABLE customers ADD COLUMN IF NOT EXISTS marketing_unsubscribed BOOLEAN NOT NULL DEFAULT false;
@@ -86,11 +86,24 @@ ALTER TABLE email_templates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY;
 ALTER TABLE campaign_recipients ENABLE ROW LEVEL SECURITY;
 ALTER TABLE unsubscribe_tokens ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "sr_email_templates" ON email_templates FOR ALL USING (true);
-CREATE POLICY "sr_campaigns" ON campaigns FOR ALL USING (true);
-CREATE POLICY "sr_campaign_recipients" ON campaign_recipients FOR ALL USING (true);
-CREATE POLICY "sr_unsubscribe_tokens" ON unsubscribe_tokens FOR ALL USING (true);
+
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'sr_email_templates') THEN
+    CREATE POLICY "sr_email_templates" ON email_templates FOR ALL USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'sr_campaigns') THEN
+    CREATE POLICY "sr_campaigns" ON campaigns FOR ALL USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'sr_campaign_recipients') THEN
+    CREATE POLICY "sr_campaign_recipients" ON campaign_recipients FOR ALL USING (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'sr_unsubscribe_tokens') THEN
+    CREATE POLICY "sr_unsubscribe_tokens" ON unsubscribe_tokens FOR ALL USING (true);
+  END IF;
+END $$;
 
 -- Triggers
+DROP TRIGGER IF EXISTS email_templates_updated_at ON email_templates;
 CREATE TRIGGER email_templates_updated_at BEFORE UPDATE ON email_templates FOR EACH ROW EXECUTE FUNCTION update_updated_at();
+DROP TRIGGER IF EXISTS campaigns_updated_at ON campaigns;
 CREATE TRIGGER campaigns_updated_at BEFORE UPDATE ON campaigns FOR EACH ROW EXECUTE FUNCTION update_updated_at();
