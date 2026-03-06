@@ -6,6 +6,7 @@ import { Campaign } from "@/lib/campaign-types";
 import Button from "@/app/components/ui/Button";
 import Card from "@/app/components/ui/Card";
 import StatCard from "@/app/components/ui/StatCard";
+import CampaignRecipientTable from "./CampaignRecipientTable";
 
 interface Props {
   campaign: Campaign;
@@ -79,6 +80,13 @@ export default function CampaignDetail({ campaign: initial }: Props) {
           ← Back to Campaigns
         </Button>
       </div>
+
+      {/* Recipients */}
+      {campaign.status !== "draft" && (
+        <Card title="Recipients">
+          <CampaignRecipientTable campaignId={campaign.id} />
+        </Card>
+      )}
 
       {/* Details */}
       <Card title="Campaign Details">

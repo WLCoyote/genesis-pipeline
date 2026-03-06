@@ -1340,23 +1340,26 @@ Block-based with predefined types. Blocks added from palette, reordered with up/
 
 **Pages:** `/dashboard/admin/campaigns`, `/dashboard/admin/campaigns/new`, `/dashboard/admin/campaigns/[id]`
 
-### Phase C5: Campaign Execution Engine
+### Phase C5: Campaign Execution Engine — COMPLETE
 
-**`lib/campaign-sender.ts`:**
-- `buildAudience(campaignId)` — segment query → create recipient rows
-- `sendBatch(campaignId, batchNumber)` — fetch queued recipients, send via Resend/Twilio, store message IDs
-- `getWarmupBatchSize(day)` — 25/50/100/200/500/configured
-- Re-check do_not_contact + marketing_unsubscribed before each send
+**`lib/campaign-sender.ts`:** 3 core functions:
+- `buildAudience(campaignId)` — segment query → recipient rows (paginated fetch, post-fetch exclusions, 500-row upsert chunks)
+- `sendBatch(campaignId)` — fetch queued, re-check opt-outs, send via Resend/Twilio, store message IDs, update stats, increment warmup_day
+- `getWarmupBatchSize(day, configuredBatchSize)` — 25/50/100/200/500 ramp capped by config
 
-**Cron — `/api/cron/send-campaigns`:** Every 15 min. Finds `status=sending` campaigns, one batch per campaign per run.
+**Cron — `/api/cron/send-campaigns`:** Every 15 min. Promotes scheduled → sending. Builds audience on first run. Respects batch_interval_minutes. One batch per campaign per run. Auto-completes when done.
 
-### Phase C6: Campaign Dashboard + Analytics
+**Send route:** Updated to kick off `buildAudience()` in background on launch.
 
-**Components:**
-- `CampaignList.tsx` — Table with tabs (All/Drafts/Active/Sent), search, pagination
-- `CampaignStats.tsx` — StatCards: total, emails sent, avg open rate, avg click rate, unsubscribes
-- `CampaignDetail.tsx` — Campaign info + stats + recipient table
-- `CampaignRecipientTable.tsx` — Recipients with status badges, filter, CSV export
+### Phase C6: Campaign Dashboard + Analytics — COMPLETE
+
+**API Routes (3):** stats (aggregate), recipients (paginated + status filter), export (CSV)
+
+**Components (2 new):**
+- `CampaignStats.tsx` — 6 StatCards (total, active, sent, avg open, avg click, unsubscribes)
+- `CampaignRecipientTable.tsx` — paginated table, status badges, filter, Export CSV, pagination
+
+**Updated:** Campaigns list page adds CampaignStats. CampaignDetail adds CampaignRecipientTable for non-draft campaigns.
 
 ### Phase C7: SMS Campaigns
 

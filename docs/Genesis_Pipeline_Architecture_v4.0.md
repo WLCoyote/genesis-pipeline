@@ -677,9 +677,9 @@ These routes are called by the dashboard UI. They require an authenticated Supab
 | `/api/admin/campaigns/[id]/duplicate` | POST | Duplicate campaign as new draft. Admin only. **Live** (Phase C4) |
 | `/api/admin/campaigns/[id]/pause` | POST | Pause/resume a sending campaign. Admin only. **Live** (Phase C4) |
 | `/api/admin/campaigns/audience-count` | POST | Live audience count from segment filter. Admin only. **Live** (Phase C4) |
-| `/api/admin/campaigns/stats` | GET | Aggregate campaign stats. Admin only. (Phase C6) |
-| `/api/admin/campaigns/[id]/recipients` | GET | Campaign recipient list with status. Admin only. (Phase C6) |
-| `/api/admin/campaigns/[id]/export` | GET | CSV export of campaign recipients. Admin only. (Phase C6) |
+| `/api/admin/campaigns/stats` | GET | Aggregate campaign stats (total, active, sent, avg open/click, unsubscribes). Admin only. **Live** (Phase C6) |
+| `/api/admin/campaigns/[id]/recipients` | GET | Paginated recipient list with customer join, status filter. Admin only. **Live** (Phase C6) |
+| `/api/admin/campaigns/[id]/export` | GET | CSV export of campaign recipients. Admin only. **Live** (Phase C6) |
 | `/api/admin/customers/enrich` | POST | Bulk customer enrichment from HCP (tags, last_service_date, city/zip/state). Admin only. (Phase C1) |
 | `/api/unsubscribe/[token]` | GET/POST | Public — no auth. CAN-SPAM one-click unsubscribe. (Phase C2) |
 | `/unsubscribe/[token]` | Page | Public — no auth. Unsubscribe confirmation page. (Phase C2) |
@@ -694,7 +694,7 @@ See `docs/API_Routes.md` for the complete route map with auth methods and additi
 | `/api/cron/poll-hcp-status` | 3x daily | Polls HCP API. Detects status changes. Updates estimate records. |
 | `/api/cron/auto-decline` | 1x daily | Declines estimates past `auto_decline_date`. POSTs to HCP API. |
 | `/api/cron/confirm-commission` | 1x daily | Checks won estimates for job complete + invoice paid. Fires commission confirmation when both true. |
-| `/api/cron/send-campaigns` | Every 15 min | Processes queued campaign batches. Finds `status=sending` campaigns, sends one batch per campaign per run. Handles scheduled_at, batch intervals, and warmup. (Phase C5) |
+| `/api/cron/send-campaigns` | Every 15 min | Processes queued campaign batches. Finds `status=sending` campaigns, sends one batch per campaign per run. Handles scheduled_at, batch intervals, and warmup. **Live** (Phase C5) |
 | `/api/cron/enrich-customers` | 1x weekly | Enriches customers with empty tags from HCP (pages through HCP customer list). (Phase C1) |
 
 ---

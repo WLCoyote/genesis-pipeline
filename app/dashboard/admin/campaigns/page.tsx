@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import PageTopbar from "@/app/components/ui/PageTopbar";
 import CampaignList from "@/app/components/campaigns/CampaignList";
+import CampaignStats from "@/app/components/campaigns/CampaignStats";
 
 export default async function CampaignsPage() {
   const supabase = await createClient();
@@ -27,7 +28,8 @@ export default async function CampaignsPage() {
   return (
     <div>
       <PageTopbar title="Campaigns" subtitle="Email and SMS marketing campaigns" />
-      <div className="p-6">
+      <div className="p-6 space-y-6">
+        <CampaignStats />
         <CampaignList initialCampaigns={campaigns || []} />
       </div>
     </div>
