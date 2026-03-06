@@ -1296,7 +1296,7 @@ Broadcast marketing capability for the ~5,000 customer base. Replaces Mailchimp 
 - `lib/campaign-email.ts` — Orchestrator: blocks + variables + customer → final HTML with CAN-SPAM footer
 - Modify `app/api/webhooks/resend/route.ts` — check `campaign_recipients` by `resend_message_id` first, handle `email.complained`
 
-### Phase C3: Email Template Builder UI
+### Phase C3: Email Template Builder UI — COMPLETE
 
 Block-based with predefined types. Blocks added from palette, reordered with up/down buttons, edited inline.
 
@@ -1307,16 +1307,19 @@ Block-based with predefined types. Blocks added from palette, reordered with up/
 - `BlockEditor.tsx` — Edit form per block type
 - `EmailPreview.tsx` — Live preview in iframe, desktop/mobile toggle
 - `TemplateVariableBar.tsx` — Clickable variable tokens (same pattern as SequenceTokenBar)
-- `EmailTemplateManager.tsx` — List + CRUD
+- `EmailTemplateManager.tsx` — List + CRUD (filter tabs: All/Custom/Presets, card grid, edit/duplicate/deactivate/delete)
 
 **Pages + API:**
 - `app/dashboard/admin/email-templates/page.tsx`
 - `app/api/admin/email-templates/route.ts` (GET/POST)
 - `app/api/admin/email-templates/[id]/route.ts` (GET/PUT/DELETE)
+- `app/api/admin/email-templates/seed/route.ts` (POST — idempotent preset seeder)
 
-**5 Preset Templates:** Seasonal Tune-Up, Equipment Promotion, Maintenance Plan Offer, Holiday Thank You, Service Follow-Up
+**5 Preset Templates:** Seasonal Tune-Up, Equipment Promotion, Maintenance Plan Offer, Holiday Thank You, Service Follow-Up — in `lib/campaign-presets.ts`
 
-### Phase C4: Audience Builder + Campaign Wizard
+**Sidebar:** Added "Email Templates" + "Campaigns" nav items. sql/035 made idempotent with IF NOT EXISTS.
+
+### Phase C4: Audience Builder + Campaign Wizard — COMPLETE
 
 **Audience Builder (`AudienceBuilder.tsx`):**
 - Segment filter: `{ logic: 'and'|'or', rules[], groups[] }`
@@ -1331,7 +1334,9 @@ Block-based with predefined types. Blocks added from palette, reordered with up/
 4. Schedule — Send now / scheduled. Batch size, interval, warmup
 5. Review — Summary + test send + confirm
 
-**Components:** CampaignWizard, CampaignWizardSteps, CampaignSetupStep, CampaignContentStep, CampaignAudienceStep, CampaignScheduleStep, CampaignReviewStep, AudienceBuilder
+**Components (10):** CampaignWizard, CampaignWizardSteps, CampaignSetupStep, CampaignContentStep, CampaignAudienceStep, CampaignScheduleStep, CampaignReviewStep, AudienceBuilder, CampaignList, CampaignDetail
+
+**API Routes (7):** CRUD, audience-count, send, pause, duplicate, test
 
 **Pages:** `/dashboard/admin/campaigns`, `/dashboard/admin/campaigns/new`, `/dashboard/admin/campaigns/[id]`
 

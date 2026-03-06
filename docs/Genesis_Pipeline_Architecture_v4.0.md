@@ -667,15 +667,16 @@ These routes are called by the dashboard UI. They require an authenticated Supab
 | `/api/admin/financing-plans/[id]` | PUT/DELETE | Individual financing plan management. Admin only. |
 | `/api/tax/lookup` | GET | WA DOR tax rate lookup by address. |
 
-| `/api/admin/email-templates` | GET/POST | Email template CRUD. Admin only. (Phase C3) |
-| `/api/admin/email-templates/[id]` | GET/PUT/DELETE | Individual email template management. Admin only. (Phase C3) |
-| `/api/admin/campaigns` | GET/POST | Campaign CRUD. Admin only. (Phase C4) |
-| `/api/admin/campaigns/[id]` | GET/PUT/DELETE | Individual campaign management. Admin only. (Phase C4) |
-| `/api/admin/campaigns/[id]/send` | POST | Start sending a campaign (build audience + set status). Admin only. (Phase C5) |
-| `/api/admin/campaigns/[id]/test` | POST | Send test email/SMS to requesting user. Admin only. (Phase C4) |
-| `/api/admin/campaigns/[id]/duplicate` | POST | Duplicate campaign as new draft. Admin only. (Phase C4) |
-| `/api/admin/campaigns/[id]/pause` | POST | Pause/resume a sending campaign. Admin only. (Phase C5) |
-| `/api/admin/campaigns/audience-count` | POST | Live audience count from segment filter. Admin only. (Phase C4) |
+| `/api/admin/email-templates` | GET/POST | Email template CRUD. Admin only. **Live** (Phase C3) |
+| `/api/admin/email-templates/[id]` | GET/PUT/DELETE | Individual email template management. Admin only. **Live** (Phase C3) |
+| `/api/admin/email-templates/seed` | POST | Seed 5 preset templates (idempotent). Admin only. **Live** (Phase C3) |
+| `/api/admin/campaigns` | GET/POST | Campaign CRUD. Admin only. **Live** (Phase C4) |
+| `/api/admin/campaigns/[id]` | GET/PUT/DELETE | Individual campaign management. Admin only. **Live** (Phase C4) |
+| `/api/admin/campaigns/[id]/send` | POST | Start sending a campaign (set status to sending). Admin only. **Live** (Phase C4) |
+| `/api/admin/campaigns/[id]/test` | POST | Send test email to requesting user via Resend. Admin only. **Live** (Phase C4) |
+| `/api/admin/campaigns/[id]/duplicate` | POST | Duplicate campaign as new draft. Admin only. **Live** (Phase C4) |
+| `/api/admin/campaigns/[id]/pause` | POST | Pause/resume a sending campaign. Admin only. **Live** (Phase C4) |
+| `/api/admin/campaigns/audience-count` | POST | Live audience count from segment filter. Admin only. **Live** (Phase C4) |
 | `/api/admin/campaigns/stats` | GET | Aggregate campaign stats. Admin only. (Phase C6) |
 | `/api/admin/campaigns/[id]/recipients` | GET | Campaign recipient list with status. Admin only. (Phase C6) |
 | `/api/admin/campaigns/[id]/export` | GET | CSV export of campaign recipients. Admin only. (Phase C6) |
