@@ -1262,6 +1262,10 @@ Add a 5th bottom tab to the mobile app — an SMS Conversations view showing all
 | 10.1C | Low |
 | 10.1D | Low-Medium |
 
+### PWA Nav Performance Fix ✅
+
+- Added `loading.tsx` for instant tab-switch feedback + `getAuthUser()` cached auth helper (React `cache()`) to deduplicate auth queries — eliminates ~3s delay on mobile route changes. Commit `be9843c`.
+
 ---
 
 ## PHASE 11: Native App Store Distribution (Future)

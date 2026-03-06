@@ -719,6 +719,7 @@ Admin creates campaign, selects audience via tag/segment filters, sets "not cont
 | `/app/components/sequences/` | Sequences page UI components (Phase 8.1B). 4 files: SequenceHeader, SequenceTokenBar, SequenceStepCard (timeline connectors + channel-colored cards), SequenceAddStep. Orchestrated by `SequenceEditor.tsx` (parent). |
 | `/app/components/quote-builder/` | Quote builder UI (Phase 7.6 overhaul). 12 files: types.ts, utils.ts, QuoteBuilder.tsx (parent state), Topbar, Steps, TotalsBar, CustomerStep, TiersStep (3-column), AddonsStep, FinancingStep, ReviewStep, PricebookPanel (right sidebar). |
 | `/app/components/proposal/` | 8 client components: ProposalPage (state), ProposalHeader, TierCards, AddonCards, FinancingCalculator, PaymentSchedule, SignatureBlock, StickyBottomBar, WhyGenesis. |
+| `/app/m/loading.tsx` | Suspense loading state for mobile `/m/` routes. Shown during tab switches while the new page streams in. |
 | `/app/components/ProposalEngagementPanel.tsx` | Shows proposal engagement stats on estimate detail: opens, time on page, most viewed tier, device, financing/addon interactions, signature status, event timeline. |
 | `/app/components/LineItemsView.tsx` | Displays estimate_line_items grouped by tier for Pipeline-built estimates (replaces OptionsList). Shows addons, subtotal/tax/total breakdown. |
 | `/app/api/v1/` | Command Layer endpoints. `GENESIS_INTERNAL_API_KEY` auth. Standard response envelope. |
@@ -734,6 +735,7 @@ Admin creates campaign, selects audience via tag/segment filters, sets "not cont
 | `/lib/commission.ts` | Commission calculation logic. `getTierRate(userId, periodRevenue)`, `calculateEstimated()`, `calculateConfirmed()`. |
 | `/lib/proposal.ts` | Proposal generation. `generateToken()`, `buildProposalData()`, `generateSignedPdf()`. |
 | `/lib/supabase.ts` | Supabase client (anon + service role). Pipeline-specific query helpers. |
+| `/lib/supabase/auth-cache.ts` | Cached auth helper using React `cache()`. Deduplicates `getUser()` + users table query within a single server request. |
 | `/types/pipeline.ts` | TypeScript types: Estimate, LineItem, CommissionRecord, ProposalEngagement, FinancingPlan, PricebookItem, Lead. |
 | `/privacy`, `/terms` | Twilio A2P compliance pages. Required for carrier approval. |
 
