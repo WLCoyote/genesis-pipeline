@@ -107,10 +107,10 @@ export default function CampaignList({ initialCampaigns }: Props) {
                       {c.status}
                     </span>
                   </td>
-                  <td className="py-3 text-right text-ds-text-lt">{c.audience_count.toLocaleString()}</td>
-                  <td className="py-3 text-right text-ds-text-lt">{c.sent_count.toLocaleString()}</td>
-                  <td className="py-3 text-right text-ds-text-lt">{fmtRate(c.sent_count, c.opened_count)}</td>
-                  <td className="py-3 text-right text-ds-text-lt">{fmtRate(c.sent_count, c.clicked_count)}</td>
+                  <td className="py-3 text-right text-ds-text-lt">{(c.audience_count ?? 0).toLocaleString()}</td>
+                  <td className="py-3 text-right text-ds-text-lt">{(c.sent_count ?? 0).toLocaleString()}</td>
+                  <td className="py-3 text-right text-ds-text-lt">{fmtRate(c.sent_count ?? 0, c.opened_count ?? 0)}</td>
+                  <td className="py-3 text-right text-ds-text-lt">{fmtRate(c.sent_count ?? 0, c.clicked_count ?? 0)}</td>
                   <td className="py-3" onClick={(e) => e.stopPropagation()}>
                     <div className="flex gap-2">
                       <button

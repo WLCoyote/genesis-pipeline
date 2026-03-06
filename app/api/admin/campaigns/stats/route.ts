@@ -21,7 +21,7 @@ export async function GET(_request: NextRequest) {
     .from("campaigns")
     .select("sent_count, opened_count, clicked_count, bounced_count, unsubscribed_count, status");
 
-  if (!campaigns) return NextResponse.json({ total: 0, sent: 0, avgOpen: 0, avgClick: 0, unsubscribes: 0 });
+  if (!campaigns) return NextResponse.json({ total: 0, active: 0, totalSent: 0, avgOpen: 0, avgClick: 0, totalUnsubscribes: 0 });
 
   const total = campaigns.length;
   const totalSent = campaigns.reduce((s, c) => s + (c.sent_count || 0), 0);

@@ -26,12 +26,12 @@ export default function CampaignStats() {
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4">
-      <StatCard label="Total Campaigns" value={stats.total.toString()} />
-      <StatCard label="Active" value={stats.active.toString()} color="green" />
-      <StatCard label="Emails Sent" value={stats.totalSent.toLocaleString()} color="blue" />
-      <StatCard label="Avg Open Rate" value={`${stats.avgOpen}%`} color="blue" />
-      <StatCard label="Avg Click Rate" value={`${stats.avgClick}%`} color="green" />
-      <StatCard label="Unsubscribes" value={stats.totalUnsubscribes.toLocaleString()} color="orange" />
+      <StatCard label="Total Campaigns" value={(stats.total ?? 0).toString()} />
+      <StatCard label="Active" value={(stats.active ?? 0).toString()} color="green" />
+      <StatCard label="Emails Sent" value={(stats.totalSent ?? 0).toLocaleString()} color="blue" />
+      <StatCard label="Avg Open Rate" value={`${stats.avgOpen ?? 0}%`} color="blue" />
+      <StatCard label="Avg Click Rate" value={`${stats.avgClick ?? 0}%`} color="green" />
+      <StatCard label="Unsubscribes" value={(stats.totalUnsubscribes ?? 0).toLocaleString()} color="orange" />
     </div>
   );
 }
