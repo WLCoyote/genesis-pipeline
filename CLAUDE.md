@@ -239,7 +239,7 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase C5 | Campaign execution engine (`lib/campaign-sender.ts` — buildAudience/sendBatch/warmup + `/api/cron/send-campaigns` every 15 min + send route builds audience on launch) | **Complete** |
 | Phase C6 | Campaign dashboard + analytics (CampaignStats 6 cards, CampaignRecipientTable with filter/pagination/CSV export, 3 API routes: stats/recipients/export) | **Complete** |
 | Phase C7 | SMS campaigns (STOP keyword handling in Twilio webhook, delivery status callbacks, SMS test send in wizard, A2P warning) | **Complete** |
-| Phase C8 | Campaign polish + settings (default batch/interval/warmup, sender name/email, sidebar grouping) | Not started |
+| Phase C8 | Campaign polish + settings (default batch/interval/warmup, sender name/email, sidebar "Marketing" grouping) | **Complete** |
 | Phase 11 | Native App Store Distribution — Capacitor wrapper for iOS + Google Play | **Future** — revisit when multi-tenant or team >20 |
 | Phase 3+ | AI, weather triggers | Future |
 
@@ -294,5 +294,5 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | HCP estimate tag filter | **Done** — Toggle in Settings to exclude estimates by option tag (e.g., "Service Estimate"). `hcp_tag_filter_enabled` + `hcp_exclude_tags` settings, filter in `handleNewEstimate`. |
 | ~~HCP real-time webhooks~~ | **Done** (v0.2) — `/api/webhooks/hcp` handles 10 events: customer sync, estimate lifecycle (completed=primary import, created=log only), option events, estimate.copy_to_job (stores hcp_job_id), job.paid (real-time commission confirm). sql/034 adds hcp_job_id, job_paid_at, job_paid_amount to estimates. HCP payload uses `event.estimate.id` / `event.customer.id` / `event.job.id`. |
 | A2P 10DLC SMS approval | **Blocked** — 3 rejections (opt-in CTA, privacy policy). Attempt 4 pending with `/sms-consent` page (verbal consent script, CTIA disclosures). `/privacy` and `/terms` pages already deployed. |
-| Marketing campaigns (email + SMS) | **In Progress** (Phase C1-C8) — sql/035 + types created. 4 tables, customer enrichment, email template builder, audience segmentation, batch campaign execution, CAN-SPAM compliance, campaign analytics. Replaces Mailchimp/GHL. |
+| ~~Marketing campaigns (email + SMS)~~ | **Done** (Phase C1-C8) — 4 tables, customer enrichment, email template builder, audience segmentation, batch campaign execution (email + SMS), CAN-SPAM/TCPA compliance, campaign analytics, configurable settings. Replaces Mailchimp/GHL. |
 | Native App Store distribution | **Phase 11 (Future)** — Capacitor wrapper for iOS App Store + Google Play. Revisit when multi-tenant or team >20 users. |

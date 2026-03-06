@@ -13,9 +13,12 @@ import Button from "@/app/components/ui/Button";
 
 interface Props {
   templates: EmailTemplate[];
+  defaultBatchSize?: number;
+  defaultBatchInterval?: number;
+  defaultWarmup?: boolean;
 }
 
-export default function CampaignWizard({ templates }: Props) {
+export default function CampaignWizard({ templates, defaultBatchSize, defaultBatchInterval, defaultWarmup }: Props) {
   const router = useRouter();
   const [step, setStep] = useState<WizardStep>(1);
   const [saving, setSaving] = useState(false);
@@ -41,9 +44,9 @@ export default function CampaignWizard({ templates }: Props) {
   // Step 4: Schedule
   const [sendNow, setSendNow] = useState(true);
   const [scheduledAt, setScheduledAt] = useState("");
-  const [batchSize, setBatchSize] = useState(50);
-  const [batchIntervalMinutes, setBatchIntervalMinutes] = useState(60);
-  const [warmupMode, setWarmupMode] = useState(false);
+  const [batchSize, setBatchSize] = useState(defaultBatchSize ?? 50);
+  const [batchIntervalMinutes, setBatchIntervalMinutes] = useState(defaultBatchInterval ?? 60);
+  const [warmupMode, setWarmupMode] = useState(defaultWarmup ?? false);
 
   const saveDraft = useCallback(async () => {
     setSaving(true);

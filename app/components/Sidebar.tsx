@@ -17,6 +17,7 @@ interface NavItem {
   href: string;
   label: string;
   roles: UserRole[];
+  section?: string;
 }
 
 const navItems: NavItem[] = [
@@ -33,8 +34,8 @@ const navItems: NavItem[] = [
   { href: "/dashboard/admin/install-kits", label: "Install Kits", roles: ["admin"] },
   { href: "/dashboard/admin/maintenance-plans", label: "Maintenance Plans", roles: ["admin"] },
   { href: "/dashboard/admin/commission-tiers", label: "Commission Tiers", roles: ["admin"] },
-  { href: "/dashboard/admin/email-templates", label: "Email Templates", roles: ["admin"] },
-  { href: "/dashboard/admin/campaigns", label: "Campaigns", roles: ["admin"] },
+  { href: "/dashboard/admin/campaigns", label: "Campaigns", roles: ["admin"], section: "Marketing" },
+  { href: "/dashboard/admin/email-templates", label: "Email Templates", roles: ["admin"], section: "Marketing" },
   { href: "/dashboard/admin/settings", label: "Settings", roles: ["admin"] },
   { href: "/dashboard/admin/team", label: "Team", roles: ["admin"] },
 ];
@@ -77,7 +78,7 @@ export default function Sidebar({ role, userName, isOpen, onClose }: SidebarProp
 
         {/* Navigation */}
         <nav className="flex-1 p-2 space-y-0.5">
-          {visibleItems.map((item) => {
+          {visibleItems.map((item, idx) => {
             const isActive =
               pathname === item.href ||
               (pathname.startsWith(item.href + "/") &&
@@ -86,19 +87,27 @@ export default function Sidebar({ role, userName, isOpen, onClose }: SidebarProp
                     other.href.length > item.href.length &&
                     pathname.startsWith(other.href)
                 ));
+            const prevSection = idx > 0 ? visibleItems[idx - 1].section : undefined;
+            const showSectionHeader = item.section && item.section !== prevSection;
             return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className={`block px-3 py-2 rounded-md text-[13px] font-medium transition-colors ${
-                  isActive
-                    ? "bg-[rgba(21,101,192,0.25)] text-white border-l-[3px] border-l-ds-blue-lt"
-                    : "text-white/50 hover:bg-white/5 hover:text-white/85"
-                }`}
-              >
-                {item.label}
-              </Link>
+              <div key={item.href}>
+                {showSectionHeader && (
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-white/30 px-3 pt-3 pb-1">
+                    {item.section}
+                  </p>
+                )}
+                <Link
+                  href={item.href}
+                  onClick={onClose}
+                  className={`block px-3 py-2 rounded-md text-[13px] font-medium transition-colors ${
+                    isActive
+                      ? "bg-[rgba(21,101,192,0.25)] text-white border-l-[3px] border-l-ds-blue-lt"
+                      : "text-white/50 hover:bg-white/5 hover:text-white/85"
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              </div>
             );
           })}
         </nav>

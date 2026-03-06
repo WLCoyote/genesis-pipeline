@@ -19,9 +19,27 @@ const twilioClient = twilio(
 );
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "https://app.genesishvacr.com";
-const SENDER_EMAIL = process.env.RESEND_FROM_EMAIL || "noreply@genesishvacr.com";
-const SENDER_NAME = "Genesis HVAC";
+const DEFAULT_SENDER_EMAIL = process.env.RESEND_FROM_EMAIL || "noreply@genesishvacr.com";
+const DEFAULT_SENDER_NAME = "Genesis HVAC";
 const TWILIO_FROM = process.env.TWILIO_PHONE_NUMBER || "";
+
+/**
+ * Fetch campaign sender settings from DB, with fallbacks.
+ */
+async function getSenderSettings(supabase: SupabaseClient) {
+  const { data } = await supabase
+    .from("settings")
+    .select("key, value")
+    .in("key", ["campaign_sender_name", "campaign_sender_email"]);
+
+  let senderName = DEFAULT_SENDER_NAME;
+  let senderEmail = DEFAULT_SENDER_EMAIL;
+  for (const s of data || []) {
+    if (s.key === "campaign_sender_name" && s.value) senderName = String(s.value);
+    if (s.key === "campaign_sender_email" && s.value) senderEmail = String(s.value);
+  }
+  return { senderName, senderEmail };
+}
 
 /**
  * Build audience for a campaign — creates campaign_recipients rows from segment query.
@@ -315,9 +333,10 @@ async function sendCampaignEmail(
   });
 
   const headers = getUnsubscribeHeaders(unsubscribeUrl);
+  const { senderName, senderEmail } = await getSenderSettings(supabase);
 
   const { data: sendResult, error: sendError } = await resend.emails.send({
-    from: `${SENDER_NAME} <${SENDER_EMAIL}>`,
+    from: `${senderName} <${senderEmail}>`,
     to: customer.email,
     subject: campaign.subject || "Update from Genesis HVAC",
     html,

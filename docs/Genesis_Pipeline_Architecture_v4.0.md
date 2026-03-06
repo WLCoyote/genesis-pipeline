@@ -835,6 +835,10 @@ Admin creates campaign, selects audience via tag/segment filters, sets "not cont
 | `/lib/qbo.ts` | QBO client. `refreshToken()`, `getInvoiceByReference()`, `getInvoicePaidStatus()`, `getPreTaxTotal()`. Reusable by Command Layer. |
 | `/lib/tax.ts` | WA DOR API wrapper. `getTaxRate({address, city?, zip?})` → `{rate, source}`. 5s timeout, falls back to 0.092 (Monroe default). Built. |
 | `/lib/company-settings.ts` | `getCompanyInfo()` and `getProposalTerms()` — reads company info and proposal terms from settings table with hardcoded defaults as fallback. Used by sign endpoint, PDF generation, and confirmation email. Built. |
+| `/lib/campaign-sender.ts` | Campaign execution engine. `buildAudience()`, `sendBatch()`, `getWarmupBatchSize()`. Reads `campaign_sender_name`/`campaign_sender_email` from settings table (fallback to env vars). Used by `/api/cron/send-campaigns`. |
+| `/lib/campaign-email.ts` | Campaign email renderer. `renderCampaignEmail()` (blocks → HTML), `getUnsubscribeHeaders()`, `getOrCreateUnsubscribeToken()`. CAN-SPAM footer auto-appended. |
+| `/lib/campaign-types.ts` | Campaign types: Campaign, EmailTemplate, EmailBlock, SegmentFilter, SegmentRule, CampaignType, WARMUP_SCHEDULE. |
+| `/lib/segment-builder.ts` | `buildSegmentQuery()` and `countSegmentAudience()` — segment filter → Supabase query chains. |
 | `/lib/commission.ts` | Commission calculation logic. `getTierRate(userId, periodRevenue)`, `calculateEstimated()`, `calculateConfirmed()`. |
 | `/lib/proposal.ts` | Proposal generation. `generateToken()`, `buildProposalData()`, `generateSignedPdf()`. |
 | `/lib/supabase.ts` | Supabase client (anon + service role). Pipeline-specific query helpers. |

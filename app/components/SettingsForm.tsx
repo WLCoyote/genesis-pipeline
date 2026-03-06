@@ -424,6 +424,113 @@ export default function SettingsForm({ initialSettings, initialCompanyInfo, init
         </a>
       </div>
 
+      {/* Campaign Defaults */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-5">
+        <h2 className="font-display text-lg font-normal text-ds-text dark:text-gray-100 mb-1">Campaign Defaults</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+          Default settings for new marketing campaigns. Can be overridden per campaign.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Sender Name
+            </label>
+            <input
+              type="text"
+              value={String(values.campaign_sender_name ?? "")}
+              onChange={(e) =>
+                setValues((prev) => ({ ...prev, campaign_sender_name: e.target.value }))
+              }
+              placeholder="Genesis HVAC"
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Sender Email
+            </label>
+            <input
+              type="email"
+              value={String(values.campaign_sender_email ?? "")}
+              onChange={(e) =>
+                setValues((prev) => ({ ...prev, campaign_sender_email: e.target.value }))
+              }
+              placeholder="noreply@genesishvacr.com"
+              className={inputClass}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Default Batch Size
+            </label>
+            <input
+              type="number"
+              value={String(values.campaign_default_batch_size ?? "")}
+              onChange={(e) =>
+                setValues((prev) => ({
+                  ...prev,
+                  campaign_default_batch_size: parseInt(e.target.value) || 50,
+                }))
+              }
+              placeholder="50"
+              min={1}
+              max={500}
+              className={`${inputClass} w-32`}
+            />
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Emails/SMS per batch (1–500)</p>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Default Batch Interval (min)
+            </label>
+            <input
+              type="number"
+              value={String(values.campaign_default_batch_interval ?? "")}
+              onChange={(e) =>
+                setValues((prev) => ({
+                  ...prev,
+                  campaign_default_batch_interval: parseInt(e.target.value) || 60,
+                }))
+              }
+              placeholder="60"
+              min={15}
+              className={`${inputClass} w-32`}
+            />
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Minutes between batches (min 15)</p>
+          </div>
+          <div className="md:col-span-2">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() =>
+                  setValues((prev) => ({
+                    ...prev,
+                    campaign_warmup_enabled: !prev.campaign_warmup_enabled,
+                  }))
+                }
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  values.campaign_warmup_enabled
+                    ? "bg-blue-600"
+                    : "bg-gray-300 dark:bg-gray-600"
+                }`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    values.campaign_warmup_enabled ? "translate-x-6" : "translate-x-1"
+                  }`}
+                />
+              </button>
+              <span className="text-sm text-gray-700 dark:text-gray-300">
+                Enable warmup mode by default
+              </span>
+            </div>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 ml-14">
+              Gradually increases batch size over 5 days (25 → 50 → 100 → 200 → 500) for new sender reputation.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* QuickBooks Online */}
       <QboConnectionSection />
 

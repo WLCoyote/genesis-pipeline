@@ -1371,11 +1371,14 @@ Reuses C4/C5 infrastructure. SMS sending path was already built in C5 (`sendCamp
 - **SMS test send** — Test route (`/api/admin/campaigns/[id]/test`) now supports SMS with phone param, variable replacement, STOP append. Review step shows phone input + A2P warning for SMS campaigns
 - **Files modified:** `app/api/webhooks/twilio/route.ts`, `lib/campaign-sender.ts`, `app/api/admin/campaigns/[id]/test/route.ts`, `app/components/campaigns/CampaignReviewStep.tsx`
 
-### Phase C8: Polish + Settings
+### Phase C8: Polish + Settings — COMPLETE
 
-- Campaign settings in Settings page (default batch/interval, warmup, sender name/email)
-- Sidebar "Marketing" section grouping (Campaigns, Email Templates)
-- Settings keys: `campaign_default_batch_size`, `campaign_default_batch_interval`, `campaign_warmup_enabled`, `campaign_sender_name`, `campaign_sender_email`
+- **Sidebar "Marketing" section** — Campaigns + Email Templates grouped under "Marketing" header via `section` field on NavItem
+- **Campaign Defaults in Settings page** — 5 settings: sender name, sender email, default batch size, default batch interval, warmup enabled
+- **Settings keys**: `campaign_default_batch_size`, `campaign_default_batch_interval`, `campaign_warmup_enabled`, `campaign_sender_name`, `campaign_sender_email`
+- **campaign-sender.ts** reads sender name/email from settings table (with env var fallbacks via `getSenderSettings()`)
+- **CampaignWizard** accepts `defaultBatchSize`, `defaultBatchInterval`, `defaultWarmup` props — new campaign page fetches from settings and passes as initial state
+- **Files modified**: Sidebar.tsx, SettingsForm.tsx, campaign-sender.ts, CampaignWizard.tsx, campaigns/new/page.tsx
 
 ### Key Design Decisions
 
