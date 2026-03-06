@@ -374,6 +374,39 @@ Agent skill examples: "How's the pipeline looking?" → /stats. "Which proposals
 
 ---
 
+## Section 10.5 — Marketing Campaigns (Phases C1-C8)
+
+*Broadcast marketing capability for the ~5,000 customer base*
+
+### 10.5.1 Overview
+
+Genesis Pipeline has automated follow-up sequences (per-estimate, multi-channel) but no broadcast marketing capability. The customer table has ~5,000 records with segmentation fields (`tags`, `equipment_type`, `last_service_date`, `city`, `zip`, `state`). Adding marketing campaigns enables seasonal promotions, re-engagement, maintenance reminders, and referral asks — replacing the need for Mailchimp ($45-350/mo) or GoHighLevel ($97-297/mo).
+
+### 10.5.2 Features
+
+**Customer Data Enrichment:** HCP tag syncing on customer.updated webhook and estimate import. Structured tag convention: system type (`Heat Pump`), install year (`age:2020`), equipment model (`equip:carrier-25vna`). City/zip/state extracted from address. Bulk enrichment endpoint pages through HCP customers. Weekly cron fills gaps.
+
+**Email Template Builder:** Block-based editor with 7 block types (header, text, image, button, divider, spacer, two-column). Table-based inline-styled HTML for email client compatibility. 5 preset templates. Variable tokens: `{{customer_name}}`, `{{customer_email}}`, `{{customer_city}}`, `{{company_name}}`, `{{unsubscribe_url}}`.
+
+**Audience Segmentation:** Rule-based segment builder with AND/OR logic and nested groups. Fields: tags, equipment_type, city, zip, state, last_service_date, lead_source, has_estimate, estimate_status. Auto-excludes: `do_not_contact`, `marketing_unsubscribed`, missing email/phone. Live audience count.
+
+**Campaign Wizard:** 5-step wizard (Setup → Content → Audience → Schedule → Review). Email: template picker + subject + preheader. SMS: textarea + char count + variable tokens. Test send before launch.
+
+**Batch Execution:** Cron-based (every 15 min). Configurable batch size + interval. Warmup mode (25/50/100/200/500). Re-checks opt-out before each send.
+
+**CAN-SPAM Compliance:** `marketing_unsubscribed` separate from `do_not_contact` (marketing opt-out shouldn't block transactional follow-ups). One-click unsubscribe via unique token. List-Unsubscribe header (RFC 8058). SMS: "Reply STOP to unsubscribe" auto-appended.
+
+**Campaign Analytics:** Denormalized stats on campaign records (sent, opened, clicked, bounced, unsubscribed). Resend webhook integration with direct `resend_message_id` matching. Recipient table with status badges and CSV export. Dashboard stats with open/click rates.
+
+### 10.5.3 Non-Goals (This Version)
+
+- Full drag-and-drop email editor (block palette + up/down reorder is sufficient)
+- A/B testing
+- Drip campaign automation (separate from existing follow-up sequences)
+- Email warm-up management beyond batch size control
+
+---
+
 ## Section 11 — Non-Functional Requirements
 
 *Performance, security, and operational standards*
@@ -431,6 +464,7 @@ Agent skill examples: "How's the pipeline looking?" → /stats. "Which proposals
 | Phase 7 | Proposal engine | **Complete.** 7.1 (proposal page), 7.2 (engagement tracking), 7.3 (signature + PDF + HCP writeback), 7.3b (unsent estimates), 7.4 (dashboard tracking), 7.5 (proposal polish), 7.6 (quote builder overhaul), 7.7 (QA fixes + proposal polish), 7.8 (UI polish + rebates). |
 | Phase 8 | Commission tracking (two-stage, QBO) | Not started |
 | Phase 9 | Command Layer API (`/api/v1/` endpoints) | Not started |
+| Campaigns | Marketing Campaigns — Email & SMS (C1-C8) | **In progress** — C1 started (sql/035 + types created) |
 
 See `docs/Build_Plan_Genesis_HVAC_v2_1.md` for detailed step-by-step instructions per phase.
 
@@ -450,6 +484,7 @@ See `docs/Build_Plan_Genesis_HVAC_v2_1.md` for detailed step-by-step instruction
 
 | Version | Date | Changes |
 |---------|------|---------|
+| v4.1 | Mar 2026 | Added marketing campaigns (Phases C1-C8): customer enrichment, email template builder, audience segmentation, campaign wizard, batch execution engine, CAN-SPAM compliance, campaign analytics. |
 | v4.0 | Feb 2026 | Added pricebook, proposal engine, commission tracking, Command Layer API, financing calculator, WA DOR tax, QBO integration. |
 | v3.2 | Feb 20 | Twilio Messaging Service for A2P compliance. Privacy/Terms pages. Inbox error display. |
 | v3.1 | Feb 18 | Paused state UI, sent date fix, HCP pro link, execute skipped steps, option selection modal, admin SMS notifications. |

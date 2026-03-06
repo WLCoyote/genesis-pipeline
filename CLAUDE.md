@@ -232,7 +232,15 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | Phase 10.2 | PWA Nav Performance — `loading.tsx` instant tab-switch feedback + `getAuthUser()` cached auth (React `cache()`) deduplicates auth queries, eliminates ~3s route-change delay | **Complete** |
 | Phase 11 | Native App Store Distribution — Capacitor wrapper for iOS App Store + Google Play Store | **Future** — revisit when multi-tenant or team >20 |
 | v0.2 | HCP Real-Time Webhooks — `/api/webhooks/hcp` receiver for 10 events (customer.updated/deleted, estimate.created/completed/sent/updated, option.approval_status_changed/created, estimate.copy_to_job, job.paid). sql/034 adds hcp_job_id + job payment fields. job.paid confirms commission in real-time. | **Complete & Verified** — sql/034 run in Supabase. Code deployed. Event processing uses `after()` for instant 200 response. Webhooks confirmed working. UTC→Pacific timezone fix for sent_date applied in `lib/hcp-polling.ts`. |
-| Phase 2+ | Campaigns & segmentation | Future |
+| Phase C1 | Marketing Campaigns: DB schema (sql/035 — 4 tables, 3 customer columns) + types (`lib/campaign-types.ts`) + segment builder + customer enrichment (HCP webhook/polling mods, bulk enrich endpoint, weekly cron) | **In Progress** — sql/035 + types created |
+| Phase C2 | Unsubscribe flow (public page + API) + campaign email renderer (block→HTML + CAN-SPAM footer) + Resend webhook extension | Not started |
+| Phase C3 | Email template builder UI (7 components + admin page + API + 5 presets) | Not started |
+| Phase C4 | Audience builder + campaign wizard (5-step: Setup/Content/Audience/Schedule/Review) + 8 components + pages + API | Not started |
+| Phase C5 | Campaign execution engine (`lib/campaign-sender.ts` + `/api/cron/send-campaigns` every 15 min) | Not started |
+| Phase C6 | Campaign dashboard + analytics (list, stats, detail, recipient table, CSV export) | Not started |
+| Phase C7 | SMS campaigns (Twilio path in sendBatch, char count, A2P warning, STOP auto-append) | Not started |
+| Phase C8 | Campaign polish + settings (default batch/interval/warmup, sender name/email, sidebar grouping) | Not started |
+| Phase 11 | Native App Store Distribution — Capacitor wrapper for iOS + Google Play | **Future** — revisit when multi-tenant or team >20 |
 | Phase 3+ | AI, weather triggers | Future |
 
 ### **Pending Feature Requests**
@@ -286,4 +294,5 @@ Phases 0–3 complete. Phase 4 in progress. Phase 6 complete. Phase 7 complete (
 | HCP estimate tag filter | **Done** — Toggle in Settings to exclude estimates by option tag (e.g., "Service Estimate"). `hcp_tag_filter_enabled` + `hcp_exclude_tags` settings, filter in `handleNewEstimate`. |
 | ~~HCP real-time webhooks~~ | **Done** (v0.2) — `/api/webhooks/hcp` handles 10 events: customer sync, estimate lifecycle (completed=primary import, created=log only), option events, estimate.copy_to_job (stores hcp_job_id), job.paid (real-time commission confirm). sql/034 adds hcp_job_id, job_paid_at, job_paid_amount to estimates. HCP payload uses `event.estimate.id` / `event.customer.id` / `event.job.id`. |
 | A2P 10DLC SMS approval | **Blocked** — 3 rejections (opt-in CTA, privacy policy). Attempt 4 pending with `/sms-consent` page (verbal consent script, CTIA disclosures). `/privacy` and `/terms` pages already deployed. |
+| Marketing campaigns (email + SMS) | **In Progress** (Phase C1-C8) — sql/035 + types created. 4 tables, customer enrichment, email template builder, audience segmentation, batch campaign execution, CAN-SPAM compliance, campaign analytics. Replaces Mailchimp/GHL. |
 | Native App Store distribution | **Phase 11 (Future)** — Capacitor wrapper for iOS App Store + Google Play. Revisit when multi-tenant or team >20 users. |

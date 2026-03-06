@@ -60,6 +60,10 @@ These tables are live in production. Documented here for completeness — the v4
 | lead_source | TEXT | |
 | tags | TEXT[] | Text array for campaign targeting/segmentation. |
 | do_not_contact | BOOLEAN | Opt-out flag. Sequences and campaigns respect this. |
+| marketing_unsubscribed | BOOLEAN | Marketing opt-out (CAN-SPAM). Separate from do_not_contact — marketing unsub shouldn't block transactional follow-ups. Default false. (Phase C1) |
+| city | TEXT | Extracted from address during HCP sync/enrichment. For campaign segmentation. (Phase C1) |
+| zip | TEXT | Extracted from address during HCP sync/enrichment. For campaign segmentation. (Phase C1) |
+| state | TEXT | Extracted from address during HCP sync/enrichment. For campaign segmentation. (Phase C1) |
 
 #### estimate_options
 
@@ -490,6 +494,84 @@ Admin-configurable. Tags that trigger the 4-payment schedule on proposals.
 | tag_name | TEXT UNIQUE | Exact match to HCP estimate tag. e.g., "Remodel", "New Con" |
 | is_active | BOOLEAN | Inactive tags ignored during payment schedule determination. |
 
+#### email_templates (Phase C1)
+
+Reusable block-based email templates for marketing campaigns.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| name | TEXT NOT NULL | Template name. |
+| description | TEXT | Optional description. |
+| blocks | JSONB | Array of block objects: `{ id, type, content }`. Types: header, text, image, button, divider, spacer, two-column. |
+| is_preset | BOOLEAN | True = system-provided preset template. |
+| is_active | BOOLEAN | |
+| created_by | UUID FK → users | |
+
+#### campaigns (Phase C1)
+
+Marketing campaign definitions. Supports email and SMS. Batch-controlled sending with warmup mode.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| name | TEXT NOT NULL | Campaign name. |
+| type | ENUM | `email` \| `sms` |
+| status | ENUM | `draft` \| `scheduled` \| `sending` \| `paused` \| `sent` \| `cancelled` |
+| subject | TEXT | Email subject line. |
+| email_template_id | UUID FK → email_templates | |
+| preview_text | TEXT | Email preheader text. |
+| sms_body | TEXT | SMS message body. |
+| segment_filter | JSONB | `{ logic, rules[], groups[] }` — audience segment definition. |
+| exclude_active_pipeline | BOOLEAN | Default true. Exclude customers with active estimates. |
+| exclude_recent_contact_days | INTEGER | Skip customers contacted within N days. Default 30. |
+| batch_size | INTEGER | Recipients per batch. Default 50. |
+| batch_interval_minutes | INTEGER | Minutes between batches. Default 60. |
+| warmup_mode | BOOLEAN | Caps batch size per warmup schedule. |
+| warmup_day | INTEGER | Current warmup day (0=25, 1=50, 2=100, 3=200, 4=500). |
+| scheduled_at | TIMESTAMPTZ | When to start sending (null = manual start). |
+| started_at | TIMESTAMPTZ | |
+| completed_at | TIMESTAMPTZ | |
+| audience_count | INTEGER | Total recipients in audience at send time. |
+| sent_count | INTEGER | Denormalized stat — updated on send. |
+| opened_count | INTEGER | Updated via Resend webhooks. |
+| clicked_count | INTEGER | Updated via Resend webhooks. |
+| bounced_count | INTEGER | Updated via Resend webhooks. |
+| unsubscribed_count | INTEGER | Updated via unsubscribe endpoint. |
+| created_by | UUID FK → users | |
+
+#### campaign_recipients (Phase C1)
+
+One row per customer per campaign. Tracks delivery status.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| campaign_id | UUID FK → campaigns | ON DELETE CASCADE |
+| customer_id | UUID FK → customers | ON DELETE CASCADE |
+| status | ENUM | `queued` \| `sent` \| `opened` \| `clicked` \| `bounced` \| `unsubscribed` \| `skipped` |
+| resend_message_id | TEXT | Resend email ID for direct webhook matching. |
+| twilio_message_sid | TEXT | Twilio SID for SMS tracking. |
+| sent_at | TIMESTAMPTZ | |
+| opened_at | TIMESTAMPTZ | |
+| clicked_at | TIMESTAMPTZ | |
+| unsubscribed_at | TIMESTAMPTZ | |
+| batch_number | INTEGER | Which batch this recipient was sent in. |
+
+UNIQUE constraint on (campaign_id, customer_id). Indexes on campaign_id and (campaign_id, status).
+
+#### unsubscribe_tokens (Phase C1)
+
+CAN-SPAM one-click unsubscribe. Each customer gets a stable token.
+
+| Column | Type | Notes |
+|--------|------|-------|
+| id | UUID PK | |
+| customer_id | UUID FK → customers | ON DELETE CASCADE |
+| token | TEXT UNIQUE | 64-char hex token generated via `gen_random_bytes(32)`. |
+
+Index on token for fast lookup.
+
 ---
 
 ## Section 3 — API Routes
@@ -585,6 +667,22 @@ These routes are called by the dashboard UI. They require an authenticated Supab
 | `/api/admin/financing-plans/[id]` | PUT/DELETE | Individual financing plan management. Admin only. |
 | `/api/tax/lookup` | GET | WA DOR tax rate lookup by address. |
 
+| `/api/admin/email-templates` | GET/POST | Email template CRUD. Admin only. (Phase C3) |
+| `/api/admin/email-templates/[id]` | GET/PUT/DELETE | Individual email template management. Admin only. (Phase C3) |
+| `/api/admin/campaigns` | GET/POST | Campaign CRUD. Admin only. (Phase C4) |
+| `/api/admin/campaigns/[id]` | GET/PUT/DELETE | Individual campaign management. Admin only. (Phase C4) |
+| `/api/admin/campaigns/[id]/send` | POST | Start sending a campaign (build audience + set status). Admin only. (Phase C5) |
+| `/api/admin/campaigns/[id]/test` | POST | Send test email/SMS to requesting user. Admin only. (Phase C4) |
+| `/api/admin/campaigns/[id]/duplicate` | POST | Duplicate campaign as new draft. Admin only. (Phase C4) |
+| `/api/admin/campaigns/[id]/pause` | POST | Pause/resume a sending campaign. Admin only. (Phase C5) |
+| `/api/admin/campaigns/audience-count` | POST | Live audience count from segment filter. Admin only. (Phase C4) |
+| `/api/admin/campaigns/stats` | GET | Aggregate campaign stats. Admin only. (Phase C6) |
+| `/api/admin/campaigns/[id]/recipients` | GET | Campaign recipient list with status. Admin only. (Phase C6) |
+| `/api/admin/campaigns/[id]/export` | GET | CSV export of campaign recipients. Admin only. (Phase C6) |
+| `/api/admin/customers/enrich` | POST | Bulk customer enrichment from HCP (tags, last_service_date, city/zip/state). Admin only. (Phase C1) |
+| `/api/unsubscribe/[token]` | GET/POST | Public — no auth. CAN-SPAM one-click unsubscribe. (Phase C2) |
+| `/unsubscribe/[token]` | Page | Public — no auth. Unsubscribe confirmation page. (Phase C2) |
+
 See `docs/API_Routes.md` for the complete route map with auth methods and additional detail.
 
 ### 3.4 Cron Jobs
@@ -595,6 +693,8 @@ See `docs/API_Routes.md` for the complete route map with auth methods and additi
 | `/api/cron/poll-hcp-status` | 3x daily | Polls HCP API. Detects status changes. Updates estimate records. |
 | `/api/cron/auto-decline` | 1x daily | Declines estimates past `auto_decline_date`. POSTs to HCP API. |
 | `/api/cron/confirm-commission` | 1x daily | Checks won estimates for job complete + invoice paid. Fires commission confirmation when both true. |
+| `/api/cron/send-campaigns` | Every 15 min | Processes queued campaign batches. Finds `status=sending` campaigns, sends one batch per campaign per run. Handles scheduled_at, batch intervals, and warmup. (Phase C5) |
+| `/api/cron/enrich-customers` | 1x weekly | Enriches customers with empty tags from HCP (pages through HCP customer list). (Phase C1) |
 
 ---
 

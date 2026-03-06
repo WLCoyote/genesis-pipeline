@@ -1268,6 +1268,114 @@ Add a 5th bottom tab to the mobile app — an SMS Conversations view showing all
 
 ---
 
+## CAMPAIGNS: Marketing Campaigns — Email & SMS
+
+Broadcast marketing capability for the ~5,000 customer base. Replaces Mailchimp ($45-350/mo) or GoHighLevel ($97-297/mo). Customer data enrichment from HCP, visual email template builder, advanced audience segmentation, batch-controlled campaign execution (email + SMS), CAN-SPAM compliance, and campaign analytics.
+
+### Phase C1: Database Schema + Customer Enrichment — IN PROGRESS
+
+**SQL Migration — `sql/035_campaigns.sql`**
+- 4 new tables: `email_templates`, `campaigns`, `campaign_recipients`, `unsubscribe_tokens`
+- 3 new columns on `customers`: `marketing_unsubscribed`, `city`, `zip`, `state`
+- RLS + triggers on all new tables
+
+**Customer Data Enrichment:**
+- Modify `handleCustomerUpdated` in `app/api/webhooks/hcp/route.ts` — sync tags, parse structured tags, extract city/zip/state from address
+- Modify `handleNewEstimate` in `lib/hcp-polling.ts` — add tags to customer upsert, extract city/zip/state
+- New `POST /api/admin/customers/enrich` — bulk enrichment (pages through HCP customers)
+- New cron `/api/cron/enrich-customers` — weekly
+
+**Types:** `lib/campaign-types.ts` — all campaign/template/segment types
+**Segment Builder:** `lib/segment-builder.ts` — segment filter → Supabase query
+
+### Phase C2: Unsubscribe Flow + Email Rendering
+
+- `app/unsubscribe/[token]/page.tsx` — Public unsubscribe page (no auth)
+- `app/api/unsubscribe/[token]/route.ts` — GET for List-Unsubscribe one-click (RFC 8058), POST for form
+- `lib/campaign-blocks.ts` — Block type definitions + `toHtml()` per block (table-based inline-styled HTML)
+- `lib/campaign-email.ts` — Orchestrator: blocks + variables + customer → final HTML with CAN-SPAM footer
+- Modify `app/api/webhooks/resend/route.ts` — check `campaign_recipients` by `resend_message_id` first, handle `email.complained`
+
+### Phase C3: Email Template Builder UI
+
+Block-based with predefined types. Blocks added from palette, reordered with up/down buttons, edited inline.
+
+**Components (`app/components/campaigns/`):**
+- `EmailTemplateBuilder.tsx` — Orchestrator (blocks[], selectedIndex, previewMode)
+- `BlockPalette.tsx` — Block type buttons
+- `BlockList.tsx` — Ordered blocks with preview, up/down/delete
+- `BlockEditor.tsx` — Edit form per block type
+- `EmailPreview.tsx` — Live preview in iframe, desktop/mobile toggle
+- `TemplateVariableBar.tsx` — Clickable variable tokens (same pattern as SequenceTokenBar)
+- `EmailTemplateManager.tsx` — List + CRUD
+
+**Pages + API:**
+- `app/dashboard/admin/email-templates/page.tsx`
+- `app/api/admin/email-templates/route.ts` (GET/POST)
+- `app/api/admin/email-templates/[id]/route.ts` (GET/PUT/DELETE)
+
+**5 Preset Templates:** Seasonal Tune-Up, Equipment Promotion, Maintenance Plan Offer, Holiday Thank You, Service Follow-Up
+
+### Phase C4: Audience Builder + Campaign Wizard
+
+**Audience Builder (`AudienceBuilder.tsx`):**
+- Segment filter: `{ logic: 'and'|'or', rules[], groups[] }`
+- Fields: tags, equipment_type, city, zip, state, last_service_date, lead_source, has_estimate, estimate_status
+- Auto-excludes: do_not_contact, marketing_unsubscribed, missing email/phone
+- Live audience count via debounced POST to `/api/admin/campaigns/audience-count`
+
+**Campaign Wizard (5-step, same pattern as QuoteBuilder):**
+1. Setup — Name + type (email/sms)
+2. Content — Email: template picker + subject + preheader. SMS: textarea + char count + variables
+3. Audience — AudienceBuilder + exclusions + live count
+4. Schedule — Send now / scheduled. Batch size, interval, warmup
+5. Review — Summary + test send + confirm
+
+**Components:** CampaignWizard, CampaignWizardSteps, CampaignSetupStep, CampaignContentStep, CampaignAudienceStep, CampaignScheduleStep, CampaignReviewStep, AudienceBuilder
+
+**Pages:** `/dashboard/admin/campaigns`, `/dashboard/admin/campaigns/new`, `/dashboard/admin/campaigns/[id]`
+
+### Phase C5: Campaign Execution Engine
+
+**`lib/campaign-sender.ts`:**
+- `buildAudience(campaignId)` — segment query → create recipient rows
+- `sendBatch(campaignId, batchNumber)` — fetch queued recipients, send via Resend/Twilio, store message IDs
+- `getWarmupBatchSize(day)` — 25/50/100/200/500/configured
+- Re-check do_not_contact + marketing_unsubscribed before each send
+
+**Cron — `/api/cron/send-campaigns`:** Every 15 min. Finds `status=sending` campaigns, one batch per campaign per run.
+
+### Phase C6: Campaign Dashboard + Analytics
+
+**Components:**
+- `CampaignList.tsx` — Table with tabs (All/Drafts/Active/Sent), search, pagination
+- `CampaignStats.tsx` — StatCards: total, emails sent, avg open rate, avg click rate, unsubscribes
+- `CampaignDetail.tsx` — Campaign info + stats + recipient table
+- `CampaignRecipientTable.tsx` — Recipients with status badges, filter, CSV export
+
+### Phase C7: SMS Campaigns
+
+Reuses C4/C5 infrastructure. SMS path in `sendBatch()` (Twilio + messages table). SMS content step with char count + segments indicator. A2P warning banner if not approved. "Reply STOP to unsubscribe" auto-appended.
+
+### Phase C8: Polish + Settings
+
+- Campaign settings in Settings page (default batch/interval, warmup, sender name/email)
+- Sidebar "Marketing" section grouping (Campaigns, Email Templates)
+- Settings keys: `campaign_default_batch_size`, `campaign_default_batch_interval`, `campaign_warmup_enabled`, `campaign_sender_name`, `campaign_sender_email`
+
+### Key Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| Block-based email builder (not drag-and-drop) | Full D&D is 3-4x complexity. Block palette + up/down reorder ≈ 1 QB step |
+| `marketing_unsubscribed` separate from `do_not_contact` | Marketing opt-out shouldn't block transactional follow-ups |
+| Denormalized stats on campaigns | Avoids COUNT(*) on recipients for every list view |
+| Cron-based batch sending | Matches existing architecture. No Redis/BullMQ needed |
+| Segment filter as JSONB | Flexible rule schema, evolvable without migrations |
+| Resend message_id direct matching | Campaign recipients store resend_message_id for reliable 1:1 matching |
+
+---
+
 ## PHASE 11: Native App Store Distribution (Future)
 
 Wrap the existing PWA in a native shell using Capacitor for Apple App Store and Google Play Store distribution. Not needed while the user base is internal (Comfort Pros on the Genesis team), but becomes valuable when selling to other HVAC companies or when Apple improves PWA app review policies.
