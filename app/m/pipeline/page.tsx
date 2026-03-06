@@ -1,26 +1,15 @@
 import { redirect } from "next/navigation";
+import { getAuthUser } from "@/lib/supabase/auth-cache";
 import { createClient } from "@/lib/supabase/server";
 import MobilePipelineList from "./MobilePipelineList";
 
 export default async function MobilePipelinePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getAuthUser();
   if (!user) redirect("/login");
 
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  const isAdmin = user.role === "admin";
+  const supabase = await createClient();
 
-  if (!dbUser) redirect("/login");
-
-  const isAdmin = dbUser.role === "admin";
-
-  // Build query — comfort pros see only their own estimates
   let query = supabase
     .from("estimates")
     .select(

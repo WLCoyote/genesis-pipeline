@@ -1,29 +1,17 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/supabase/auth-cache";
 import MobileProfile from "./MobileProfile";
 
 export default async function MobileProfilePage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getAuthUser();
   if (!user) redirect("/login");
-
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("name, role, email, phone")
-    .eq("id", user.id)
-    .single();
-
-  if (!dbUser) redirect("/login");
 
   return (
     <MobileProfile
-      name={dbUser.name}
-      email={dbUser.email || user.email || ""}
-      role={dbUser.role}
-      phone={dbUser.phone}
+      name={user.name}
+      email={user.email}
+      role={user.role}
+      phone={user.phone}
     />
   );
 }

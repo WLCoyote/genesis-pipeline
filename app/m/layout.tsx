@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/supabase/auth-cache";
 import { UserRole } from "@/lib/types";
 import MobileShell from "./MobileShell";
 
@@ -8,26 +8,13 @@ export default async function MobileLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   if (!user) {
     redirect("/login");
   }
 
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("name, role")
-    .eq("id", user.id)
-    .single();
-
-  if (!dbUser) {
-    redirect("/login");
-  }
-
-  const role = dbUser.role as UserRole;
+  const role = user.role as UserRole;
 
   // Only comfort_pro and admin can access mobile app
   if (role === "csr") {
@@ -35,7 +22,7 @@ export default async function MobileLayout({
   }
 
   return (
-    <MobileShell role={role} userName={dbUser.name} userId={user.id}>
+    <MobileShell role={role} userName={user.name} userId={user.id}>
       {children}
     </MobileShell>
   );

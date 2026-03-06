@@ -1,4 +1,5 @@
 import { redirect, notFound } from "next/navigation";
+import { getAuthUser } from "@/lib/supabase/auth-cache";
 import { createClient } from "@/lib/supabase/server";
 import MobileEstimateDetail from "./MobileEstimateDetail";
 
@@ -8,21 +9,11 @@ export default async function MobileEstimateDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) redirect("/login");
 
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (!dbUser) redirect("/login");
-  const isAdmin = dbUser.role === "admin";
+  const isAdmin = user.role === "admin";
+  const supabase = await createClient();
 
   const { data: estimate, error } = await supabase
     .from("estimates")

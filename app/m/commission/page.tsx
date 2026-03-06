@@ -1,27 +1,17 @@
 import { redirect } from "next/navigation";
+import { getAuthUser } from "@/lib/supabase/auth-cache";
 import { createClient } from "@/lib/supabase/server";
 import CommissionDashboard from "@/app/components/CommissionDashboard";
 
 export default async function MobileCommissionPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getAuthUser();
   if (!user) redirect("/login");
 
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .single();
-
-  if (!dbUser) redirect("/login");
-
-  const isAdmin = dbUser.role === "admin";
+  const isAdmin = user.role === "admin";
 
   let teamMembers: { id: string; name: string }[] = [];
   if (isAdmin) {
+    const supabase = await createClient();
     const { data: users } = await supabase
       .from("users")
       .select("id, name")

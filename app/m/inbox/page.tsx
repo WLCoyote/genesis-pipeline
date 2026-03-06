@@ -1,26 +1,15 @@
 import { redirect } from "next/navigation";
+import { getAuthUser } from "@/lib/supabase/auth-cache";
 import { createClient } from "@/lib/supabase/server";
 import MobileInboxList from "./MobileInboxList";
 
 export default async function MobileInboxPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
+  const user = await getAuthUser();
   if (!user) redirect("/login");
 
-  const { data: dbUser } = await supabase
-    .from("users")
-    .select("role")
-    .eq("id", user.id)
-    .single();
+  const isAdmin = user.role === "admin";
+  const supabase = await createClient();
 
-  if (!dbUser) redirect("/login");
-
-  const isAdmin = dbUser.role === "admin";
-
-  // Get user's estimates with customer info
   let estQuery = supabase
     .from("estimates")
     .select("id, estimate_number, customers(name)")
@@ -47,7 +36,6 @@ export default async function MobileInboxPage() {
     return <MobileInboxList threads={[]} userId={user.id} />;
   }
 
-  // Get recent messages for those estimates
   const { data: messages } = await supabase
     .from("messages")
     .select("estimate_id, direction, body, created_at")
@@ -56,7 +44,6 @@ export default async function MobileInboxPage() {
     .order("created_at", { ascending: false })
     .limit(500);
 
-  // Build threads — only keep latest message per estimate
   const seen = new Set<string>();
   const threads: Array<{
     estimate_id: string;
