@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getAuthUser } from "@/lib/supabase/auth-cache";
 import { UserRole } from "@/lib/types";
 import MobileShell from "./MobileShell";
+import PendingApproval from "@/app/components/PendingApproval";
 
 export default async function MobileLayout({
   children,
@@ -12,6 +13,10 @@ export default async function MobileLayout({
 
   if (!user) {
     redirect("/login");
+  }
+
+  if (!user.is_active) {
+    return <PendingApproval message="Your account is pending approval. An admin will review and activate your access shortly." />;
   }
 
   const role = user.role as UserRole;

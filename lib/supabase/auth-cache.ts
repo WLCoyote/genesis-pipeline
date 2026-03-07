@@ -16,7 +16,7 @@ export const getAuthUser = cache(async () => {
 
   const { data: dbUser } = await supabase
     .from("users")
-    .select("id, name, role, email, phone")
+    .select("id, name, role, email, phone, is_active")
     .eq("id", user.id)
     .single();
 
@@ -28,5 +28,6 @@ export const getAuthUser = cache(async () => {
     role: dbUser.role as string,
     email: (dbUser.email as string) || user.email || "",
     phone: dbUser.phone as string | null,
+    is_active: dbUser.is_active as boolean,
   };
 });

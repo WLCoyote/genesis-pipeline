@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import DashboardShell from "./DashboardShell";
+import PendingApproval from "@/app/components/PendingApproval";
 import { UserRole } from "@/lib/types";
 
 export default async function DashboardLayout({
@@ -20,25 +21,18 @@ export default async function DashboardLayout({
   // Get user profile from our users table
   const { data: dbUser } = await supabase
     .from("users")
-    .select("name, role")
+    .select("name, role, is_active")
     .eq("id", user.id)
     .single();
 
   // If user exists in auth but not in our users table, they're not set up yet
   if (!dbUser) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-8 text-center max-w-sm">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
-            Account Not Configured
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Your Google account is authenticated, but you haven&apos;t been added
-            to the Genesis Pipeline system yet. Ask your admin to add you.
-          </p>
-        </div>
-      </div>
-    );
+    return <PendingApproval message="Your Google account is authenticated, but you haven't been added to the Genesis Pipeline system yet. Ask your admin to add you." />;
+  }
+
+  // User exists but hasn't been approved yet
+  if (!dbUser.is_active) {
+    return <PendingApproval message="Your account is pending approval. An admin will review and activate your access shortly." />;
   }
 
   return (

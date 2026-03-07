@@ -51,6 +51,15 @@ export async function GET(request: NextRequest) {
                 .from("user_invites")
                 .delete()
                 .eq("id", invite.id);
+            } else {
+              // External user with no invite — auto-create as inactive (pending approval)
+              await serviceClient.from("users").insert({
+                id: user.id,
+                email: userEmail,
+                name: user.user_metadata?.full_name || user.user_metadata?.name || userEmail.split("@")[0],
+                role: "comfort_pro",
+                is_active: false,
+              });
             }
           }
         }
